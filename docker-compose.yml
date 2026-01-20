@@ -9,6 +9,6 @@ services:
     working_dir: /app
     ports:
       - "3000:3000"
-    image: t3-app
+    image: cinemate
     env_file:
       - .env
