@@ -11,11 +11,11 @@
 
 ## Project Summary and Vision
 
-Cinemate is a full-stack web application built to modernize the cinema ticket-booking experience, with a focus on making group movie plans simple, clear, and enjoyable. Coordinating a movie outing with friends is often frustrating: managing showtimes, seat availability, and payments separately leads to confusion. And when one person books for everyone, they’re burdened with collecting payments afterwards.
+**Cinemate** is a full-stack web application built to modernize the cinema ticket-booking experience, with a focus on making group movie plans simple, clear, and enjoyable. Coordinating a movie outing with friends is often frustrating: managing showtimes, seat availability, and payments separately leads to confusion. And when one person books for everyone, they’re burdened with collecting payments afterwards.
 
-Cinemate solves this by combining a standard ticketing flow with a Watch Party feature that allows one person to book for the group while everyone pays individually. This removes the need for collecting payments afterwards and prevents last-minute confusion, making group movie planning as seamless as booking a ticket alone. 
+**Cinemate** solves this by combining a standard ticketing flow with a **Watch Party** feature that allows one person to book for the group while everyone pays individually. This removes the need for collecting payments afterwards and prevents last-minute confusion, making group movie planning as seamless as booking a ticket alone. 
 
-Our goal is to offer movie-goers the flexibility to plan group outings without the usual hassle—allowing one person to organize the tickets while everyone pays individually. Cinemate makes it simple: watch together, pay apart.
+Our goal is to offer movie-goers the flexibility to plan group outings without the usual hassle—allowing one person to organize the tickets while everyone pays individually. **Cinemate** makes it simple: ***watch together, pay apart***.
 
 ## Core Functional Features
 
