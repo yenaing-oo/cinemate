@@ -48,8 +48,8 @@ model User {
     accounts Account[]
 
     // Cinemate relations
-    bookings         Booking[]
-    seatReservations SeatReservation[]
+    bookings  Booking[]
+    heldSeats ShowtimeSeat[]
 }
 
 // ==================== MOVIES ====================
@@ -80,12 +80,12 @@ model Movie {
 // ==================== SEATS ====================
 
 model Seat {
-    id       String  @id @default(cuid())
-    row      Int // Row number (1=A, 2=B, etc.)
-    number   Int // Seat number within row
+    id     String @id @default(cuid())
+    row    Int // Row number (1=A, 2=B, etc.)
+    number Int // Seat number within row
 
-    tickets          Ticket[]
-    seatReservations SeatReservation[]
+    tickets       Ticket[]
+    showtimeSeats ShowtimeSeat[]
 
     @@unique([row, number])
 }
@@ -103,9 +103,9 @@ model Showtime {
     createdAt      DateTime @default(now())
     updatedAt      DateTime @updatedAt
 
-    tickets          Ticket[]
-    seatReservations SeatReservation[]
-    bookings         Booking[]
+    tickets       Ticket[]
+    showtimeSeats ShowtimeSeat[]
+    bookings      Booking[]
 
     @@index([movieId])
     @@index([startTime])
@@ -151,8 +151,8 @@ model Ticket {
     createdAt  DateTime     @default(now())
     updatedAt  DateTime     @updatedAt
 
-    @@unique([seatId, showtimeId]) // Prevents double-booking same seat for same showtime
     @@index([bookingId])
+    @@index([seatId, showtimeId])
 }
 
 enum TicketStatus {
@@ -160,19 +160,32 @@ enum TicketStatus {
     CANCELLED
 }
 
-// Temporary seat reservation during checkout
-model SeatReservation {
-    id         String   @id @default(cuid())
-    seatId     String
-    seat       Seat     @relation(fields: [seatId], references: [id], onDelete: Cascade)
-    showtimeId String
-    showtime   Showtime @relation(fields: [showtimeId], references: [id], onDelete: Cascade)
-    userId     String
-    user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-    expiresAt  DateTime // Auto-release after 10 minutes
-    createdAt  DateTime @default(now())
+// ==================== SEAT AVAILABILITY ====================
 
-    @@unique([seatId, showtimeId])
+// Denormalized table for efficient seat availability queries
+// One row entry per seat per showtime - created when showtime is created
+model ShowtimeSeat {
+    id           String     @id @default(cuid())
+    showtimeId   String
+    showtime     Showtime   @relation(fields: [showtimeId], references: [id], onDelete: Cascade)
+    seatId       String
+    seat         Seat       @relation(fields: [seatId], references: [id], onDelete: Cascade)
+    status       SeatStatus @default(AVAILABLE)
+    // Reservation info (when status = RESERVED)
+    heldByUserId String?
+    heldBy       User?      @relation(fields: [heldByUserId], references: [id], onDelete: SetNull)
+    heldAt       DateTime?
+    expiresAt    DateTime? // Auto-release after 10 minutes
+    updatedAt    DateTime   @updatedAt
+
+    @@unique([showtimeId, seatId])
+    @@index([showtimeId, status])
     @@index([expiresAt])
-    @@index([userId])
+    @@index([heldByUserId])
+}
+
+enum SeatStatus {
+    AVAILABLE
+    RESERVED // Temporarily held during checkout
+    BOOKED // Ticket purchased
 }
