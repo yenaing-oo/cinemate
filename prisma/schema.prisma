@@ -104,8 +104,9 @@ model Showtime {
     createdAt      DateTime @default(now())
     updatedAt      DateTime @updatedAt
 
-    bookings         Booking[]
+    tickets          Ticket[]
     seatReservations SeatReservation[]
+    bookings         Booking[]
 
     @@index([movieId])
     @@index([startTime])
@@ -139,17 +140,19 @@ enum BookingStatus {
 }
 
 model Ticket {
-    id        String       @id @default(cuid())
-    bookingId String
-    booking   Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-    seatId    String
-    seat      Seat         @relation(fields: [seatId], references: [id])
-    price     Decimal      @db.Decimal(10, 2)
-    status    TicketStatus @default(VALID)
-    createdAt DateTime     @default(now())
-    updatedAt DateTime     @updatedAt
+    id         String       @id @default(cuid())
+    bookingId  String
+    booking    Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+    seatId     String
+    seat       Seat         @relation(fields: [seatId], references: [id])
+    showtimeId String
+    showtime   Showtime     @relation(fields: [showtimeId], references: [id])
+    price      Decimal      @db.Decimal(10, 2)
+    status     TicketStatus @default(VALID)
+    createdAt  DateTime     @default(now())
+    updatedAt  DateTime     @updatedAt
 
-    @@unique([bookingId, seatId])
+    @@unique([seatId, showtimeId]) // Prevents double-booking same seat for same showtime
     @@index([bookingId])
 }
 
