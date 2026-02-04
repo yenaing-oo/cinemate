@@ -16,31 +16,20 @@ datasource db {
     directUrl = env("DIRECT_URL")
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+// ==================== AUTHENTICATION (NextAuth) ====================
 
-    createdBy   User   @relation(fields: [createdById], references: [id])
-    createdById String
-
-    @@index([name])
-}
-
-// Necessary for Next auth
 model Account {
     id                       String  @id @default(cuid())
     userId                   String
     type                     String
     provider                 String
     providerAccountId        String
-    refresh_token            String? // @db.Text
-    access_token             String? // @db.Text
+    refresh_token            String? @db.Text
+    access_token             String? @db.Text
     expires_at               Int?
     token_type               String?
     scope                    String?
-    id_token                 String? // @db.Text
+    id_token                 String? @db.Text
     session_state            String?
     user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
     refresh_token_expires_in Int?
@@ -48,23 +37,19 @@ model Account {
     @@unique([provider, providerAccountId])
 }
 
-model Session {
-    id           String   @id @default(cuid())
-    sessionToken String   @unique
-    userId       String
-    expires      DateTime
-    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
 model User {
-    id            String    @id @default(cuid())
-    name          String?
-    email         String?   @unique
-    emailVerified DateTime?
-    image         String?
-    accounts      Account[]
-    sessions      Session[]
-    posts         Post[]
+    id               String    @id @default(cuid())
+    name             String?
+    email            String?   @unique
+    emailVerified    DateTime?
+    image            String?
+    hasPaymentMethod Boolean   @default(false)
+
+    accounts Account[]
+
+    // Cinemate relations
+    bookings         Booking[]
+    seatReservations SeatReservation[]
 }
 
 model VerificationToken {
@@ -73,4 +58,127 @@ model VerificationToken {
     expires    DateTime
 
     @@unique([identifier, token])
+}
+
+// ==================== MOVIES ====================
+
+model Movie {
+    id          String   @id @default(cuid())
+    title       String
+    description String?  @db.Text
+    runtime     Int // Duration in minutes
+    rating      Float? // Average rating (e.g., 8.5)
+    releaseDate DateTime
+    posterUrl   String?
+    backdropUrl String?
+    trailerUrl  String?
+    genres      String? // Comma-separated: "Action, Sci-Fi, Thriller"
+    languages   String? // Comma-separated: "English, Spanish"
+    cast        String?  @db.Text // Comma-separated: "Tom Hanks, Meg Ryan"
+    directors   String? // Comma-separated: "Christopher Nolan"
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    showtimes Showtime[]
+
+    @@index([title])
+    @@index([releaseDate])
+}
+
+// ==================== SEATS ====================
+
+model Seat {
+    id       String  @id @default(cuid())
+    row      Int // Row number (1=A, 2=B, etc.)
+    number   Int // Seat number within row
+    isActive Boolean @default(true)
+
+    tickets          Ticket[]
+    seatReservations SeatReservation[]
+
+    @@unique([row, number])
+}
+
+// ==================== SHOWTIMES ====================
+
+model Showtime {
+    id             String   @id @default(cuid())
+    movieId        String
+    movie          Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+    startTime      DateTime
+    endTime        DateTime
+    price          Decimal  @db.Decimal(10, 2)
+    availableSeats Int // Cached count for quick filtering
+    createdAt      DateTime @default(now())
+    updatedAt      DateTime @updatedAt
+
+    bookings         Booking[]
+    seatReservations SeatReservation[]
+
+    @@index([movieId])
+    @@index([startTime])
+    @@index([movieId, startTime])
+}
+
+// ==================== BOOKINGS & TICKETS ====================
+
+model Booking {
+    id          String        @id @default(cuid())
+    userId      String
+    user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+    showtimeId  String
+    showtime    Showtime      @relation(fields: [showtimeId], references: [id])
+    ticketCount Int
+    totalAmount Decimal       @db.Decimal(10, 2)
+    status      BookingStatus @default(CONFIRMED)
+    createdAt   DateTime      @default(now())
+    updatedAt   DateTime      @updatedAt
+
+    tickets Ticket[]
+
+    @@index([userId])
+    @@index([showtimeId])
+    @@index([status])
+}
+
+enum BookingStatus {
+    CONFIRMED
+    CANCELLED
+}
+
+model Ticket {
+    id        String       @id @default(cuid())
+    bookingId String
+    booking   Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+    seatId    String
+    seat      Seat         @relation(fields: [seatId], references: [id])
+    price     Decimal      @db.Decimal(10, 2)
+    status    TicketStatus @default(VALID)
+    createdAt DateTime     @default(now())
+    updatedAt DateTime     @updatedAt
+
+    @@unique([bookingId, seatId])
+    @@index([bookingId])
+}
+
+enum TicketStatus {
+    VALID
+    CANCELLED
+}
+
+// Temporary seat reservation during checkout
+model SeatReservation {
+    id         String   @id @default(cuid())
+    seatId     String
+    seat       Seat     @relation(fields: [seatId], references: [id], onDelete: Cascade)
+    showtimeId String
+    showtime   Showtime @relation(fields: [showtimeId], references: [id], onDelete: Cascade)
+    userId     String
+    user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    expiresAt  DateTime // Auto-release after 10 minutes
+    createdAt  DateTime @default(now())
+
+    @@unique([seatId, showtimeId])
+    @@index([expiresAt])
+    @@index([userId])
 }
