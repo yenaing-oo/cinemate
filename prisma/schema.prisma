@@ -83,7 +83,6 @@ model Seat {
     id       String  @id @default(cuid())
     row      Int // Row number (1=A, 2=B, etc.)
     number   Int // Seat number within row
-    isActive Boolean @default(true)
 
     tickets          Ticket[]
     seatReservations SeatReservation[]
