@@ -91,4 +91,5 @@ The application will be available at [http://localhost:3000](http://localhost:30
 - `pnpm db:generate` - Use after you change `schema.prisma` or pulled schema changes from Git. Creates a migration file if schema has changed, or applies existing migrations if DB is behind, and regenerates Prisma Client.
 - `pnpm db:push` - Use when you want to force the database to match the schema (skips migrations). May ask to reset DB on destructive changes. Use with caution.
 - `pnpm prisma generate` - Does not touch the database, just regenerates Prisma Client based on the current schema.
+- `pnpm db:reset` - Resets the database (drops all data) and applies all migrations from scratch. Use with caution.
 - `pnpm db:studio` - Open Prisma Studio for database management
