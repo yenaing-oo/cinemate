@@ -1,79 +1,106 @@
 import Link from "next/link";
 
-import { Greeting } from "~/app/_components/greeting";
 import { auth } from "~/server/auth";
 import { api, HydrateClient } from "~/trpc/server";
 
 export default async function Home() {
-    const hello = await api.example.hello({ text: "from tRPC" });
     const session = await auth();
 
     void api.example.hello.prefetch({ text: "from tRPC" });
 
     return (
         <HydrateClient>
-            <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-                <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-                    <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-                        Create{" "}
-                        <span className="text-[hsl(280,100%,70%)]">T3</span> App
-                    </h1>
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-                        <Link
-                            className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-                            href="https://create.t3.gg/en/usage/first-steps"
-                            target="_blank"
-                        >
-                            <h3 className="text-2xl font-bold">
-                                First Steps →
-                            </h3>
-                            <div className="text-lg">
-                                Just the basics - Everything you need to know to
-                                set up your database and authentication.
-                            </div>
-                        </Link>
-                        <Link
-                            className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-                            href="https://create.t3.gg/en/introduction"
-                            target="_blank"
-                        >
-                            <h3 className="text-2xl font-bold">
-                                Documentation →
-                            </h3>
-                            <div className="text-lg">
-                                Learn more about Create T3 App, the libraries it
-                                uses, and how to deploy it.
-                            </div>
-                        </Link>
-                    </div>
-                    <div className="flex flex-col items-center gap-2">
-                        <p className="text-2xl text-white">
-                            {hello ? hello.greeting : "Loading tRPC query..."}
-                        </p>
-
-                        <div className="flex flex-col items-center justify-center gap-4">
-                            <p className="text-center text-2xl text-white">
-                                {session && (
-                                    <span>
-                                        Logged in as {session.user?.name}
-                                    </span>
-                                )}
-                            </p>
+            <main className="min-h-screen bg-[#0b0b0b] text-white">
+                {/* Header */}
+                <header className="w-full border-b border-white/10 relative z-20">
+                    <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+                        <h1 className="text-2xl font-bold text-red-600">
+                            Cinemate
+                        </h1>
+                        <nav className="flex items-center gap-6 text-sm">
+                            <Link href="#">Movies</Link>
+                            <Link href="#">WatchParty</Link>
                             <Link
                                 href={
                                     session
                                         ? "/api/auth/signout"
                                         : "/api/auth/signin"
                                 }
-                                className="rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20"
+                                className="rounded-md bg-red-600 px-4 py-2 font-semibold hover:bg-red-700"
                             >
                                 {session ? "Sign out" : "Sign in"}
                             </Link>
-                        </div>
+                        </nav>
                     </div>
+                </header>
 
-                    {session?.user && <Greeting />}
-                </div>
+                {/* Main Section with Video */}
+                <section className="relative h-[70vh] w-full overflow-hidden">
+                    {/* Background Video */}
+                    <video
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        className="absolute inset-0 h-full w-full object-cover"
+                    >
+                        <source src="/video/homepage.mp4" type="video/mp4" />
+                    </video>
+
+                    {/* Dark Overlay */}
+                    <div className="absolute inset-0 bg-black/70"></div>
+
+                    {/* Main Content */}
+                    <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
+                        <h2 className="text-5xl font-extrabold">
+                            Experience Movies Like Never Before
+                        </h2>
+                        <p className="mt-4 max-w-2xl text-lg text-white/80">
+                            Watch the latest blockbusters in premium theatres
+                            with immersive sound and picture quality.
+                        </p>
+                        <Link
+                            href="#now-playing"
+                            className="mt-6 rounded-md bg-red-600 px-8 py-3 text-lg font-semibold hover:bg-red-700"
+                        >
+                            View Showtimes
+                        </Link>
+                    </div>
+                </section>
+
+                {/* Now Playing Section */}
+                <section
+                    id="now-playing"
+                    className="mx-auto max-w-7xl px-6 py-16"
+                >
+                    <h3 className="mb-8 text-3xl font-bold">Now Playing</h3>
+                    <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
+                        {[
+                            "Movie One",
+                            "Movie Two",
+                            "Movie Three",
+                            "Movie Four",
+                        ].map((movie) => (
+                            <div
+                                key={movie}
+                                className="rounded-lg bg-white/5 p-4 hover:bg-white/10"
+                            >
+                                <div className="mb-3 h-56 w-full rounded-md bg-white/10" />
+                                <h4 className="text-lg font-semibold">
+                                    {movie}
+                                </h4>
+                                <p className="text-sm text-white/70">
+                                    Action · 2h 15m
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                {/* Footer */}
+                <footer className="border-t border-white/10 py-6 text-center text-sm text-white/60">
+                    © {new Date().getFullYear()} Cinemate. All rights reserved.
+                </footer>
             </main>
         </HydrateClient>
     );
