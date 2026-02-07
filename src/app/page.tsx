@@ -40,7 +40,7 @@ export default async function Home() {
                     className="text-white"
                     style={{
                         background:
-                            "radial-gradient(circle at 10% 0%, rgba(255, 154, 92, 0.2), rgba(7, 18, 36, 0) 40%), radial-gradient(circle at 90% 22%, rgba(53, 151, 255, 0.22), rgba(7, 18, 36, 0) 38%), #071224",
+                            "radial-gradient(circle at 10% 0%, rgba(72, 214, 255, 0.2), rgba(7, 13, 24, 0) 42%), radial-gradient(circle at 88% 18%, rgba(255, 181, 92, 0.16), rgba(7, 13, 24, 0) 38%), #070d18",
                     }}
                 >
                     <section
@@ -61,7 +61,7 @@ export default async function Home() {
                             className="position-absolute top-0 start-0 w-100 h-100"
                             style={{
                                 background:
-                                    "linear-gradient(180deg, rgba(6, 12, 23, 0.38) 0%, rgba(6, 12, 23, 0.84) 58%, rgba(6, 12, 23, 0.98) 100%), radial-gradient(circle at 18% 8%, rgba(255, 154, 92, 0.3), rgba(6, 12, 23, 0) 46%), radial-gradient(circle at 85% 12%, rgba(53, 151, 255, 0.3), rgba(6, 12, 23, 0) 40%)",
+                                    "linear-gradient(180deg, rgba(6, 11, 22, 0.34) 0%, rgba(6, 11, 22, 0.84) 58%, rgba(6, 11, 22, 0.98) 100%), radial-gradient(circle at 18% 8%, rgba(92, 196, 255, 0.28), rgba(6, 11, 22, 0) 46%), radial-gradient(circle at 85% 12%, rgba(255, 181, 92, 0.22), rgba(6, 11, 22, 0) 40%)",
                             }}
                         />
 
@@ -71,9 +71,9 @@ export default async function Home() {
                                     className="rounded-4 px-3 py-2"
                                     style={{
                                         border:
-                                            "1px solid rgba(255, 255, 255, 0.16)",
+                                            "1px solid rgba(122, 206, 255, 0.32)",
                                         background:
-                                            "linear-gradient(180deg, rgba(9, 17, 30, 0.75), rgba(9, 17, 30, 0.38))",
+                                            "linear-gradient(180deg, rgba(10, 20, 36, 0.82), rgba(10, 20, 36, 0.42))",
                                         backdropFilter: "blur(10px)",
                                     }}
                                 >
@@ -102,12 +102,12 @@ export default async function Home() {
                                         <nav className="col-md-6 d-none d-md-flex justify-content-center">
                                             <div
                                                 className="d-inline-flex align-items-center gap-4 px-4 py-2 rounded-pill"
-                                                style={{
-                                                    background:
-                                                        "rgba(255,255,255,0.08)",
-                                                    border: "1px solid rgba(255,255,255,0.14)",
-                                                }}
-                                            >
+                                            style={{
+                                                background:
+                                                    "rgba(14, 30, 54, 0.62)",
+                                                border: "1px solid rgba(115, 207, 255, 0.36)",
+                                            }}
+                                        >
                                                 <Link
                                                     href="#now-playing"
                                                     className="text-decoration-none text-white fw-medium"
@@ -140,7 +140,7 @@ export default async function Home() {
                                                 style={{
                                                     color: "#ffffff",
                                                     background:
-                                                        "linear-gradient(90deg, #f05d42, #f18745)",
+                                                        "linear-gradient(90deg, #20c9ff, #4e7dff)",
                                                     border: "none",
                                                 }}
                                             >
@@ -164,7 +164,7 @@ export default async function Home() {
                                         className="text-uppercase fw-semibold mb-3"
                                         style={{
                                             letterSpacing: "0.12em",
-                                            color: "rgba(255,255,255,0.78)",
+                                            color: "rgba(185, 232, 255, 0.95)",
                                             fontSize: "0.84rem",
                                         }}
                                     >
@@ -178,7 +178,7 @@ export default async function Home() {
                                             letterSpacing: "0.01em",
                                         }}
                                     >
-                                        The big-screen experience, upgraded.
+                                        Watch Together. Pay Apart.
                                     </h2>
                                     <p
                                         className="lead mt-4 mx-auto"
@@ -187,10 +187,7 @@ export default async function Home() {
                                             color: "rgba(255,255,255,0.9)",
                                         }}
                                     >
-                                        Discover new releases, reserve your
-                                        favorite seats, and enjoy premium
-                                        formats in a modern cinema built for
-                                        movie nights.
+                                        Plan group movie nights with WatchParty: one person organizes seats, everyone pays individually, and your whole group stays in sync from booking to tickets.
                                     </p>
                                     <div className="d-flex flex-wrap justify-content-center gap-3 mt-4">
                                         <Link
@@ -199,7 +196,7 @@ export default async function Home() {
                                             style={{
                                                 color: "#ffffff",
                                                 background:
-                                                    "linear-gradient(90deg, #ec6d45, #f1a352)",
+                                                    "linear-gradient(90deg, #20c9ff, #4e7dff)",
                                                 border: "none",
                                             }}
                                         >
@@ -222,16 +219,16 @@ export default async function Home() {
                                             className="h-100 rounded-4 p-3 p-lg-4"
                                             style={{
                                                 border:
-                                                    "1px solid rgba(255,255,255,0.16)",
+                                                    "1px solid rgba(132, 206, 255, 0.24)",
                                                 background:
-                                                    "linear-gradient(180deg, rgba(11, 24, 44, 0.64), rgba(11, 24, 44, 0.42))",
+                                                    "linear-gradient(180deg, rgba(12, 28, 50, 0.76), rgba(12, 28, 50, 0.52))",
                                                 backdropFilter: "blur(8px)",
                                             }}
                                         >
                                             <p
                                                 className="mb-2 fw-semibold"
                                                 style={{
-                                                    color: "#8bcbff",
+                                                    color: "#79d7ff",
                                                     fontSize: "0.82rem",
                                                 }}
                                             >
@@ -270,7 +267,7 @@ export default async function Home() {
                         style={{
                             borderTop: "1px solid rgba(255,255,255,0.12)",
                             color: "rgba(255,255,255,0.7)",
-                            background: "#071224",
+                            background: "#070d18",
                         }}
                     >
                         © {new Date().getFullYear()} Cinemate. All rights
