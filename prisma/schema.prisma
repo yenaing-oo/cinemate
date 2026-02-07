@@ -64,11 +64,12 @@ model User {
 
 model Movie {
     id          String   @id @default(cuid())
+    tmdbId      Int      @unique        //TMDB ID
     title       String
     description String?  @db.Text
-    runtime     Int // Duration in minutes
+    runtime     Int? // Duration in minutes
     rating      Float? // Average rating (e.g., 8.5)
-    releaseDate DateTime
+    releaseDate DateTime?
     posterUrl   String?
     backdropUrl String?
     trailerUrl  String?
