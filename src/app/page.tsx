@@ -90,13 +90,16 @@ export default async function Home() {
 
             {/* HEADER */}
             <header className="position-fixed top-0 start-0 w-100 z-3">
-              <div className="container py-3">
-                <div
-                  className="rounded-4 px-3 py-2"
-                  style={{
-                    background: "rgba(10,20,36,0.75)",
-                    backdropFilter: "blur(10px)",
-                  }}
+                            <div className="container py-3">
+                                <div
+                                    className="rounded-4 px-3 py-2"
+                                    style={{
+                                        border:
+                                            "1px solid rgba(122, 206, 255, 0.32)",
+                                        background:
+                                            "linear-gradient(180deg, rgba(10, 20, 36, 0.82), rgba(10, 20, 36, 0.42))",
+                                        backdropFilter: "blur(10px)",
+                                    }}
                 >
                   <div className="row align-items-center">
                     <div className="col-6 col-md-3 d-flex align-items-center gap-2">

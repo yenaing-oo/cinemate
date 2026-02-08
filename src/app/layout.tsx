@@ -26,32 +26,70 @@ export default function RootLayout({
         <TRPCReactProvider>
           {/* GLOBAL HEADER */}
           <header className="position-fixed top-0 start-0 w-100 z-3">
-            <div className="container py-3">
-              <div
-                className="rounded-4 px-4 py-2 d-flex justify-content-between align-items-center"
-                style={{
-                  background: "rgba(10,20,36,0.75)",
-                  backdropFilter: "blur(10px)",
-                }}
-              >
-                <Link href="/" className="fw-bold fs-5 text-white text-decoration-none">
-                  Cinemate
-                </Link>
+  <div className="container py-3">
+    <div
+      className="rounded-4 px-3 py-2"
+      style={{
+        border: "1px solid rgba(122, 206, 255, 0.32)",
+        background:
+          "linear-gradient(180deg, rgba(10, 20, 36, 0.82), rgba(10, 20, 36, 0.42))",
+        backdropFilter: "blur(10px)",
+      }}
+    >
+      <div className="row align-items-center">
+        {/* LEFT: LOGO */}
+        <div className="col-6 col-md-3 d-flex align-items-center gap-2">
+        <Link
+            href="/"
+            className="d-flex align-items-center gap-2 text-white text-decoration-none"
+            style={{ cursor: "pointer" }}
+        >
+          <img
+            src="/favicon.png"
+            alt="Cinemate logo"
+            width={36}
+            height={36}
+            className="rounded-2"
+          />
+          <h1 className="m-0 fw-semibold fs-5">Cinemate</h1>
+          </Link>
+        </div>
 
-                <nav className="d-flex gap-4">
-                  <Link href="/movies" className="text-white text-decoration-none">
-                    Movies
-                  </Link>
-                  <Link href="#" className="text-white text-decoration-none">
-                    WatchParty
-                  </Link>
-                </nav>
-              </div>
-            </div>
-          </header>
+        {/* CENTER: NAV */}
+        <nav className="col-md-6 d-none d-md-flex justify-content-center gap-4">
+          <Link href="/movies" className="text-white text-decoration-none">
+            Movies
+          </Link>
+          <Link href="#watch-party" className="text-white text-decoration-none">
+            WatchParty
+          </Link>
+          <Link href="#" className="text-white text-decoration-none">
+            Order History
+          </Link>
+        </nav>
+
+        {/* RIGHT: SIGN IN */}
+        <div className="col-6 col-md-3 d-flex justify-content-end">
+          <Link
+            href="/api/auth/signin"
+            className="btn rounded-pill px-4 fw-semibold"
+            style={{
+              background: "linear-gradient(90deg,#20c9ff,#4e7dff)",
+              color: "#fff",
+              border: "none",
+            }}
+          >
+            Sign in
+          </Link>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
 
           {/* PAGE CONTENT */}
-          <main style={{ paddingTop: "96px" }}>{children}</main>
+          <main>{children}</main>
 
           {/* GLOBAL FOOTER */}
           <footer className="py-4 text-center text-white/60">
