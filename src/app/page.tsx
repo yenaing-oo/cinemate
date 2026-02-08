@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { auth } from "~/server/auth";
 import { api, HydrateClient } from "~/trpc/server";
-import NowPlaying from "./nowPlaying";
 
 const todayShowtimes = [
     {
@@ -207,9 +206,7 @@ export default async function Home() {
             </div>
           </section>
 
-          <footer className="border-t border-white/10 py-10 text-center text-sm text-white/60">
-            © {new Date().getFullYear()} Cinemate
-          </footer>
+
         </main>
       </>
     </HydrateClient>
