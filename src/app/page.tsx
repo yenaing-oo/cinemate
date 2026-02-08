@@ -2,12 +2,25 @@ import Image from "next/image";
 import Link from "next/link";
 import { auth } from "~/server/auth";
 import { api, HydrateClient } from "~/trpc/server";
+import NowPlaying from "./nowPlaying";
 
 const todayShowtimes = [
-  { title: "2012", details: "6:15 PM • Dolby Atmos" },
-  { title: "Jumanji: The Next Level", details: "7:40 PM • Dolby Atmos" },
-  { title: "Spider-Man: No Way Home", details: "9:05 PM • 3D + Dolby Atmos" },
-  { title: "The Batman", details: "10:30 PM • 3D" },
+    {
+        title: "2012",
+        details: "6:15 PM • Dolby Atmos",
+    },
+    {
+        title: "Jumanji: The Next Level",
+        details: "7:40 PM • Dolby Atmos",
+    },
+    {
+        title: "Spider Man: No Way Home",
+        details: "9:05 PM • 3D + Dolby Atmos",
+    },
+    {
+        title: "The Batman",
+        details: "10:30 PM • 3D",
+    },
 ];
 
 const nowPlaying = [
