@@ -3,15 +3,8 @@ import Link from "next/link";
 import { Greeting } from "~/app/_components/greeting";
 import { auth } from "~/server/auth";
 import { api, HydrateClient } from "~/trpc/server";
-import { db } from "~/server/db";
 
 export default async function Home() {
-    const movies = await db.movie.findMany({
-        take: 10,
-        orderBy: { updatedAt: "desc" },
-        select: { title: true, posterUrl: true, trailerUrl: true },
-    });
-
     const hello = await api.example.hello({ text: "from tRPC" });
     const session = await auth();
 
