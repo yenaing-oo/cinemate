@@ -66,10 +66,38 @@ jobs:
             - run: pnpm install --frozen-lockfile
             - run: pnpm prisma validate
 
+    test-frontend:
+        name: Test Frontend
+        runs-on: ubuntu-latest
+        needs: [typecheck, lint, prisma]
+        steps:
+            - uses: actions/checkout@v4
+            - uses: pnpm/action-setup@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: "pnpm"
+            - run: pnpm install --frozen-lockfile
+            - run: pnpm test:frontend -- --run
+
+    test-backend:
+        name: Test Backend
+        runs-on: ubuntu-latest
+        needs: [typecheck, lint, prisma]
+        steps:
+            - uses: actions/checkout@v4
+            - uses: pnpm/action-setup@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: "pnpm"
+            - run: pnpm install --frozen-lockfile
+            - run: pnpm test:backend -- --run
+
     build:
         name: Build
         runs-on: ubuntu-latest
-        needs: [typecheck, lint, prisma]
+        needs: [typecheck, lint, prisma, test-frontend, test-backend]
         steps:
             - uses: actions/checkout@v4
             - uses: pnpm/action-setup@v4
