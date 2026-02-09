@@ -6,9 +6,6 @@ import { api, HydrateClient } from "~/trpc/server";
 import { db } from "~/server/db";
 
 export default async function Home() {
-    await api.movies.saveNowPlaying();
-    await api.movies.repopulateMovieDetails();
-
     const movies = await db.movie.findMany({
         take: 10,
         orderBy: { updatedAt: "desc" },
@@ -57,61 +54,6 @@ export default async function Home() {
                                 uses, and how to deploy it.
                             </div>
                         </Link>
-                    </div>
-
-                    {/* ✅ Movies grid (poster + trailer link) */}
-                    <div className="w-full max-w-5xl">
-                        <h2 className="mb-4 text-2xl font-bold">
-                            Now Playing (DB)
-                        </h2>
-
-                        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
-                            {movies.map((m) => {
-                                const posterSrc = m.posterUrl
-                                    ? m.posterUrl.startsWith("http")
-                                        ? m.posterUrl
-                                        : `https://image.tmdb.org/t/p/w500${m.posterUrl}`
-                                    : "";
-
-                                return (
-                                    <div
-                                        key={m.title}
-                                        className="text-center text-sm"
-                                    >
-                                        <div className="mb-2 line-clamp-2">
-                                            {m.title}
-                                        </div>
-
-                                        {posterSrc ? (
-                                            <img
-                                                src={posterSrc}
-                                                alt={m.title}
-                                                className="w-full rounded-xl"
-                                            />
-                                        ) : (
-                                            <div className="rounded-xl bg-white/10 p-6">
-                                                No poster
-                                            </div>
-                                        )}
-
-                                        {m.trailerUrl ? (
-                                            <a
-                                                href={m.trailerUrl}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="mt-2 inline-block rounded-lg bg-white/10 px-3 py-1 text-xs hover:bg-white/20"
-                                            >
-                                                Watch trailer
-                                            </a>
-                                        ) : (
-                                            <div className="mt-2 text-xs text-white/60">
-                                                No trailer
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
                     </div>
 
                     <div className="flex flex-col items-center gap-2">

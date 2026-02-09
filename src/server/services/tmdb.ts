@@ -1,4 +1,4 @@
-const TMDB_BASE_URL = process.env.TMDB_BASE_URL;
+const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_TOKEN = process.env.TMDB_ACCESS_TOKEN;
 
 export async function fetchNowPlaying() {
@@ -24,49 +24,20 @@ export async function fetchNowPlaying() {
     return res.json();
 }
 
-export async function fetchMovieDetails(tmdbId: number) {
+export async function fetchMovieFull(tmdbId: number) {
     console.log(tmdbId);
-    const res = await fetch(`${TMDB_BASE_URL}/movie/${tmdbId}`, {
-        headers: {
-            Authorization: `Bearer ${TMDB_TOKEN}`,
-            "Content-Type": "application/json",
-        },
-    });
+    const res = await fetch(
+        `${TMDB_BASE_URL}/movie/${tmdbId}?append_to_response=credits%2Cvideos&language=en-US`,
+        {
+            headers: {
+                Authorization: `Bearer ${TMDB_TOKEN}`,
+                "Content-Type": "application/json",
+            },
+        }
+    );
 
     if (!res.ok) {
         throw new Error(`TMDB details fetch failed for ${tmdbId}`);
-    }
-
-    return res.json();
-}
-
-export async function fetchMovieCredits(tmdbId: number) {
-    console.log(tmdbId);
-    const res = await fetch(`${TMDB_BASE_URL}/movie/${tmdbId}/credits`, {
-        headers: {
-            Authorization: `Bearer ${TMDB_TOKEN}`,
-            "Content-Type": "application/json",
-        },
-    });
-
-    if (!res.ok) {
-        throw new Error(`TMDB credits fetch failed for ${tmdbId}`);
-    }
-
-    return res.json();
-}
-
-export async function fetchMovieVideos(tmdbId: number) {
-    console.log(tmdbId);
-    const res = await fetch(`${TMDB_BASE_URL}/movie/${tmdbId}/videos`, {
-        headers: {
-            Authorization: `Bearer ${TMDB_TOKEN}`,
-            "Content-Type": "application/json",
-        },
-    });
-
-    if (!res.ok) {
-        throw new Error(`TMDB credits fetch failed for ${tmdbId}`);
     }
 
     return res.json();
