@@ -31,7 +31,9 @@ async function main() {
         rows.push({
             tmdbId: m.id,
             title: m.title,
-            posterUrl: m.poster_path,
+            posterUrl: m.poster_path
+                ? `https://image.tmdb.org/t/p/w1280${m.poster_path}`
+                : null,
             description: full.overview ?? null,
             releaseDate: full.release_date
                 ? new Date(full.release_date)
