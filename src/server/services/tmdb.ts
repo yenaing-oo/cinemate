@@ -3,7 +3,7 @@ import { z } from "zod";
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_TOKEN = process.env.TMDB_ACCESS_TOKEN;
 
-const NowPlayingResponseSchema = z.object({
+export const NowPlayingResponseSchema = z.object({
     results: z.array(
         z.object({
             id: z.number(),
@@ -18,7 +18,7 @@ const NowPlayingResponseSchema = z.object({
     total_results: z.number(),
 });
 
-const MovieFullResponseSchema = z.object({
+export const MovieFullResponseSchema = z.object({
     overview: z.string(),
     release_date: z.string(),
     runtime: z.number().nullable(),
