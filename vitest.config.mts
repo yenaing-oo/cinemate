@@ -6,7 +6,6 @@ export default defineConfig({
     test: {
         projects: [
             {
-                name: "frontend",
                 plugins: [tsconfigPaths(), react()],
                 test: {
                     environment: "happy-dom",
@@ -16,7 +15,6 @@ export default defineConfig({
                 },
             },
             {
-                name: "backend",
                 plugins: [tsconfigPaths()],
                 test: {
                     environment: "node",
