@@ -64,6 +64,7 @@ model User {
 
 model Movie {
     id          String   @id @default(cuid())
+    tmdbId      Int      @unique        //TMDB ID
     title       String
     description String?  @db.Text
     runtime     Int // Duration in minutes
