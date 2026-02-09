@@ -20,6 +20,8 @@
         "preview": "next build && next start",
         "start": "next start",
         "test": "vitest",
+        "test:frontend": "vitest --project frontend",
+        "test:backend": "vitest --project backend",
         "typecheck": "tsc --noEmit"
     },
     "dependencies": {

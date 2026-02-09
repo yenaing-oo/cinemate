@@ -8,6 +8,7 @@ export default defineConfig({
             {
                 plugins: [tsconfigPaths(), react()],
                 test: {
+                    name: "frontend",
                     environment: "happy-dom",
                     globals: true,
                     include: ["src/app/**/*.test.{ts,tsx}"],
@@ -17,6 +18,7 @@ export default defineConfig({
             {
                 plugins: [tsconfigPaths()],
                 test: {
+                    name: "backend",
                     environment: "node",
                     include: [
                         "src/lib/**/*.test.ts",
