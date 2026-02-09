@@ -1,4 +1,4 @@
-import NowPlaying from "../nowPlaying";
+import NowPlaying from "./nowPlaying";
 
 export default function MoviesPage() {
   return (

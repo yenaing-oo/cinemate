@@ -4,22 +4,22 @@ import { auth } from "~/server/auth";
 import { api, HydrateClient } from "~/trpc/server";
 
 const todayShowtimes = [
-    {
-        title: "2012",
-        details: "6:15 PM • Dolby Atmos",
-    },
-    {
-        title: "Jumanji: The Next Level",
-        details: "7:40 PM • Dolby Atmos",
-    },
-    {
-        title: "Spider Man: No Way Home",
-        details: "9:05 PM • 3D + Dolby Atmos",
-    },
-    {
-        title: "The Batman",
-        details: "10:30 PM • 3D",
-    },
+  {
+    title: "2012",
+    details: "6:15 PM • Dolby Atmos",
+  },
+  {
+    title: "Jumanji: The Next Level",
+    details: "7:40 PM • Dolby Atmos",
+  },
+  {
+    title: "Spider Man: No Way Home",
+    details: "9:05 PM • 3D + Dolby Atmos",
+  },
+  {
+    title: "The Batman",
+    details: "10:30 PM • 3D",
+  },
 ];
 
 const nowPlaying = [
@@ -88,55 +88,6 @@ export default async function Home() {
               }}
             />
 
-            {/* HEADER */}
-            <header className="position-fixed top-0 start-0 w-100 z-3">
-                            <div className="container py-3">
-                                <div
-                                    className="rounded-4 px-3 py-2"
-                                    style={{
-                                        border:
-                                            "1px solid rgba(122, 206, 255, 0.32)",
-                                        background:
-                                            "linear-gradient(180deg, rgba(10, 20, 36, 0.82), rgba(10, 20, 36, 0.42))",
-                                        backdropFilter: "blur(10px)",
-                                    }}
-                >
-                  <div className="row align-items-center">
-                    <div className="col-6 col-md-3 d-flex align-items-center gap-2">
-                      <Image src="/favicon.png" alt="logo" width={36} height={36} />
-                      <h1 className="m-0 fw-semibold fs-5">Cinemate</h1>
-                    </div>
-
-                    <nav className="col-md-6 d-none d-md-flex justify-content-center gap-4">
-                      <Link href="/movies" className="text-white text-decoration-none">
-                        Movies
-                      </Link>
-                      <Link href="#watch-party" className="text-white text-decoration-none">
-                        WatchParty
-                      </Link>
-                      <Link href="#" className="text-white text-decoration-none">
-                        Order History
-                      </Link>
-                    </nav>
-
-                    <div className="col-6 col-md-3 d-flex justify-content-end">
-                      <Link
-                        href={session ? "/api/auth/signout" : "/api/auth/signin"}
-                        className="btn rounded-pill px-4 fw-semibold"
-                        style={{
-                          background: "linear-gradient(90deg,#20c9ff,#4e7dff)",
-                          color: "#fff",
-                          border: "none",
-                        }}
-                      >
-                        {session ? "Sign out" : "Sign in"}
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </header>
-
             {/* HERO CONTENT */}
             <div className="container position-relative z-2">
               <div
@@ -145,15 +96,15 @@ export default async function Home() {
               >
                 <div className="col-lg-8">
                   <h2 className="fw-bold display-4">
-                    Watch Together. Pay Apart.
+                    Make it a movie night.
                   </h2>
                   <p className="lead mt-3">
-                    Organize group movie nights with individual payments.
+                    One organizer, many payers, one smooth booking flow.
                   </p>
                 </div>
               </div>
 
-              {/* TONIGHT SHOWTIMES */}
+              {/* TONIGHT SHOWTIMES : Hard code for now */}
               <div className="row g-3 pb-5">
                 {todayShowtimes.map((show) => (
                   <div key={show.title} className="col-12 col-md-6 col-xl-3">
@@ -176,7 +127,7 @@ export default async function Home() {
             </div>
           </section>
 
-          {/* NOW PLAYING */}
+          {/* NOW PLAYING : Hard code for now */} 
           <section className="mx-auto max-w-7xl px-6 py-20">
             <div className="mb-10 flex items-center justify-between">
               <h3 className="text-3xl font-bold">Now Playing</h3>
@@ -208,7 +159,6 @@ export default async function Home() {
               ))}
             </div>
           </section>
-
 
         </main>
       </>
