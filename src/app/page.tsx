@@ -3,6 +3,8 @@ import Link from "next/link";
 import { auth } from "~/server/auth";
 import { api, HydrateClient } from "~/trpc/server";
 
+
+
 const todayShowtimes = [
     {
         title: "2012",
