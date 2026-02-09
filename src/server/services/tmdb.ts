@@ -54,8 +54,7 @@ export const MovieFullResponseSchema = z.object({
 export async function fetchNowPlaying(): Promise<
     z.infer<typeof NowPlayingResponseSchema>
 > {
-    console.log("TMDB token starts with:", TMDB_TOKEN?.slice(0, 10));
-
+    console.log("Fetching now playing movies");
     const res = await fetch(
         `${TMDB_BASE_URL}/movie/now_playing?language=en-US&region=CA&page=1`,
         {
@@ -81,7 +80,7 @@ export async function fetchNowPlaying(): Promise<
 export async function fetchMovieFull(
     tmdbId: number
 ): Promise<z.infer<typeof MovieFullResponseSchema>> {
-    console.log(tmdbId);
+    console.log("Fetching details for TMDB ID:", tmdbId);
     const res = await fetch(
         `${TMDB_BASE_URL}/movie/${tmdbId}?append_to_response=credits%2Cvideos&language=en-US`,
         {

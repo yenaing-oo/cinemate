@@ -84,6 +84,7 @@ pnpm dev
 
 The application will be available at [http://localhost:3000](http://localhost:3000).
 
+
 ## Useful Scripts
 
 - `pnpm dev` - Start development server
@@ -93,4 +94,4 @@ The application will be available at [http://localhost:3000](http://localhost:30
 - `pnpm prisma generate` - Does not touch the database, just regenerates Prisma Client based on the current schema.
 - `pnpm db:reset` - Resets the database (drops all data) and applies all migrations from scratch. Use with caution.
 - `pnpm db:studio` - Open Prisma Studio for database management
-- `pnpm tsx scripts/syncMovies.ts` - Sync movies from TMDB. Fetches the top 10 now-playing movie details and saves them to the database. Useful for initial seeding and testing in local development.
+- `pnpm sync:movies` - Sync movies from TMDB. Fetches the top 10 now-playing movie details and saves them to the database. Useful for initial seeding and testing in local development.

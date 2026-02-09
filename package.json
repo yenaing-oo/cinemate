@@ -20,6 +20,8 @@
         "preview": "next build && next start",
         "start": "next start",
         "typecheck": "tsc --noEmit"
+        ,
+        "sync:movies": "pnpm tsx scripts/syncMovies.ts"
     },
     "dependencies": {
         "@auth/prisma-adapter": "^2.7.2",

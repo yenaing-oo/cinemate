@@ -76,7 +76,7 @@ async function main() {
         )
     );
 
-    console.log(`Synced ${rows.length} movies`);
+    console.log(`Synced ${rows.length} movies to the database.`);
 }
 
 main()
