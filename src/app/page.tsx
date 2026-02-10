@@ -50,9 +50,6 @@ const nowPlaying = [
 ];
 
 export default async function Home() {
-    const session = await auth();
-    void api.example.hello.prefetch({ text: "from tRPC" });
-
     return (
         <HydrateClient>
             <>
