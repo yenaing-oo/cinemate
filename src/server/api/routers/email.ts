@@ -15,15 +15,29 @@ export const emailRouter = createTRPCRouter({
                 to: input.recipientEmail,
                 subject: "🎉 Booking Confirmed! - Cinemate",
                 react: TicketConfirmation({
-                    movieTitle: "Avatar: The way of water. And some really big text check!",
-                    posterUrl: "https://image.tmdb.org/t/p/original/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg",
+                    movieTitle:
+                        "Avatar: The way of water. And some really big text check!",
+                    posterUrl:
+                        "https://image.tmdb.org/t/p/original/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg",
                     date: "8 Feb, 2025",
                     time: "8:00 PM",
                     screen: "#1",
                     tickets: [
-                        { seatNumber: "A1", qrCodeUrl: "https://www.davidleonard.london/wp-content/uploads/2024/05/FI-QRcode-of-URL.png" },
-                        { seatNumber: "A2", qrCodeUrl: "https://www.davidleonard.london/wp-content/uploads/2024/05/FI-QRcode-of-URL.png" },
-                        { seatNumber: "A3", qrCodeUrl: "https://www.davidleonard.london/wp-content/uploads/2024/05/FI-QRcode-of-URL.png" }
+                        {
+                            seatNumber: "A1",
+                            qrCodeUrl:
+                                "https://www.davidleonard.london/wp-content/uploads/2024/05/FI-QRcode-of-URL.png",
+                        },
+                        {
+                            seatNumber: "A2",
+                            qrCodeUrl:
+                                "https://www.davidleonard.london/wp-content/uploads/2024/05/FI-QRcode-of-URL.png",
+                        },
+                        {
+                            seatNumber: "A3",
+                            qrCodeUrl:
+                                "https://www.davidleonard.london/wp-content/uploads/2024/05/FI-QRcode-of-URL.png",
+                        },
                     ],
                     totalPrice: "$15.00",
                     bookingId: "ABCD1234",

@@ -14,12 +14,20 @@ export function SendEmailButton() {
         setLoading(true);
         setStatus(null);
         try {
-            const res = await sendMutation.mutateAsync({ recipientEmail: email });
-            
+            const res = await sendMutation.mutateAsync({
+                recipientEmail: email,
+            });
+
             console.log("response from email: ", res);
             setStatus("Sent");
         } catch (err: unknown) {
-            setStatus(err?.message ?? "Failed to send");
+            if (err instanceof Error) {
+                setStatus(err.message);
+            } else if (typeof err === "string") {
+                setStatus(err);
+            } else {
+                setStatus("Failed to send");
+            }
         } finally {
             setLoading(false);
         }
