@@ -1,102 +1,87 @@
 import Link from "next/link";
 import "~/styles/globals.css";
+import { Button } from "~/components/ui/button";
 import { TRPCReactProvider } from "~/trpc/react";
 
 export default function RootLayout({
-  children,
+    children,
 }: {
-  children: React.ReactNode;
+    children: React.ReactNode;
 }) {
-  return (
-    <html lang="en">
-      <head>
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        />
-      </head>
+    return (
+        <html lang="en">
+            <body className="text-foreground">
+                <TRPCReactProvider>
+                    {/* GLOBAL HEADER */}
+                    <header className="fixed inset-x-0 top-0 z-30">
+                        <div className="mx-auto w-full max-w-7xl px-6 py-3">
+                            <div className="glass-panel rounded-2xl px-4 py-2">
+                                <div className="grid grid-cols-2 items-center gap-4 md:grid-cols-3">
+                                    {/* LEFT: LOGO */}
+                                    <div className="flex items-center gap-2">
+                                        <Link
+                                            href="/"
+                                            className="text-foreground flex items-center gap-2 no-underline"
+                                        >
+                                            <img
+                                                src="/favicon.png"
+                                                alt="Cinemate logo"
+                                                width={36}
+                                                height={36}
+                                                className="rounded-md"
+                                            />
+                                            <h1 className="text-base font-semibold">
+                                                Cinemate
+                                            </h1>
+                                        </Link>
+                                    </div>
 
-      <body
-        className="text-white"
-        style={{
-          background:
-            "radial-gradient(circle at 10% 0%, rgba(72,214,255,0.2), rgba(7,13,24,0) 42%), radial-gradient(circle at 88% 18%, rgba(255,181,92,0.16), rgba(7,13,24,0) 38%), #070d18",
-        }}
-      >
-        <TRPCReactProvider>
-          {/* GLOBAL HEADER */}
-          <header className="position-fixed top-0 start-0 w-100 z-3">
-  <div className="container py-3">
-    <div
-      className="rounded-4 px-3 py-2"
-      style={{
-        border: "1px solid rgba(122, 206, 255, 0.32)",
-        background:
-          "linear-gradient(180deg, rgba(10, 20, 36, 0.82), rgba(10, 20, 36, 0.42))",
-        backdropFilter: "blur(10px)",
-      }}
-    >
-      <div className="row align-items-center">
-        {/* LEFT: LOGO */}
-        <div className="col-6 col-md-3 d-flex align-items-center gap-2">
-        <Link
-            href="/"
-            className="d-flex align-items-center gap-2 text-white text-decoration-none"
-            style={{ cursor: "pointer" }}
-        >
-          <img
-            src="/favicon.png"
-            alt="Cinemate logo"
-            width={36}
-            height={36}
-            className="rounded-2"
-          />
-          <h1 className="m-0 fw-semibold fs-5">Cinemate</h1>
-          </Link>
-        </div>
+                                    {/* CENTER: NAV */}
+                                    <nav className="text-muted-foreground hidden items-center justify-center gap-6 text-sm font-medium md:flex">
+                                        <Link
+                                            href="/movies"
+                                            className="hover:text-foreground transition"
+                                        >
+                                            Movies
+                                        </Link>
+                                        <Link
+                                            href="#watch-party"
+                                            className="hover:text-foreground transition"
+                                        >
+                                            WatchParty
+                                        </Link>
+                                        <Link
+                                            href="#"
+                                            className="hover:text-foreground transition"
+                                        >
+                                            Order History
+                                        </Link>
+                                    </nav>
 
-        {/* CENTER: NAV */}
-        <nav className="col-md-6 d-none d-md-flex justify-content-center gap-4">
-          <Link href="/movies" className="text-white text-decoration-none">
-            Movies
-          </Link>
-          <Link href="#watch-party" className="text-white text-decoration-none">
-            WatchParty
-          </Link>
-          <Link href="#" className="text-white text-decoration-none">
-            Order History
-          </Link>
-        </nav>
+                                    {/* RIGHT: SIGN IN */}
+                                    <div className="flex justify-end">
+                                        <Button asChild>
+                                            <Link href="/api/auth/signin">
+                                                Sign in
+                                            </Link>
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
 
-        {/* RIGHT: SIGN IN */}
-        <div className="col-6 col-md-3 d-flex justify-content-end">
-          <Link
-            href="/api/auth/signin"
-            className="btn rounded-pill px-4 fw-semibold"
-            style={{
-              background: "linear-gradient(90deg,#20c9ff,#4e7dff)",
-              color: "#fff",
-              border: "none",
-            }}
-          >
-            Sign in
-          </Link>
-        </div>
-      </div>
-    </div>
-  </div>
-</header>
+                    {/* PAGE CONTENT */}
+                    <main className="mx-auto w-full max-w-7xl px-6 pt-24 pb-12">
+                        {children}
+                    </main>
 
-
-          {/* PAGE CONTENT */}
-          <main>{children}</main>
-
-          {/* GLOBAL FOOTER */}
-          <footer className="py-4 text-center text-white/60">
-            © {new Date().getFullYear()} Cinemate
-          </footer>
-        </TRPCReactProvider>
-      </body>
-    </html>
-  );
+                    {/* GLOBAL FOOTER */}
+                    <footer className="text-muted-foreground mx-auto w-full max-w-7xl px-6 py-6 text-center text-sm">
+                        © {new Date().getFullYear()} Cinemate
+                    </footer>
+                </TRPCReactProvider>
+            </body>
+        </html>
+    );
 }
