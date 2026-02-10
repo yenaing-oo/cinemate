@@ -40,7 +40,7 @@ export function SendEmailButton() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="recipient@example.com"
-                className="rounded px-3 py-2 text-black"
+                className="rounded bg-gray-800/50 px-3 py-2 text-white focus:bg-gray-800/80 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             />
             <button
                 onClick={send}
