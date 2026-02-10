@@ -49,20 +49,20 @@ export default function NowPlaying() {
                     placeholder="Search movies"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full max-w-md rounded-full bg-black/40 px-6 py-3 text-sm text-white placeholder-white/50 ring-1 ring-white/10 backdrop-blur-xl outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full max-w-md rounded-full border border-border/60 bg-card/60 px-6 py-3 text-sm text-foreground placeholder:text-muted-foreground/70 ring-1 ring-border/50 backdrop-blur-xl outline-none focus:ring-2 focus:ring-primary"
                 />
             </div>
 
             {/* Grid – SAME AS HOME PAGE */}
             {filteredMovies.length === 0 ? (
-                <p className="text-white/60">No movies found.</p>
+                <p className="text-muted-foreground">No movies found.</p>
             ) : (
                 <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
                     {filteredMovies.map((movie) => (
                         <Link
                             key={movie.title}
                             href={`/movies/${encodeURIComponent(movie.title)}`}
-                            className="block rounded-xl bg-white/5 p-4 transition hover:bg-white/10"
+                            className="lift-card block rounded-xl border border-border/60 bg-card/60 p-4 transition hover:bg-card/80"
                         >
                             <div className="relative mb-3 aspect-[2/3] overflow-hidden rounded-lg">
                                 <Image
@@ -76,10 +76,10 @@ export default function NowPlaying() {
                             <h4 className="truncate font-semibold">
                                 {movie.title}
                             </h4>
-                            <p className="text-sm text-white/70">
+                            <p className="text-sm text-muted-foreground">
                                 {movie.genre}
                             </p>
-                            <p className="text-xs text-white/50">
+                            <p className="text-xs text-muted-foreground/70">
                                 {movie.duration}
                             </p>
                         </Link>
