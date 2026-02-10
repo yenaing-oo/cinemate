@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Greeting } from "~/app/_components/greeting";
+import { SendEmailButton } from "~/app/_components/sendEmail";
 import { auth } from "~/server/auth";
 import { api, HydrateClient } from "~/trpc/server";
 
@@ -69,6 +70,9 @@ export default async function Home() {
                             >
                                 {session ? "Sign out" : "Sign in"}
                             </Link>
+                        </div>
+                        <div>
+                            <SendEmailButton/>
                         </div>
                     </div>
 
