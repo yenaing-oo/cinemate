@@ -69,12 +69,12 @@ export default async function Home() {
 
                     {/* HERO CONTENT */}
                     <div className="relative z-10 mx-auto w-full max-w-7xl px-6">
-                        <div className="flex min-h-[70vh] flex-col items-center justify-center text-center pt-16 md:pt-24">
+                        <div className="flex min-h-[70vh] flex-col items-center justify-center pt-16 text-center md:pt-24">
                             <div className="max-w-3xl">
                                 <h2 className="text-4xl font-bold md:text-5xl">
                                     Make it a movie night.
                                 </h2>
-                                <p className="mt-3 text-lg text-muted-foreground md:text-xl">
+                                <p className="text-muted-foreground mt-3 text-lg md:text-xl">
                                     One organizer, many payers, one smooth
                                     booking flow.
                                 </p>
@@ -86,13 +86,13 @@ export default async function Home() {
                             {todayShowtimes.map((show) => (
                                 <div key={show.title}>
                                     <div className="glass-card lift-card h-full rounded-2xl p-4">
-                                        <p className="mb-2 text-sm font-semibold text-primary">
+                                        <p className="text-primary mb-2 text-sm font-semibold">
                                             Tonight
                                         </p>
                                         <h3 className="mb-2 text-base font-semibold">
                                             {show.title}
                                         </h3>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-muted-foreground text-sm">
                                             {show.details}
                                         </p>
                                     </div>
@@ -108,7 +108,7 @@ export default async function Home() {
                         <h3 className="text-3xl font-bold">Now Playing</h3>
                         <Link
                             href="/movies"
-                            className="text-sm text-primary transition hover:text-primary/80"
+                            className="text-primary hover:text-primary/80 text-sm transition"
                         >
                             View all →
                         </Link>
@@ -119,7 +119,7 @@ export default async function Home() {
                             <Link
                                 key={movie.title}
                                 href={`/movies/${encodeURIComponent(movie.title)}`}
-                                className="lift-card block rounded-xl border border-border/60 bg-card/60 p-4 transition hover:bg-card/80"
+                                className="lift-card border-border/60 bg-card/60 hover:bg-card/80 block rounded-xl border p-4 transition"
                             >
                                 <div className="relative mb-3 aspect-[2/3] overflow-hidden rounded-lg">
                                     <Image
@@ -133,10 +133,10 @@ export default async function Home() {
                                 <h4 className="truncate font-semibold">
                                     {movie.title}
                                 </h4>
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-muted-foreground text-sm">
                                     {movie.genre}
                                 </p>
-                                <p className="text-xs text-muted-foreground/70">
+                                <p className="text-muted-foreground/70 text-xs">
                                     {movie.duration}
                                 </p>
                             </Link>
