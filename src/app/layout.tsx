@@ -1,5 +1,6 @@
 import Link from "next/link";
 import "~/styles/globals.css";
+import { Button } from "~/components/ui/button";
 import { TRPCReactProvider } from "~/trpc/react";
 
 export default function RootLayout({
@@ -20,7 +21,7 @@ export default function RootLayout({
                                     <div className="flex items-center gap-2">
                                         <Link
                                             href="/"
-                                            className="flex items-center gap-2 text-foreground no-underline"
+                                            className="text-foreground flex items-center gap-2 no-underline"
                                         >
                                             <img
                                                 src="/favicon.png"
@@ -36,22 +37,22 @@ export default function RootLayout({
                                     </div>
 
                                     {/* CENTER: NAV */}
-                                    <nav className="hidden items-center justify-center gap-6 text-sm font-medium text-muted-foreground md:flex">
+                                    <nav className="text-muted-foreground hidden items-center justify-center gap-6 text-sm font-medium md:flex">
                                         <Link
                                             href="/movies"
-                                            className="transition hover:text-foreground"
+                                            className="hover:text-foreground transition"
                                         >
                                             Movies
                                         </Link>
                                         <Link
                                             href="#watch-party"
-                                            className="transition hover:text-foreground"
+                                            className="hover:text-foreground transition"
                                         >
                                             WatchParty
                                         </Link>
                                         <Link
                                             href="#"
-                                            className="transition hover:text-foreground"
+                                            className="hover:text-foreground transition"
                                         >
                                             Order History
                                         </Link>
@@ -59,12 +60,11 @@ export default function RootLayout({
 
                                     {/* RIGHT: SIGN IN */}
                                     <div className="flex justify-end">
-                                        <Link
-                                            href="/api/auth/signin"
-                                            className="btn-primary"
-                                        >
-                                            Sign in
-                                        </Link>
+                                        <Button asChild>
+                                            <Link href="/api/auth/signin">
+                                                Sign in
+                                            </Link>
+                                        </Button>
                                     </div>
                                 </div>
                             </div>
@@ -77,7 +77,7 @@ export default function RootLayout({
                     </main>
 
                     {/* GLOBAL FOOTER */}
-                    <footer className="mx-auto w-full max-w-7xl px-6 py-6 text-center text-sm text-muted-foreground">
+                    <footer className="text-muted-foreground mx-auto w-full max-w-7xl px-6 py-6 text-center text-sm">
                         © {new Date().getFullYear()} Cinemate
                     </footer>
                 </TRPCReactProvider>

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Card, CardContent } from "~/components/ui/card";
 import { auth } from "~/server/auth";
 import { api, HydrateClient } from "~/trpc/server";
 
@@ -85,17 +86,19 @@ export default async function Home() {
                         <div className="mt-21 grid gap-3 pb-3 md:grid-cols-2 xl:grid-cols-4">
                             {todayShowtimes.map((show) => (
                                 <div key={show.title}>
-                                    <div className="glass-card lift-card h-full rounded-2xl p-4">
-                                        <p className="text-primary mb-2 text-sm font-semibold">
-                                            Tonight
-                                        </p>
-                                        <h3 className="mb-2 text-base font-semibold">
-                                            {show.title}
-                                        </h3>
-                                        <p className="text-muted-foreground text-sm">
-                                            {show.details}
-                                        </p>
-                                    </div>
+                                    <Card className="glass-card lift-card h-full rounded-2xl shadow-none">
+                                        <CardContent className="p-4">
+                                            <p className="text-primary mb-2 text-sm font-semibold">
+                                                Tonight
+                                            </p>
+                                            <h3 className="mb-2 text-base font-semibold">
+                                                {show.title}
+                                            </h3>
+                                            <p className="text-muted-foreground text-sm">
+                                                {show.details}
+                                            </p>
+                                        </CardContent>
+                                    </Card>
                                 </div>
                             ))}
                         </div>
@@ -119,26 +122,30 @@ export default async function Home() {
                             <Link
                                 key={movie.title}
                                 href={`/movies/${encodeURIComponent(movie.title)}`}
-                                className="lift-card border-border/60 bg-card/60 hover:bg-card/80 block rounded-xl border p-4 transition"
+                                className="block"
                             >
-                                <div className="relative mb-3 aspect-[2/3] overflow-hidden rounded-lg">
-                                    <Image
-                                        src={movie.poster}
-                                        alt={movie.title}
-                                        fill
-                                        className="object-cover transition-transform duration-300 hover:scale-105"
-                                    />
-                                </div>
+                                <Card className="lift-card border-border/60 bg-card/60 hover:bg-card/80 rounded-xl border transition">
+                                    <CardContent className="p-4">
+                                        <div className="relative mb-3 aspect-[2/3] overflow-hidden rounded-lg">
+                                            <Image
+                                                src={movie.poster}
+                                                alt={movie.title}
+                                                fill
+                                                className="object-cover transition-transform duration-300 hover:scale-105"
+                                            />
+                                        </div>
 
-                                <h4 className="truncate font-semibold">
-                                    {movie.title}
-                                </h4>
-                                <p className="text-muted-foreground text-sm">
-                                    {movie.genre}
-                                </p>
-                                <p className="text-muted-foreground/70 text-xs">
-                                    {movie.duration}
-                                </p>
+                                        <h4 className="truncate font-semibold">
+                                            {movie.title}
+                                        </h4>
+                                        <p className="text-muted-foreground text-sm">
+                                            {movie.genre}
+                                        </p>
+                                        <p className="text-muted-foreground/70 text-xs">
+                                            {movie.duration}
+                                        </p>
+                                    </CardContent>
+                                </Card>
                             </Link>
                         ))}
                     </div>

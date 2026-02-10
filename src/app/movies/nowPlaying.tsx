@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { Card, CardContent } from "~/components/ui/card";
 
 const movies = [
     {
@@ -49,7 +50,7 @@ export default function NowPlaying() {
                     placeholder="Search movies"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full max-w-md rounded-full border border-border/60 bg-card/60 px-6 py-3 text-sm text-foreground placeholder:text-muted-foreground/70 ring-1 ring-border/50 backdrop-blur-xl outline-none focus:ring-2 focus:ring-primary"
+                    className="border-border/60 bg-card/60 text-foreground placeholder:text-muted-foreground/70 ring-border/50 focus:ring-primary w-full max-w-md rounded-full border px-6 py-3 text-sm ring-1 backdrop-blur-xl outline-none focus:ring-2"
                 />
             </div>
 
@@ -62,26 +63,30 @@ export default function NowPlaying() {
                         <Link
                             key={movie.title}
                             href={`/movies/${encodeURIComponent(movie.title)}`}
-                            className="lift-card block rounded-xl border border-border/60 bg-card/60 p-4 transition hover:bg-card/80"
+                            className="block"
                         >
-                            <div className="relative mb-3 aspect-[2/3] overflow-hidden rounded-lg">
-                                <Image
-                                    src={movie.poster}
-                                    alt={movie.title}
-                                    fill
-                                    className="object-cover transition-transform duration-300 hover:scale-105"
-                                />
-                            </div>
+                            <Card className="lift-card border-border/60 bg-card/60 hover:bg-card/80 border transition">
+                                <CardContent className="p-4">
+                                    <div className="relative mb-3 aspect-[2/3] overflow-hidden rounded-lg">
+                                        <Image
+                                            src={movie.poster}
+                                            alt={movie.title}
+                                            fill
+                                            className="object-cover transition-transform duration-300 hover:scale-105"
+                                        />
+                                    </div>
 
-                            <h4 className="truncate font-semibold">
-                                {movie.title}
-                            </h4>
-                            <p className="text-sm text-muted-foreground">
-                                {movie.genre}
-                            </p>
-                            <p className="text-xs text-muted-foreground/70">
-                                {movie.duration}
-                            </p>
+                                    <h4 className="truncate font-semibold">
+                                        {movie.title}
+                                    </h4>
+                                    <p className="text-muted-foreground text-sm">
+                                        {movie.genre}
+                                    </p>
+                                    <p className="text-muted-foreground/70 text-xs">
+                                        {movie.duration}
+                                    </p>
+                                </CardContent>
+                            </Card>
                         </Link>
                     ))}
                 </div>
