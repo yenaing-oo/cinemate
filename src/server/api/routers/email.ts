@@ -4,12 +4,11 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { Resend } from "resend";
 import TicketConfirmation from "~/server/emailTemplates/TicketConfirmation";
 
-const resend = new Resend(process.env.RESEND_EMAIL_API_KEY ?? "");
-
 export const emailRouter = createTRPCRouter({
     send: publicProcedure
         .input(z.object({ recipientEmail: z.string().email() }))
         .mutation(async ({ input }) => {
+            const resend = new Resend(process.env.RESEND_EMAIL_API_KEY ?? "");
             const { data, error } = await resend.emails.send({
                 from: "Cinemate <onboarding@resend.dev>",
                 to: input.recipientEmail,

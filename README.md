@@ -95,3 +95,6 @@ The application will be available at [http://localhost:3000](http://localhost:30
 - `pnpm db:reset` - Resets the database (drops all data) and applies all migrations from scratch. Use with caution.
 - `pnpm db:studio` - Open Prisma Studio for database management
 - `pnpm sync:movies` - Sync movies from TMDB. Fetches the top 10 now-playing movie details and saves them to the database. Useful for initial seeding and testing in local development.
+- `pnpm test` - Run all tests
+- `pnpm test:frontend` - Run frontend tests only
+- `pnpm test:backend` - Run backend tests only
