@@ -2,7 +2,6 @@ import Link from "next/link";
 import "~/styles/globals.css";
 import { Button } from "~/components/ui/button";
 import { TRPCReactProvider } from "~/trpc/react";
-import { SendEmailButton } from "~/app/_components/sendEmail";
 
 export default function RootLayout({
     children,
@@ -80,9 +79,6 @@ export default function RootLayout({
                     {/* GLOBAL FOOTER */}
                     <footer className="text-muted-foreground mx-auto w-full max-w-7xl px-6 py-6 text-center text-sm">
                         © {new Date().getFullYear()} Cinemate
-                        <div>
-                            <SendEmailButton />
-                        </div>
                     </footer>
                 </TRPCReactProvider>
             </body>
