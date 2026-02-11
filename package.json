@@ -10,6 +10,7 @@
         "db:migrate": "prisma migrate deploy",
         "db:push": "prisma db push",
         "db:reset": "prisma migrate reset",
+        "db:seed": "pnpm tsx prisma/seed.ts",
         "db:studio": "prisma studio",
         "dev": "next dev --turbo",
         "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
