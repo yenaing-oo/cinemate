@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-
+import { DatePill } from "~/components/ui/date";
 const dates = [
   { label: "Today", value: "Feb 8, 2026" },
   { label: "Tomorrow", value: "Feb 9, 2026" },
@@ -12,29 +12,19 @@ const dates = [
 
 export default function SelectDatePage() {
   return (
-    <section className="container py-5 text-white">
-      <Link href="/movies" className="text-decoration-none text-white mb-4 d-inline-block">
+    <section className="mx-auto max-w-7xl px-6 py-20">
+      <Link
+        href="/movies"
+        className="text-muted-foreground hover:text-foreground mb-8 inline-block transition"
+      >
         ← Back
       </Link>
 
-      <h2 className="fw-bold mb-4">Select date</h2>
+      <h2 className="text-3xl font-bold mb-10">Select Date</h2>
 
-      <div className="row g-4">
+      <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
         {dates.map((d) => (
-          <div key={d.value} className="col-md-4">
-            <Link
-              href={`/movies?date=${encodeURIComponent(d.value)}`}
-              className="d-block rounded-4 p-4 text-decoration-none text-white"
-              style={{
-                background:
-                  "linear-gradient(180deg, rgba(18,36,64,0.85), rgba(10,20,36,0.85))",
-                border: "1px solid rgba(120,200,255,0.25)",
-              }}
-            >
-              <div className="fw-semibold">{d.label}</div>
-              <div className="opacity-75">{d.value}</div>
-            </Link>
-          </div>
+          <DatePill key={d.value} label={d.label} value={d.value} />
         ))}
       </div>
     </section>
