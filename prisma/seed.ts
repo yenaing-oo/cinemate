@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 async function main() {
     console.log("Starting database seeding...");
-    
+
     console.log("Start seeding seats...");
     console.log("Deleting existing seats...");
     await prisma.seat.deleteMany({});
