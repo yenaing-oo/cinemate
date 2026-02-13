@@ -7,9 +7,8 @@ on:
 env:
     NODE_VERSION: 20
     SKIP_ENV_VALIDATION: true
-    # Use a dummy database URLs to avoid errors
-    DATABASE_URL: "postgresql://user:pass@localhost:5432/db"
-    DIRECT_URL: "postgresql://user:pass@localhost:5432/db"
+    DATABASE_URL: ${{ secrets.TEST_DB_URL }}
+    DIRECT_URL: ${{ secrets.TEST_DIRECT_URL }}
 
 jobs:
     typecheck:
