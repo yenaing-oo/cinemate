@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import MovieDetails from "../_components/MovieDetails";
 import { db } from "~/server/db";
 
@@ -9,21 +10,20 @@ const splitList = (value: string | null) =>
               .filter(Boolean)
         : [];
 
-export default async function MovieSamplePage() {
-    const movie = await db.movie.findFirst({
-        orderBy: { releaseDate: "desc" },
+interface MovieDetailsPageProps {
+    params: Promise<{ movieId: string }>;
+}
+
+export default async function MovieDetailsPage({
+    params,
+}: MovieDetailsPageProps) {
+    const { movieId } = await params;
+    const movie = await db.movie.findUnique({
+        where: { id: movieId },
     });
 
     if (!movie) {
-        return (
-            <section className="mx-auto w-full max-w-4xl px-6 py-20 text-center">
-                <h1 className="text-2xl font-semibold">No movies found yet</h1>
-                <p className="text-muted-foreground mt-3 text-sm">
-                    Run <span className="font-semibold">pnpm sync:movies</span>{" "}
-                    to fetch movie data from TMDB into the database.
-                </p>
-            </section>
-        );
+        notFound();
     }
 
     const movieDetails = {

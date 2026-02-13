@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Card, CardContent } from "~/components/ui/card";
 import { auth } from "~/server/auth";
 import { api, HydrateClient } from "~/trpc/server";
+import { db } from "~/server/db";
 
 const todayShowtimes = [
     {
@@ -51,6 +52,12 @@ const nowPlaying = [
 ];
 
 export default async function Home() {
+    const movie = await db.movie.findFirst({
+        select: { id: true },
+        orderBy: { releaseDate: "desc" },
+    });
+    const movieHref = movie?.id ? `/movies/${movie.id}` : "/movies";
+
     return (
         <HydrateClient>
             <>
@@ -121,7 +128,7 @@ export default async function Home() {
                         {nowPlaying.map((movie) => (
                             <Link
                                 key={movie.title}
-                                href="/movies/details"
+                                href={movieHref}
                                 className="block"
                             >
                                 <Card className="lift-card border-border/60 bg-card/60 hover:bg-card/80 rounded-xl border transition">
