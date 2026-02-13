@@ -32,9 +32,8 @@ const movies = [
     },
 ];
 
-export default function NowPlaying({ movieId }: { movieId?: string | null }) {
+export default function NowPlaying() {
     const [search, setSearch] = useState("");
-    const movieHref = movieId ? `/movies/${movieId}` : "/movies";
 
     const filteredMovies = movies.filter((movie) =>
         movie.title.toLowerCase().includes(search.toLowerCase())
@@ -63,7 +62,7 @@ export default function NowPlaying({ movieId }: { movieId?: string | null }) {
                     {filteredMovies.map((movie) => (
                         <Link
                             key={movie.title}
-                            href={movieHref}
+                            href="/movies/details"
                             className="block"
                         >
                             <Card className="lift-card border-border/60 bg-card/60 hover:bg-card/80 border transition">
