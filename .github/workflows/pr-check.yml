@@ -52,7 +52,7 @@ jobs:
             - run: pnpm format:check
 
     prisma:
-        name: Prisma Schema
+        name: Prisma Schema & Migrations
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -63,6 +63,8 @@ jobs:
                   cache: "pnpm"
             - run: pnpm install --frozen-lockfile
             - run: pnpm prisma validate
+            - run: pnpm prisma migrate reset --force --skip-generate --skip-seed
+            - run: pnpm prisma migrate deploy
 
     test-frontend:
         name: Test Frontend
