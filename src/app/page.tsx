@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent } from "~/components/ui/card";
 import { auth } from "~/server/auth";
-import { db } from "~/server/db";
 import { api, HydrateClient } from "~/trpc/server";
 
 const todayShowtimes = [
@@ -50,9 +49,6 @@ const nowPlaying = [
         poster: "/posters/passengers.jpg",
     },
 ];
-
-const firstMovie = await db.movie.findFirst();
-console.log("First movie in DB:", firstMovie);
 
 export default async function Home() {
     return (
