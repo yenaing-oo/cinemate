@@ -7,6 +7,9 @@ on:
 env:
     NODE_VERSION: 20
     SKIP_ENV_VALIDATION: true
+    # Use a dummy database URLs to avoid errors
+    DATABASE_URL: "postgresql://user:pass@localhost:5432/db"
+    DIRECT_URL: "postgresql://user:pass@localhost:5432/db"
 
 jobs:
     typecheck:
@@ -52,10 +55,6 @@ jobs:
     prisma:
         name: Prisma Schema
         runs-on: ubuntu-latest
-        env:
-            # Dummy values so that Prisma commands don't fail due to missing env vars
-            DATABASE_URL: "postgresql://user:pass@localhost:5432/db"
-            DIRECT_URL: "postgresql://user:pass@localhost:5432/db"
         steps:
             - uses: actions/checkout@v4
             - uses: pnpm/action-setup@v4
