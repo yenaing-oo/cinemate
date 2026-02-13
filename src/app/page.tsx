@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent } from "~/components/ui/card";
 import { auth } from "~/server/auth";
+import { db } from "~/server/db";
 import { api, HydrateClient } from "~/trpc/server";
 
 const todayShowtimes = [
@@ -49,6 +50,11 @@ const nowPlaying = [
         poster: "/posters/passengers.jpg",
     },
 ];
+
+// Test statements to verify build does not fail due to missing env vars in CI
+const movies = db.movie.findMany();
+console.log("Movies from DB:", movies);
+console.log(process.env.DATABASE_URL);
 
 export default async function Home() {
     return (
