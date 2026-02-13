@@ -121,7 +121,7 @@ export default async function Home() {
                         {nowPlaying.map((movie) => (
                             <Link
                                 key={movie.title}
-                                href={`/movies/${encodeURIComponent(movie.title)}`}
+                                href="/movies/details"
                                 className="block"
                             >
                                 <Card className="lift-card border-border/60 bg-card/60 hover:bg-card/80 rounded-xl border transition">

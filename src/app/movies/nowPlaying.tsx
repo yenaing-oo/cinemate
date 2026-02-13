@@ -54,7 +54,7 @@ export default function NowPlaying() {
                 />
             </div>
 
-            {/* Grid – SAME AS HOME PAGE */}
+            {/* Grid */}
             {filteredMovies.length === 0 ? (
                 <p className="text-muted-foreground">No movies found.</p>
             ) : (
@@ -62,7 +62,7 @@ export default function NowPlaying() {
                     {filteredMovies.map((movie) => (
                         <Link
                             key={movie.title}
-                            href={`/movies/${encodeURIComponent(movie.title)}`}
+                            href="/movies/details"
                             className="block"
                         >
                             <Card className="lift-card border-border/60 bg-card/60 hover:bg-card/80 border transition">
