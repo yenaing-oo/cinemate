@@ -32,11 +32,7 @@ const movies = [
     },
 ];
 
-export default function NowPlaying({
-    movieId,
-}: {
-    movieId?: string | null;
-}) {
+export default function NowPlaying({ movieId }: { movieId?: string | null }) {
     const [search, setSearch] = useState("");
     const movieHref = movieId ? `/movies/${movieId}` : "/movies";
 
