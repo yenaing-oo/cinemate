@@ -4,9 +4,9 @@ import { db } from "~/server/db";
 const splitList = (value: string | null) =>
     value
         ? value
-            .split(",")
-            .map((item) => item.trim())
-            .filter(Boolean)
+              .split(",")
+              .map((item) => item.trim())
+              .filter(Boolean)
         : [];
 
 export default async function MovieSamplePage() {
