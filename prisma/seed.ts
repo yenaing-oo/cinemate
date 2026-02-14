@@ -52,7 +52,13 @@ async function main() {
         releaseDate: new Date("1999-10-15"),
         posterUrl:
             "https://image.tmdb.org/t/p/w500/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg",
+        backdropUrl:
+            "https://image.tmdb.org/t/p/original/5TiwfWEaPSwD20uwXjCTUqpQX70.jpg",
+        trailerUrl: "https://www.youtube.com/watch?v=SUXWAEX2jlg",
         genres: "Drama, Thriller",
+        languages: "English",
+        cast: "Edward Norton, Brad Pitt, Meat Loaf",
+        directors: "David Fincher",
         rating: 8.4,
     };
     const sampleMovie = await prisma.movie.upsert({
