@@ -1,56 +1,35 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent } from "~/components/ui/card";
-import { auth } from "~/server/auth";
-import { api, HydrateClient } from "~/trpc/server";
+import { getNowPlayingMovies } from "~/lib/utils";
+import { db } from "~/server/db";
+import { HydrateClient } from "~/trpc/server";
 
-const todayShowtimes = [
-    {
-        title: "2012",
-        details: "6:15 PM • Dolby Atmos",
-    },
-    {
-        title: "Jumanji: The Next Level",
-        details: "7:40 PM • Dolby Atmos",
-    },
-    {
-        title: "Spider Man: No Way Home",
-        details: "9:05 PM • 3D + Dolby Atmos",
-    },
-    {
-        title: "The Batman",
-        details: "10:30 PM • 3D",
-    },
-];
-
-const nowPlaying = [
-    {
-        title: "Spider-Man: No Way Home",
-        genre: "Action · Adventure",
-        duration: "2h 28m",
-        poster: "/posters/spiderman.jpg",
-    },
-    {
-        title: "Jumanji",
-        genre: "Adventure · Comedy",
-        duration: "1h 59m",
-        poster: "/posters/jumanji.jpg",
-    },
-    {
-        title: "2012",
-        genre: "Action · Sci-Fi",
-        duration: "2h 38m",
-        poster: "/posters/2012.jpg",
-    },
-    {
-        title: "Passengers",
-        genre: "Sci-Fi · Romance",
-        duration: "1h 56m",
-        poster: "/posters/passengers.jpg",
-    },
+const showtimeDetails = [
+    "6:15 PM • Dolby Atmos",
+    "7:40 PM • Dolby Atmos",
+    "9:05 PM • 3D + Dolby Atmos",
+    "10:30 PM • 3D",
 ];
 
 export default async function Home() {
+    const todayShowtimes = (
+        await db.movie.findMany({
+            select: {
+                id: true,
+                title: true,
+            },
+            orderBy: { releaseDate: "desc" },
+            take: showtimeDetails.length,
+        })
+    ).map((movie, index) => ({
+        id: movie.id,
+        title: movie.title,
+        details: showtimeDetails[index] ?? "",
+    }));
+
+    const nowPlaying = await getNowPlayingMovies(db, { limit: 4 });
+
     return (
         <HydrateClient>
             <>
@@ -85,7 +64,7 @@ export default async function Home() {
                         {/* TONIGHT SHOWTIMES : Hard code for now */}
                         <div className="mt-21 grid gap-3 pb-3 md:grid-cols-2 xl:grid-cols-4">
                             {todayShowtimes.map((show) => (
-                                <div key={show.title}>
+                                <div key={show.id}>
                                     <Card className="glass-card lift-card h-full rounded-2xl shadow-none">
                                         <CardContent className="p-4">
                                             <p className="text-primary mb-2 text-sm font-semibold">
@@ -105,7 +84,7 @@ export default async function Home() {
                     </div>
                 </section>
 
-                {/* NOW PLAYING : Hard code for now */}
+                {/* NOW PLAYING */}
                 <section className="pt-10 pb-16">
                     <div className="mb-10 flex items-center justify-between">
                         <h3 className="text-3xl font-bold">Now Playing</h3>
@@ -120,8 +99,8 @@ export default async function Home() {
                     <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
                         {nowPlaying.map((movie) => (
                             <Link
-                                key={movie.title}
-                                href="/movies/details"
+                                key={movie.id}
+                                href={`/movies/${movie.id}`}
                                 className="block"
                             >
                                 <Card className="lift-card border-border/60 bg-card/60 hover:bg-card/80 rounded-xl border transition">

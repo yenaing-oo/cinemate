@@ -4,35 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Card, CardContent } from "~/components/ui/card";
+import type { NowPlayingMovie } from "~/lib/utils";
 
-const movies = [
-    {
-        title: "Spider-Man: No Way Home",
-        genre: "Action · Adventure",
-        duration: "2h 28m",
-        poster: "/posters/spiderman.jpg",
-    },
-    {
-        title: "Jumanji",
-        genre: "Adventure · Comedy",
-        duration: "1h 59m",
-        poster: "/posters/jumanji.jpg",
-    },
-    {
-        title: "2012",
-        genre: "Action · Sci-Fi",
-        duration: "2h 38m",
-        poster: "/posters/2012.jpg",
-    },
-    {
-        title: "Passengers",
-        genre: "Sci-Fi · Romance",
-        duration: "1h 56m",
-        poster: "/posters/passengers.jpg",
-    },
-];
-
-export default function NowPlaying() {
+export default function NowPlaying({ movies }: { movies: NowPlayingMovie[] }) {
     const [search, setSearch] = useState("");
 
     const filteredMovies = movies.filter((movie) =>
@@ -61,8 +35,8 @@ export default function NowPlaying() {
                 <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
                     {filteredMovies.map((movie) => (
                         <Link
-                            key={movie.title}
-                            href="/movies/details"
+                            key={movie.id}
+                            href={`/movies/${movie.id}`}
                             className="block"
                         >
                             <Card className="lift-card border-border/60 bg-card/60 hover:bg-card/80 border transition">
