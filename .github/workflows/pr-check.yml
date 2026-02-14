@@ -7,9 +7,8 @@ on:
 env:
     NODE_VERSION: 20
     SKIP_ENV_VALIDATION: true
-    # Use a dummy database URLs to avoid errors
-    DATABASE_URL: "postgresql://user:pass@localhost:5432/db"
-    DIRECT_URL: "postgresql://user:pass@localhost:5432/db"
+    DATABASE_URL: ${{ secrets.TEST_DB_URL }}
+    DIRECT_URL: ${{ secrets.TEST_DIRECT_URL }}
 
 jobs:
     typecheck:
@@ -53,7 +52,7 @@ jobs:
             - run: pnpm format:check
 
     prisma:
-        name: Prisma Schema
+        name: Prisma Schema & Migrations
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -64,6 +63,8 @@ jobs:
                   cache: "pnpm"
             - run: pnpm install --frozen-lockfile
             - run: pnpm prisma validate
+            - run: pnpm prisma migrate reset --force --skip-generate --skip-seed
+            - run: pnpm prisma migrate deploy
 
     test-frontend:
         name: Test Frontend
