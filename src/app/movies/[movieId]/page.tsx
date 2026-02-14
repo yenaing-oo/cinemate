@@ -9,7 +9,7 @@ import {
     formatRating,
     formatRuntime,
     splitList,
-} from "../../../lib/utils";
+} from "~/lib/utils";
 
 interface MovieDetailsPageProps {
     params: Promise<{ movieId: string }>;
