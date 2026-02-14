@@ -20,9 +20,11 @@ async function main() {
     const isDevSeed = process.argv.includes("--dev");
     if (!isDevSeed) {
         console.log(
-            "Seat seeding complete. Skipping development-specific data (movies, users, bookings).",
+            "Seat seeding complete. Skipping development-specific data (movies, users, bookings)."
         );
-        console.log("To seed all sample data, run the script with the --dev flag.");
+        console.log(
+            "To seed all sample data, run the script with the --dev flag."
+        );
         return;
     }
 
@@ -75,7 +77,7 @@ async function main() {
                 movieId: sampleMovie.id,
                 startTime: showtime1StartTime,
                 endTime: new Date(
-                    showtime1StartTime.getTime() + sampleMovie.runtime * 60000,
+                    showtime1StartTime.getTime() + sampleMovie.runtime * 60000
                 ),
                 price: showtimePrice,
                 availableSeats: allSeats.length,
@@ -84,7 +86,7 @@ async function main() {
                 movieId: sampleMovie.id,
                 startTime: showtime2StartTime,
                 endTime: new Date(
-                    showtime2StartTime.getTime() + sampleMovie.runtime * 60000,
+                    showtime2StartTime.getTime() + sampleMovie.runtime * 60000
                 ),
                 price: showtimePrice,
                 availableSeats: allSeats.length,
@@ -106,7 +108,7 @@ async function main() {
         allSeats.map((seat) => ({
             showtimeId: showtime.id,
             seatId: seat.id,
-        })),
+        }))
     );
     await prisma.showtimeSeat.createMany({
         data: showtimeSeatsToCreate,
@@ -114,7 +116,7 @@ async function main() {
     });
 
     console.log(
-        `Ensured sample movie "${sampleMovie.title}" and its showtimes exist.`,
+        `Ensured sample movie "${sampleMovie.title}" and its showtimes exist.`
     );
 
     // 4. Create a sample user
@@ -133,13 +135,15 @@ async function main() {
 
     if (createdShowtimes.length !== 2) {
         console.error(
-            "Failed to create or find the specific sample showtimes for booking. Seeding cannot proceed.",
+            "Failed to create or find the specific sample showtimes for booking. Seeding cannot proceed."
         );
         return;
     }
 
-    const [showtimeForBooking1, showtimeForBooking2] =
-        createdShowtimes as [Showtime, Showtime];
+    const [showtimeForBooking1, showtimeForBooking2] = createdShowtimes as [
+        Showtime,
+        Showtime,
+    ];
 
     // --- Booking 1: Single Ticket ---
     const seatForBooking1 = await prisma.showtimeSeat.findFirst({
@@ -148,7 +152,7 @@ async function main() {
 
     if (!seatForBooking1) {
         console.error(
-            `Could not find an available seat for showtime ${showtimeForBooking1.id} to create the first booking.`,
+            `Could not find an available seat for showtime ${showtimeForBooking1.id} to create the first booking.`
         );
         return;
     }
@@ -190,7 +194,7 @@ async function main() {
 
     if (seatsForBooking2.length !== 3) {
         console.error(
-            `Could not find 3 available seats for showtime ${showtimeForBooking2.id} to create the second booking.`,
+            `Could not find 3 available seats for showtime ${showtimeForBooking2.id} to create the second booking.`
         );
         return;
     }
@@ -231,7 +235,7 @@ async function main() {
         });
 
         console.log(
-            `- Booking ${booking.id} created with ${ticketCount} tickets.`,
+            `- Booking ${booking.id} created with ${ticketCount} tickets.`
         );
     });
 }
