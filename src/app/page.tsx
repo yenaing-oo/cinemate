@@ -4,34 +4,6 @@ import { Card, CardContent } from "~/components/ui/card";
 import { formatRuntime, splitList } from "~/lib/utils";
 import { api, HydrateClient } from "~/trpc/server";
 
-const watchPartySteps = [
-    {
-        id: "plan",
-        kicker: "Step 01",
-        title: "Set the plan",
-        details: "Pick a time and place that works for everyone.",
-    },
-    {
-        id: "invite",
-        kicker: "Step 02",
-        title: "Invite the group",
-        details: "Invite your friends so everyone can join fast.",
-    },
-    {
-        id: "split",
-        kicker: "Step 03",
-        title: "Split payments",
-        details: "Everyone pays their share without extra hassle.",
-    },
-    {
-        id: "sync",
-        kicker: "Step 04",
-        title: "Confirmation Email",
-        details:
-            "Automatic Email with booking details will be sent to all participants.",
-    },
-];
-
 export default async function Home() {
     const nowPlayingRaw = await api.movies.nowPlaying({ limit: 4 });
     const nowPlaying = nowPlayingRaw.map((movie) => {
@@ -77,27 +49,6 @@ export default async function Home() {
                                     booking flow.
                                 </p>
                             </div>
-                        </div>
-
-                        {/* WATCH PARTY STEPS */}
-                        <div className="mt-21 grid gap-3 pb-3 md:grid-cols-2 xl:grid-cols-4">
-                            {watchPartySteps.map((step) => (
-                                <div key={step.id}>
-                                    <Card className="glass-card lift-card h-full rounded-2xl shadow-none">
-                                        <CardContent className="p-4">
-                                            <p className="text-primary mb-2 text-sm font-semibold">
-                                                {step.kicker}
-                                            </p>
-                                            <h3 className="mb-2 text-base font-semibold">
-                                                {step.title}
-                                            </h3>
-                                            <p className="text-muted-foreground text-sm">
-                                                {step.details}
-                                            </p>
-                                        </CardContent>
-                                    </Card>
-                                </div>
-                            ))}
                         </div>
                     </div>
                 </section>
