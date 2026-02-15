@@ -2,32 +2,36 @@ import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent } from "~/components/ui/card";
 import { formatRuntime, splitList } from "~/lib/utils";
-import { db } from "~/server/db";
 import { api, HydrateClient } from "~/trpc/server";
 
-const showtimeDetails = [
-    "6:15 PM • Dolby Atmos",
-    "7:40 PM • Dolby Atmos",
-    "9:05 PM • 3D + Dolby Atmos",
-    "10:30 PM • 3D",
+const watchPartySteps = [
+    {
+        id: "plan",
+        kicker: "Step 01",
+        title: "Set the plan",
+        details: "Pick a time and place that works for everyone.",
+    },
+    {
+        id: "invite",
+        kicker: "Step 02",
+        title: "Invite the group",
+        details: "Invite your friends so everyone can join fast.",
+    },
+    {
+        id: "split",
+        kicker: "Step 03",
+        title: "Split payments",
+        details: "Everyone pays their share without extra hassle.",
+    },
+    {
+        id: "sync",
+        kicker: "Step 04",
+        title: "Confirmation Email",
+        details: "Automatic Email with booking details will be sent to all participants.",
+    },
 ];
 
 export default async function Home() {
-    const todayShowtimes = (
-        await db.movie.findMany({
-            select: {
-                id: true,
-                title: true,
-            },
-            orderBy: { releaseDate: "desc" },
-            take: showtimeDetails.length,
-        })
-    ).map((movie, index) => ({
-        id: movie.id,
-        title: movie.title,
-        details: showtimeDetails[index] ?? "",
-    }));
-
     const nowPlayingRaw = await api.movies.nowPlaying({ limit: 4 });
     const nowPlaying = nowPlayingRaw.map((movie) => {
         const genres = splitList(movie.genres);
@@ -39,7 +43,7 @@ export default async function Home() {
                     ? genres.slice(0, 2).join(" · ")
                     : "Genre unavailable",
             duration: formatRuntime(movie.runtime),
-            poster: movie.posterUrl ?? "/posters/spiderman.jpg",
+            poster: movie.posterUrl ?? "/posters/placeholder.png",
         };
     });
 
@@ -74,20 +78,20 @@ export default async function Home() {
                             </div>
                         </div>
 
-                        {/* TONIGHT SHOWTIMES : Hard code for now */}
+                        {/* WATCH PARTY STEPS */}
                         <div className="mt-21 grid gap-3 pb-3 md:grid-cols-2 xl:grid-cols-4">
-                            {todayShowtimes.map((show) => (
-                                <div key={show.id}>
+                            {watchPartySteps.map((step) => (
+                                <div key={step.id}>
                                     <Card className="glass-card lift-card h-full rounded-2xl shadow-none">
                                         <CardContent className="p-4">
                                             <p className="text-primary mb-2 text-sm font-semibold">
-                                                Tonight
+                                                {step.kicker}
                                             </p>
                                             <h3 className="mb-2 text-base font-semibold">
-                                                {show.title}
+                                                {step.title}
                                             </h3>
                                             <p className="text-muted-foreground text-sm">
-                                                {show.details}
+                                                {step.details}
                                             </p>
                                         </CardContent>
                                     </Card>

@@ -51,7 +51,7 @@ export default function NowPlaying() {
                                 : "Genre unavailable";
                         const duration = formatRuntime(movie.runtime);
                         const poster =
-                            movie.posterUrl ?? "/posters/Cinemate.jpg";
+                            movie.posterUrl ?? "/posters/placeholder.png";
 
                         return (
                             <Link
