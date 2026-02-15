@@ -40,18 +40,6 @@ function startOfToday() {
   return d;
 }
 
-function getNext7Days() {
-    const today = startOfToday();
-
-    return Array.from({ length: 7 }).map((_, i) => {
-      const d = new Date(today);
-      d.setDate(today.getDate() + i);
-      d.setHours(0, 0, 0, 0);
-      return d;
-    });
-  }
-
-
 export default function NowPlaying() {
   const router = useRouter();
 
@@ -60,15 +48,12 @@ export default function NowPlaying() {
 
   const [open, setOpen] = useState(false);
   const [portalReady, setPortalReady] = useState(false);
-  const [popupPos, setPopupPos] = useState<{ top: number; left: number } | null>(
-    null
-  );
+  const [popupPos, setPopupPos] = useState<{ top: number; left: number } | null>(null);
 
   const iconRef = useRef<HTMLButtonElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
   const closeTimerRef = useRef<number | null>(null);
 
-  const week = useMemo(() => getNext7Days(), []);
   const today = useMemo(() => startOfToday(), []);
 
   const filteredMovies = movies.filter((movie) =>
@@ -152,7 +137,6 @@ export default function NowPlaying() {
           className="flex-1 border border-border/60 bg-card/60 px-6 py-3 text-sm text-foreground ring-1 ring-border/50 backdrop-blur-xl outline-none placeholder:text-muted-foreground/70 focus:ring-2 focus:ring-primary rounded-full"
         />
 
-        {/* DATE FIELD */}
         <div
           onClick={() => {
             if (!open) router.push("/selectDates");
@@ -212,40 +196,9 @@ export default function NowPlaying() {
             }}
             className="rounded-2xl border border-border/60 bg-card/90 p-4 shadow-2xl backdrop-blur-xl"
           >
-            <div className="mb-3 grid grid-cols-7 text-center text-xs font-medium text-muted-foreground">
-              {["S", "M", "T", "W", "Th", "F", "Sa"].map((d) => (
-                <div key={d}>{d}</div>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-7 gap-2 text-center">
-              {week.map((d) => {
-                const isPast = d.getTime() < today.getTime();
-
-                return (
-                  <button
-                    key={d.toISOString()}
-                    type="button"
-                    disabled={isPast}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (isPast) return;
-                      setSelectedDate(d);
-                      setOpen(false);
-                      router.push("/selectDates");
-                    }}
-                    className={[
-                      "rounded-lg py-2 text-sm transition",
-                      isPast
-                        ? "cursor-not-allowed text-muted-foreground/35"
-                        : "text-foreground/80 hover:bg-primary/15 hover:text-foreground",
-                    ].join(" ")}
-                  >
-                    {d.getDate()}
-                  </button>
-                );
-              })}
-            </div>
+            <p className="text-sm text-muted-foreground">
+              Select a date from the calendar page.
+            </p>
           </div>,
           document.body
         )}

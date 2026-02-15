@@ -116,6 +116,7 @@ model Showtime {
     showtimeSeats ShowtimeSeat[]
     bookings      Booking[]
 
+    @@unique([movieId, startTime])
     @@index([movieId])
     @@index([startTime])
     @@index([movieId, startTime])
