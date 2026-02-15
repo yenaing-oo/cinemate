@@ -4,36 +4,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Card, CardContent } from "~/components/ui/card";
-
-const movies = [
-    {
-        title: "Spider-Man: No Way Home",
-        genre: "Action · Adventure",
-        duration: "2h 28m",
-        poster: "/posters/spiderman.jpg",
-    },
-    {
-        title: "Jumanji",
-        genre: "Adventure · Comedy",
-        duration: "1h 59m",
-        poster: "/posters/jumanji.jpg",
-    },
-    {
-        title: "2012",
-        genre: "Action · Sci-Fi",
-        duration: "2h 38m",
-        poster: "/posters/2012.jpg",
-    },
-    {
-        title: "Passengers",
-        genre: "Sci-Fi · Romance",
-        duration: "1h 56m",
-        poster: "/posters/passengers.jpg",
-    },
-];
+import { formatRuntime, splitList } from "~/lib/utils";
+import { api } from "~/trpc/react";
 
 export default function NowPlaying() {
     const [search, setSearch] = useState("");
+
+    const nowPlayingQuery = api.movies.nowPlaying.useQuery({});
+    const movies = nowPlayingQuery.data ?? [];
+    const isLoading = nowPlayingQuery.isLoading;
+    const hasError = nowPlayingQuery.isError;
 
     const filteredMovies = movies.filter((movie) =>
         movie.title.toLowerCase().includes(search.toLowerCase())
@@ -55,40 +35,55 @@ export default function NowPlaying() {
             </div>
 
             {/* Grid */}
-            {filteredMovies.length === 0 ? (
+            {isLoading ? (
+                <p className="text-muted-foreground">Loading movies...</p>
+            ) : hasError ? (
+                <p className="text-muted-foreground">Failed to load movies.</p>
+            ) : filteredMovies.length === 0 ? (
                 <p className="text-muted-foreground">No movies found.</p>
             ) : (
                 <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
-                    {filteredMovies.map((movie) => (
-                        <Link
-                            key={movie.title}
-                            href="/movies/details"
-                            className="block"
-                        >
-                            <Card className="lift-card border-border/60 bg-card/60 hover:bg-card/80 border transition">
-                                <CardContent className="p-4">
-                                    <div className="relative mb-3 aspect-[2/3] overflow-hidden rounded-lg">
-                                        <Image
-                                            src={movie.poster}
-                                            alt={movie.title}
-                                            fill
-                                            className="object-cover transition-transform duration-300 hover:scale-105"
-                                        />
-                                    </div>
+                    {filteredMovies.map((movie) => {
+                        const genres = splitList(movie.genres);
+                        const genre =
+                            genres.length > 0
+                                ? genres.slice(0, 2).join(" · ")
+                                : "Genre unavailable";
+                        const duration = formatRuntime(movie.runtime);
+                        const poster =
+                            movie.posterUrl ?? "/posters/placeholder.png";
 
-                                    <h4 className="truncate font-semibold">
-                                        {movie.title}
-                                    </h4>
-                                    <p className="text-muted-foreground text-sm">
-                                        {movie.genre}
-                                    </p>
-                                    <p className="text-muted-foreground/70 text-xs">
-                                        {movie.duration}
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        </Link>
-                    ))}
+                        return (
+                            <Link
+                                key={movie.id}
+                                href={`/movies/${movie.id}`}
+                                className="block"
+                            >
+                                <Card className="lift-card border-border/60 bg-card/60 hover:bg-card/80 border transition">
+                                    <CardContent className="p-4">
+                                        <div className="relative mb-3 aspect-2/3 overflow-hidden rounded-lg">
+                                            <Image
+                                                src={poster}
+                                                alt={movie.title}
+                                                fill
+                                                className="object-cover transition-transform duration-300 hover:scale-105"
+                                            />
+                                        </div>
+
+                                        <h4 className="truncate font-semibold">
+                                            {movie.title}
+                                        </h4>
+                                        <p className="text-muted-foreground text-sm">
+                                            {genre}
+                                        </p>
+                                        <p className="text-muted-foreground/70 text-xs">
+                                            {duration}
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                        );
+                    })}
                 </div>
             )}
         </div>

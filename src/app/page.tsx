@@ -1,56 +1,25 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent } from "~/components/ui/card";
-import { auth } from "~/server/auth";
+import { formatRuntime, splitList } from "~/lib/utils";
 import { api, HydrateClient } from "~/trpc/server";
 
-const todayShowtimes = [
-    {
-        title: "2012",
-        details: "6:15 PM • Dolby Atmos",
-    },
-    {
-        title: "Jumanji: The Next Level",
-        details: "7:40 PM • Dolby Atmos",
-    },
-    {
-        title: "Spider Man: No Way Home",
-        details: "9:05 PM • 3D + Dolby Atmos",
-    },
-    {
-        title: "The Batman",
-        details: "10:30 PM • 3D",
-    },
-];
-
-const nowPlaying = [
-    {
-        title: "Spider-Man: No Way Home",
-        genre: "Action · Adventure",
-        duration: "2h 28m",
-        poster: "/posters/spiderman.jpg",
-    },
-    {
-        title: "Jumanji",
-        genre: "Adventure · Comedy",
-        duration: "1h 59m",
-        poster: "/posters/jumanji.jpg",
-    },
-    {
-        title: "2012",
-        genre: "Action · Sci-Fi",
-        duration: "2h 38m",
-        poster: "/posters/2012.jpg",
-    },
-    {
-        title: "Passengers",
-        genre: "Sci-Fi · Romance",
-        duration: "1h 56m",
-        poster: "/posters/passengers.jpg",
-    },
-];
-
 export default async function Home() {
+    const nowPlayingRaw = await api.movies.nowPlaying({ limit: 4 });
+    const nowPlaying = nowPlayingRaw.map((movie) => {
+        const genres = splitList(movie.genres);
+        return {
+            id: movie.id,
+            title: movie.title,
+            genre:
+                genres.length > 0
+                    ? genres.slice(0, 2).join(" · ")
+                    : "Genre unavailable",
+            duration: formatRuntime(movie.runtime),
+            poster: movie.posterUrl ?? "/posters/placeholder.png",
+        };
+    });
+
     return (
         <HydrateClient>
             <>
@@ -81,31 +50,10 @@ export default async function Home() {
                                 </p>
                             </div>
                         </div>
-
-                        {/* TONIGHT SHOWTIMES : Hard code for now */}
-                        <div className="mt-21 grid gap-3 pb-3 md:grid-cols-2 xl:grid-cols-4">
-                            {todayShowtimes.map((show) => (
-                                <div key={show.title}>
-                                    <Card className="glass-card lift-card h-full rounded-2xl shadow-none">
-                                        <CardContent className="p-4">
-                                            <p className="text-primary mb-2 text-sm font-semibold">
-                                                Tonight
-                                            </p>
-                                            <h3 className="mb-2 text-base font-semibold">
-                                                {show.title}
-                                            </h3>
-                                            <p className="text-muted-foreground text-sm">
-                                                {show.details}
-                                            </p>
-                                        </CardContent>
-                                    </Card>
-                                </div>
-                            ))}
-                        </div>
                     </div>
                 </section>
 
-                {/* NOW PLAYING : Hard code for now */}
+                {/* NOW PLAYING */}
                 <section className="pt-10 pb-16">
                     <div className="mb-10 flex items-center justify-between">
                         <h3 className="text-3xl font-bold">Now Playing</h3>
@@ -120,8 +68,8 @@ export default async function Home() {
                     <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
                         {nowPlaying.map((movie) => (
                             <Link
-                                key={movie.title}
-                                href="/movies/details"
+                                key={movie.id}
+                                href={`/movies/${movie.id}`}
                                 className="block"
                             >
                                 <Card className="lift-card border-border/60 bg-card/60 hover:bg-card/80 rounded-xl border transition">
