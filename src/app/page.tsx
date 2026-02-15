@@ -27,7 +27,8 @@ const watchPartySteps = [
         id: "sync",
         kicker: "Step 04",
         title: "Confirmation Email",
-        details: "Automatic Email with booking details will be sent to all participants.",
+        details:
+            "Automatic Email with booking details will be sent to all participants.",
     },
 ];
 
