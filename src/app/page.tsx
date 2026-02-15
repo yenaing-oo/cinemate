@@ -1,9 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent } from "~/components/ui/card";
-import { getNowPlayingMovies } from "~/lib/utils";
+import { formatRuntime, splitList } from "~/lib/utils";
 import { db } from "~/server/db";
-import { HydrateClient } from "~/trpc/server";
+import { api, HydrateClient } from "~/trpc/server";
 
 const showtimeDetails = [
     "6:15 PM • Dolby Atmos",
@@ -28,7 +28,20 @@ export default async function Home() {
         details: showtimeDetails[index] ?? "",
     }));
 
-    const nowPlaying = await getNowPlayingMovies(db, { limit: 4 });
+    const nowPlayingRaw = await api.movies.nowPlaying({ limit: 4 });
+    const nowPlaying = nowPlayingRaw.map((movie) => {
+        const genres = splitList(movie.genres);
+        return {
+            id: movie.id,
+            title: movie.title,
+            genre:
+                genres.length > 0
+                    ? genres.slice(0, 2).join(" · ")
+                    : "Genre unavailable",
+            duration: formatRuntime(movie.runtime),
+            poster: movie.posterUrl ?? "/posters/spiderman.jpg",
+        };
+    });
 
     return (
         <HydrateClient>
