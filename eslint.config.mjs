@@ -1,22 +1,12 @@
-import { FlatCompat } from "@eslint/eslintrc";
-import tseslint from "typescript-eslint";
+import next from "eslint-config-next";
 
-const compat = new FlatCompat({
-    baseDirectory: import.meta.dirname,
-});
-
-export default tseslint.config(
+const config = [
     {
         ignores: [".next", "src/components/ui/**"],
     },
-    ...compat.extends("next/core-web-vitals"),
+    ...next,
     {
         files: ["**/*.ts", "**/*.tsx"],
-        extends: [
-            ...tseslint.configs.recommended,
-            ...tseslint.configs.recommendedTypeChecked,
-            ...tseslint.configs.stylisticTypeChecked,
-        ],
         rules: {
             "@typescript-eslint/array-type": "off",
             "@typescript-eslint/consistent-type-definitions": "off",
@@ -44,5 +34,7 @@ export default tseslint.config(
                 projectService: true,
             },
         },
-    }
-);
+    },
+];
+
+export default config;
