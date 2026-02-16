@@ -5,7 +5,7 @@
     "type": "module",
     "scripts": {
         "build": "next build",
-        "check": "eslint . && tsc --noEmit && pnpm format:check",
+        "check": "pnpm lint && tsc --noEmit && pnpm format:check",
         "db:generate": "prisma migrate dev",
         "db:migrate": "prisma migrate deploy",
         "db:push": "prisma db push",
