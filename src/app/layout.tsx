@@ -62,7 +62,7 @@ export default function RootLayout({
                                     {/* RIGHT: SIGN IN */}
                                     <div className="flex justify-end">
                                         <Button asChild>
-                                            <Link href="/api/auth/signin">
+                                            <Link href="/auth/login">
                                                 Sign in
                                             </Link>
                                         </Button>
