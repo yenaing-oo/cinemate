@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import "~/styles/globals.css";
 import { Button } from "~/components/ui/button";
@@ -23,7 +24,7 @@ export default function RootLayout({
                                             href="/"
                                             className="text-foreground flex items-center gap-2 no-underline"
                                         >
-                                            <img
+                                            <Image
                                                 src="/favicon.png"
                                                 alt="Cinemate logo"
                                                 width={36}

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -91,11 +92,13 @@ export default async function MovieDetailsPage({
         <section className="full-bleed relative -mt-24 min-h-screen overflow-hidden">
             <div className="absolute inset-0">
                 {backdropUrl || posterUrl ? (
-                    <img
-                        src={backdropUrl ?? posterUrl ?? ""}
+                    <Image
+                        src={backdropUrl || posterUrl}
                         alt=""
-                        className="h-full w-full object-cover"
-                        loading="lazy"
+                        fill
+                        sizes="100vw"
+                        className="object-cover"
+                        priority
                     />
                 ) : (
                     <div className="h-full w-full bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900" />
@@ -112,12 +115,15 @@ export default async function MovieDetailsPage({
                         <Card className="border-border/60 bg-muted/20 relative overflow-hidden rounded-[28px] border shadow-[0_30px_80px_rgba(5,12,24,0.55)]">
                             <CardContent className="p-0">
                                 {posterUrl ? (
-                                    <img
-                                        src={posterUrl}
-                                        alt={`${title} poster`}
-                                        className="h-full w-full object-cover"
-                                        loading="lazy"
-                                    />
+                                    <div className="relative h-[520px] w-full">
+                                        <Image
+                                            src={posterUrl}
+                                            alt={`${title} poster`}
+                                            fill
+                                            sizes="(min-width: 1024px) 360px, 80vw"
+                                            className="object-cover"
+                                        />
+                                    </div>
                                 ) : (
                                     <div className="bg-muted/40 text-muted-foreground flex h-[520px] items-center justify-center px-6 text-center text-sm">
                                         Poster not available

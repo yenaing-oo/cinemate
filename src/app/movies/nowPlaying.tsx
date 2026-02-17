@@ -3,234 +3,131 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useState } from "react";
 import { Card, CardContent } from "~/components/ui/card";
-
-const movies = [
-  {
-    title: "Spider-Man: No Way Home",
-    genre: "Action · Adventure",
-    duration: "2h 28m",
-    poster: "/posters/spiderman.jpg",
-  },
-  {
-    title: "Jumanji",
-    genre: "Adventure · Comedy",
-    duration: "1h 59m",
-    poster: "/posters/jumanji.jpg",
-  },
-  {
-    title: "2012",
-    genre: "Action · Sci-Fi",
-    duration: "2h 38m",
-    poster: "/posters/2012.jpg",
-  },
-  {
-    title: "Passengers",
-    genre: "Sci-Fi · Romance",
-    duration: "1h 56m",
-    poster: "/posters/passengers.jpg",
-  },
-];
-
-function startOfToday() {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
+import { formatRuntime, splitList } from "~/lib/utils";
+import { api } from "~/trpc/react";
 
 export default function NowPlaying() {
-  const router = useRouter();
+    const router = useRouter();
+    const [search, setSearch] = useState("");
 
-  const [search, setSearch] = useState("");
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+    const nowPlayingQuery = api.movies.nowPlaying.useQuery({});
+    const movies = nowPlayingQuery.data ?? [];
+    const isLoading = nowPlayingQuery.isLoading;
+    const hasError = nowPlayingQuery.isError;
 
-  const [open, setOpen] = useState(false);
-  const [portalReady, setPortalReady] = useState(false);
-  const [popupPos, setPopupPos] = useState<{ top: number; left: number } | null>(null);
-
-  const iconRef = useRef<HTMLButtonElement>(null);
-  const popupRef = useRef<HTMLDivElement>(null);
-  const closeTimerRef = useRef<number | null>(null);
-
-  const today = useMemo(() => startOfToday(), []);
-
-  const filteredMovies = movies.filter((movie) =>
+    const filteredMovies = movies.filter((movie) =>
     movie.title.toLowerCase().includes(search.toLowerCase())
-  );
 
-  useEffect(() => setPortalReady(true), []);
+    );
 
-  const updatePopupPosition = () => {
-    const btn = iconRef.current;
-    if (!btn) return;
+    return (
+        <div className="w-full">
 
-    const rect = btn.getBoundingClientRect();
-    setPopupPos({
-      top: rect.bottom + 10 + window.scrollY,
-      left: rect.right - 320 + window.scrollX,
-    });
-  };
+            {/* Header */}
+            <h3 className="mb-6 text-4xl font-bold">Now Playing</h3>
 
-  const openPopup = () => {
-    if (closeTimerRef.current) {
-      window.clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = null;
-    }
-    updatePopupPosition();
-    setOpen(true);
-  };
+            {/* Search + Select Date */}
+            <div className="mb-16 flex flex-col gap-4 md:flex-row">
 
-  const scheduleClose = () => {
-    if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
-    closeTimerRef.current = window.setTimeout(() => setOpen(false), 120);
-  };
+                {/* Search */}
+                <input
+                    type="text"
+                    placeholder="Search movies"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="flex-1 border border-border/60 bg-card/60 px-6 py-3 text-sm text-foreground ring-1 ring-border/50 backdrop-blur-xl outline-none placeholder:text-muted-foreground/70 focus:ring-2 focus:ring-primary rounded-full"
+                />
 
-  useEffect(() => {
-    function onDocMouseDown(e: MouseEvent) {
-      const t = e.target as Node;
-      if (
-        open &&
-        !iconRef.current?.contains(t) &&
-        !popupRef.current?.contains(t)
-      ) {
-        setOpen(false);
-      }
-    }
+                {/* Select Date */}
+                <div
+                    onClick={() => router.push("/selectDates")}
+                    className="flex-1 cursor-pointer border border-border/60 bg-card/60 px-6 py-3 text-sm text-muted-foreground ring-1 ring-border/50 backdrop-blur-xl rounded-full flex items-center justify-between"
+                >
+                    <span>Select a date</span>
 
-    document.addEventListener("mousedown", onDocMouseDown);
-    return () => document.removeEventListener("mousedown", onDocMouseDown);
-  }, [open]);
+                    <svg
+                        width="18"
+                        height="18"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                        className="opacity-70"
+                    >
+                        <rect x="3" y="4" width="18" height="18" rx="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                    </svg>
 
-  useEffect(() => {
-    if (!open) return;
-
-    const handler = () => updatePopupPosition();
-    window.addEventListener("scroll", handler, true);
-    window.addEventListener("resize", handler);
-    return () => {
-      window.removeEventListener("scroll", handler, true);
-      window.removeEventListener("resize", handler);
-    };
-  }, [open]);
-
-  const selectedLabel = selectedDate
-    ? selectedDate.toLocaleDateString("en-US", {
-        weekday: "long",
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })
-    : "Select a date";
-
-  return (
-    <div className="w-full">
-      <h3 className="mb-6 text-4xl font-bold">Now Playing</h3>
-
-      <div className="mb-16 flex flex-col gap-4 md:flex-row">
-        <input
-          type="text"
-          placeholder="Search movies"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 border border-border/60 bg-card/60 px-6 py-3 text-sm text-foreground ring-1 ring-border/50 backdrop-blur-xl outline-none placeholder:text-muted-foreground/70 focus:ring-2 focus:ring-primary rounded-full"
-        />
-
-        <div
-          onClick={() => {
-            if (!open) router.push("/selectDates");
-          }}
-          className="flex-1 cursor-pointer border border-border/60 bg-card/60 px-6 py-3 text-sm text-muted-foreground ring-1 ring-border/50 backdrop-blur-xl rounded-full"
-        >
-          <div className="flex items-center justify-between">
-            <span className="truncate">{selectedLabel}</span>
-
-            <button
-              ref={iconRef}
-              type="button"
-              aria-label="Open calendar"
-              onMouseEnter={(e) => {
-                e.stopPropagation();
-                openPopup();
-              }}
-              onMouseLeave={scheduleClose}
-              onClick={(e) => {
-                e.stopPropagation();
-                setOpen((v) => !v);
-              }}
-              className="ml-3 grid h-8 w-8 place-items-center rounded-md text-muted-foreground/80 hover:text-foreground transition"
-            >
-              <svg
-                width="18"
-                height="18"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                className="opacity-80"
-              >
-                <rect x="3" y="4" width="18" height="18" rx="2" />
-                <line x1="16" y1="2" x2="16" y2="6" />
-                <line x1="8" y1="2" x2="8" y2="6" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {portalReady &&
-        open &&
-        popupPos &&
-        createPortal(
-          <div
-            ref={popupRef}
-            onMouseEnter={openPopup}
-            onMouseLeave={scheduleClose}
-            style={{
-              position: "absolute",
-              top: popupPos.top,
-              left: popupPos.left,
-              width: 320,
-              zIndex: 99999,
-            }}
-            className="rounded-2xl border border-border/60 bg-card/90 p-4 shadow-2xl backdrop-blur-xl"
-          >
-            <p className="text-sm text-muted-foreground">
-              Select a date from the calendar page.
-            </p>
-          </div>,
-          document.body
-        )}
-
-      <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
-        {filteredMovies.map((movie) => (
-          <Link
-            key={movie.title}
-            href={`/movies/${encodeURIComponent(movie.title)}`}
-            className="block"
-          >
-            <Card className="border-border/60 bg-card/60 hover:bg-card/80 border transition">
-              <CardContent className="p-4">
-                <div className="relative mb-3 aspect-[2/3] overflow-hidden rounded-lg">
-                  <Image
-                    src={movie.poster}
-                    alt={movie.title}
-                    fill
-                    className="object-cover transition-transform duration-300 hover:scale-105"
-                  />
                 </div>
 
-                <h4 className="truncate font-semibold">{movie.title}</h4>
-                <p className="text-muted-foreground text-sm">{movie.genre}</p>
-                <p className="text-muted-foreground/70 text-xs">
-                  {movie.duration}
-                </p>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
+            </div>
+
+            {/* Movies Grid */}
+            {isLoading ? (
+                <p className="text-muted-foreground">Loading movies...</p>
+            ) : hasError ? (
+                <p className="text-muted-foreground">Failed to load movies.</p>
+            ) : filteredMovies.length === 0 ? (
+                <p className="text-muted-foreground">No movies found.</p>
+            ) : (
+                <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
+
+                    {filteredMovies.map((movie) => {
+
+                        const genres = splitList(movie.genres);
+
+                        const genre =
+                            genres.length > 0
+                                ? genres.slice(0, 2).join(" · ")
+                                : "Genre unavailable";
+
+                        const duration = formatRuntime(movie.runtime);
+
+                        const poster =
+                            movie.posterUrl ?? "/posters/placeholder.png";
+
+                        return (
+                            <Link
+                                key={movie.id}
+                                href={`/movies/${movie.id}`}
+                                className="block"
+                            >
+                                <Card className="lift-card border-border/60 bg-card/60 hover:bg-card/80 border transition">
+                                    <CardContent className="p-4">
+
+                                        <div className="relative mb-3 aspect-2/3 overflow-hidden rounded-lg">
+                                            <Image
+                                                src={poster}
+                                                alt={movie.title}
+                                                fill
+                                                className="object-cover transition-transform duration-300 hover:scale-105"
+                                            />
+                                        </div>
+
+                                        <h4 className="truncate font-semibold">
+                                            {movie.title}
+                                        </h4>
+
+                                        <p className="text-muted-foreground text-sm">
+                                            {genre}
+                                        </p>
+
+                                        <p className="text-muted-foreground/70 text-xs">
+                                            {duration}
+                                        </p>
+
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                        );
+                    })}
+
+                </div>
+            )}
+
+        </div>
+    );
 }
