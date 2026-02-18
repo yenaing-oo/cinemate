@@ -30,12 +30,20 @@ import { db } from "~/server/db";
 export const createTRPCContext = async (opts: { headers: Headers }) => {
     const supabase = await createClient();
     const {
-        data: { user },
+        data: { user: supabaseUser },
     } = await supabase.auth.getUser();
+
+    let user = null;
+    if (supabaseUser) {
+        user = await db.user.findUnique({
+            where: { supabaseId: supabaseUser.id },
+        });
+    }
 
     return {
         db,
-        user, // use this in your procedures
+        supabaseUser, // raw supabase user if needed
+        user, // your custom user object
         ...opts,
     };
 };
