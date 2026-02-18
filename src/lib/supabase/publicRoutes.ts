@@ -1,7 +1,7 @@
 // Centralized config for public routes
 export const PUBLIC_ROUTES = ["/", "/login"];
 
-export const PUBLIC_PREFIXES = ["/auth", "/movies"];
+export const PUBLIC_PREFIXES = ["/auth", "/movies", "/api"];
 
 export function isPublicRoute(pathname: string): boolean {
     return (
