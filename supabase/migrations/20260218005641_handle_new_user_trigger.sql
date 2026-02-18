@@ -7,6 +7,7 @@ create extension if not exists "pgcrypto";
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
+
   insert into public."User" (
     "id",
     "supabaseId",
@@ -21,7 +22,8 @@ begin
     null, -- Profile image can be set from metadata if needed
     false
   )
-  on conflict (email) do nothing; -- Prevents duplicate if retried
+  on conflict (email) do update
+    set "supabaseId" = excluded."supabaseId";
 
   return new;
 end;
