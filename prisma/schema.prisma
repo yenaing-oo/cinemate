@@ -16,7 +16,7 @@ datasource db {
 }
 
 model User {
-    id               String  @id @default(cuid())
+    id               String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
     supabaseId       String? @unique
     name             String?
     email            String? @unique
@@ -94,7 +94,7 @@ model Showtime {
 
 model Booking {
     id          String        @id @default(cuid())
-    userId      String
+    userId      String        @db.Uuid
     user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
     showtimeId  String
     showtime    Showtime      @relation(fields: [showtimeId], references: [id])
@@ -150,7 +150,7 @@ model ShowtimeSeat {
     seat         Seat       @relation(fields: [seatId], references: [id], onDelete: Cascade)
     status       SeatStatus @default(AVAILABLE)
     // Reservation info (when status = RESERVED)
-    heldByUserId String?
+    heldByUserId String?    @db.Uuid
     heldBy       User?      @relation(fields: [heldByUserId], references: [id], onDelete: SetNull)
     heldAt       DateTime?
     expiresAt    DateTime? // Auto-release after 10 minutes
