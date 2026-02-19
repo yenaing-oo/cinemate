@@ -1,17 +1,8 @@
 import Image from "next/image";
 import { api, HydrateClient } from "~/trpc/server";
 import { Card, CardContent } from "~/components/ui/card";
+import { formatShowtime } from "~/lib/utils";
 
-function formatShowtime(d: Date) {
-    return new Intl.DateTimeFormat("en-US", {
-        month: "short",
-        day: "2-digit",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-    }).format(d);
-}
 
 function BookingDropdownRow({ booking }: { booking: any }) {
     const poster = booking.posterUrl ?? "/posters/placeholder.png";

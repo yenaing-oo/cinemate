@@ -36,3 +36,14 @@ export const splitList = (value: string | null) =>
               .map((item) => item.trim())
               .filter(Boolean)
         : [];
+
+export function formatShowtime(d: Date) {
+    return new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+    }).format(d);
+}

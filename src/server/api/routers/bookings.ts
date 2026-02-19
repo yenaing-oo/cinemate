@@ -1,26 +1,46 @@
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
 export const bookingsRouter = createTRPCRouter({
-    myHistory: publicProcedure.query(async ({ ctx }) => {
-        const movies = await ctx.db.movie.findMany({
-            take: 3,
-            select: { id: true, title: true, posterUrl: true },
+    myHistory: protectedProcedure.query(async ({ ctx }) => {
+        const movies = await ctx.db.booking.findMany({
+            where: { userId: ctx.user.id },
+            orderBy: { createdAt: "desc" },
+            include: {
+                showtime: {
+                    select: {
+                        startTime: true,
+                        movie: {
+                            select: {
+                                id: true,
+                                title: true,
+                                posterUrl: true,
+                            },
+                        },
+                    },
+                },
+                tickets: {
+                    select: {
+                        seat: {
+                            select: {
+                                row: true,
+                                number: true,
+                            },
+                        }
+                    }
+                }
+            },
         });
 
-        const bookings = movies.map((movie, index) => {
-            const showtime = new Date();
-            showtime.setDate(showtime.getDate());
-            showtime.setHours(18 + index, 20, 0, 0); // 6:20 PM, 7:20 PM...
-
-            return {
-                id: `booking-${movie.id}`,
-                movieTitle: movie.title,
-                posterUrl: movie.posterUrl,
-                showtime,
-                seats: ["A5", "A6", "A7"],
-            };
-        });
-
-        return { items: bookings }; 
+        return { items: movies.map((b) => ({
+            id: b.id,
+            status: b.status,
+            movieTitle: b.showtime.movie.title,
+            posterUrl: b.showtime.movie.posterUrl,
+            showtime: b.showtime.startTime,
+            seats: b.tickets
+                    .map((t) => `${t.seat.row}${t.seat.number}`)
+                    .sort(),
+        })),
+     };
     }),
 });
