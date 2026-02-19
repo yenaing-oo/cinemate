@@ -1,5 +1,5 @@
 // Centralized config for public routes
-export const PUBLIC_ROUTES = ["/", "/login"];
+export const PUBLIC_ROUTES = ["/"];
 
 export const PUBLIC_PREFIXES = ["/auth", "/movies", "/api"];
 
