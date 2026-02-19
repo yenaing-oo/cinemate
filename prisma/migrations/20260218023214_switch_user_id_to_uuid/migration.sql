@@ -7,6 +7,9 @@
   - Changed the type of `userId` on the `Booking` table. No cast exists, the column would be dropped and recreated, which cannot be done if there is data, since the column is required.
 
 */
+
+-- Ensure pgcrypto extension is enabled for gen_random_uuid()
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- DropForeignKey
 ALTER TABLE "Booking" DROP CONSTRAINT "Booking_userId_fkey";
 
