@@ -87,7 +87,8 @@ function BookingDropdownRow({ booking }: { booking: any }) {
 
 export default async function OrderHistoryPage() {
     const res = await api.bookings.myHistory();
-    const bookings = res.items;
+    const bookings = res?.items ?? [];
+
 
     const now = new Date();
     const currentBookings = bookings.filter((b) => new Date(b.showtime) >= now);
