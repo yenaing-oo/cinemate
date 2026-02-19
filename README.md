@@ -19,9 +19,19 @@ This guide will help you set up the development environment for Cinemate, a T3 s
         brew install supabase/tap/supabase
         ```
     - On Windows:
-        ```bash
-        npm install -g supabase
-        ```
+        1. Install Scoop in PowerShell:
+            ```powershell
+            Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+            Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+            ```
+        2. Add the Supabase bucket:
+            ```powershell
+            scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+            ```
+        3. Install Supabase CLI:
+            ```powershell
+            scoop install supabase
+            ```
 
 ## Installation
 
@@ -66,6 +76,8 @@ This guide will help you set up the development environment for Cinemate, a T3 s
 Supabase is used as the authentication provider for this project. It handles user sign-up, sign-in, password reset, and email confirmation flows. All transactional emails (such as confirmation and password reset) are sent via Supabase, and for local development, these emails are intercepted by the Mailpit email server running at http://localhost:54324/.
 
 1. **Start Supabase local development environment**
+    
+    Make sure you have Docker running, then start Supabase:
 
     ```bash
     supabase start
@@ -103,7 +115,7 @@ Supabase is used as the authentication provider for this project. It handles use
 
 7. **Sign up for a test user**
     - Go to [http://localhost:3000/auth/sign-up](http://localhost:3000/auth/sign-up)
-    - Use `user@example.com` and any password
+    - Use `user@example.com` and any password. Associated seed data exists for this email from step 4.
 
 8. **Confirm your email**
     - Open [http://localhost:54324/](http://localhost:54324/) (Mailpit email server)
