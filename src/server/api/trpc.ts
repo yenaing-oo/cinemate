@@ -140,6 +140,7 @@ export const protectedProcedure = t.procedure
         }
         return next({
             ctx: {
+                ...ctx,
                 user: ctx.user,
             },
         });
