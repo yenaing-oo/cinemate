@@ -8,6 +8,7 @@ create or replace function public.handle_new_user()
 returns trigger as $$
 begin
 
+
   insert into public."User" (
     "id",
     "supabaseId",
@@ -23,7 +24,8 @@ begin
     false
   )
   on conflict (email) do update
-    set "supabaseId" = excluded."supabaseId";
+    set "supabaseId" = excluded."supabaseId"
+  on conflict ("supabaseId") do nothing;
 
   return new;
 end;
