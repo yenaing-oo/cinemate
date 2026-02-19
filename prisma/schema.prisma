@@ -19,7 +19,7 @@ model User {
     id               String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
     supabaseId       String? @unique
     name             String?
-    email            String? @unique
+    email            String  @unique
     imageURL         String?
     hasPaymentMethod Boolean @default(false)
 
