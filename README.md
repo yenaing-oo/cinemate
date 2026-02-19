@@ -50,12 +50,6 @@ This guide will help you set up the development environment for Cinemate, a T3 s
 
 2. **Configure environment variables**:
     - Populate `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` from your Google OAuth credentials.
-    - Generate `AUTH_SECRET`:
-      Run the following command to generate a random secret:
-        ```bash
-        npx auth secret
-        ```
-        This will create a `.env.local` file with the generated value. Copy the value to `AUTH_SECRET` in your `.env` file, then delete `.env.local`.
     - Adjust other variables as needed (e.g., database URL if not using default Docker setup).
 
 ## Database Setup
