@@ -10,7 +10,7 @@ export const env = createEnv({
         GOOGLE_CLIENT_ID: z.string(),
         GOOGLE_CLIENT_SECRET: z.string(),
         DATABASE_URL: z.string().url(),
-        DIRECT_URL: z.string().url(),
+        DIRECT_URL: z.string().url().optional(),
         TMDB_ACCESS_TOKEN: z.string(),
         RESEND_EMAIL_API_KEY: z.string(),
         NODE_ENV: z
