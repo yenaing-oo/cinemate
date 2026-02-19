@@ -11,6 +11,7 @@ import {
     formatRuntime,
     splitList,
 } from "~/lib/utils";
+import Link from "next/link";
 
 interface MovieDetailsPageProps {
     params: Promise<{ movieId: string }>;
@@ -52,6 +53,7 @@ export default async function MovieDetailsPage({
     params,
 }: MovieDetailsPageProps) {
     const { movieId } = await params;
+    const showtimeID = 1;
     const movie = await db.movie.findUnique({
         where: { id: movieId },
     });
@@ -109,7 +111,7 @@ export default async function MovieDetailsPage({
             <div className="from-background/90 via-background/40 absolute inset-0 bg-gradient-to-t to-transparent" />
 
             <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col justify-center px-6 pt-28 pb-20">
-                <div className="grid items-end gap-10 lg:grid-cols-[360px_1fr]">
+                <div className="grid gap-10 lg:grid-cols-[360px_1fr]">
                     <div className="relative">
                         <div className="from-primary/20 via-secondary/10 to-accent/20 absolute -inset-4 rounded-[28px] bg-gradient-to-br blur-2xl" />
                         <Card className="border-border/60 bg-muted/20 relative overflow-hidden rounded-[28px] border shadow-[0_30px_80px_rgba(5,12,24,0.55)]">
@@ -198,6 +200,23 @@ export default async function MovieDetailsPage({
                                         items={cast}
                                         fallback="Cast list not available"
                                     />
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="glass-panel rounded-2xl">
+                            <CardContent className="space-y-6 p-6">
+                                <div>
+                                    <p className="text-muted-foreground/80 mb-3 text-xs font-semibold tracking-[0.2em] uppercase">
+                                        Showtime
+                                    </p>
+                                    <Link
+                                        key={showtimeID}
+                                        href={`/movies/${movieId}/${showtimeID}`}
+                                        className="focus-visible:ring-ring ring-offset-background bg-primary text-background before:animate-shimmer-slide relative inline-flex h-10 items-center justify-center gap-2 overflow-hidden rounded-md px-4 py-2 text-sm font-medium whitespace-nowrap shadow transition-colors before:absolute before:inset-0 before:z-0 before:opacity-50 before:[background:linear-gradient(-75deg,hsl(var(--primary))_0%,hsl(var(--primary)/0.4)_50%,hsl(var(--primary))_100%)] hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+                                    >
+                                        8:00 PM
+                                    </Link>
                                 </div>
                             </CardContent>
                         </Card>
