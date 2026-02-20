@@ -47,3 +47,19 @@ export function formatShowtime(d: Date) {
         hour12: true,
     }).format(d);
 }
+
+export function formatSeatFromCode(seatCode: number): string {
+    const codeStr = seatCode.toString();
+
+    if (codeStr.length !== 2) {
+        return seatCode.toString(); // fallback safety
+    }
+
+    const rowNumber = parseInt(codeStr.charAt(0), 10);
+    const columnNumber = parseInt(codeStr.charAt(1), 10);
+
+    const rowLetter = String.fromCharCode(64 + rowNumber);
+    // 65 = A, so 64 + 1 = 65
+
+    return `${rowLetter}${columnNumber}`;
+}
