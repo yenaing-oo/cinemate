@@ -18,32 +18,29 @@ export default function NowPlaying() {
     const hasError = nowPlayingQuery.isError;
 
     const filteredMovies = movies.filter((movie) =>
-    movie.title.toLowerCase().includes(search.toLowerCase())
-
+        movie.title.toLowerCase().includes(search.toLowerCase())
     );
 
     return (
         <div className="w-full">
-
             {/* Header */}
             <h3 className="mb-6 text-4xl font-bold">Now Playing</h3>
 
             {/* Search + Select Date */}
             <div className="mb-16 flex flex-col gap-4 md:flex-row">
-
                 {/* Search */}
                 <input
                     type="text"
                     placeholder="Search movies"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="flex-1 border border-border/60 bg-card/60 px-6 py-3 text-sm text-foreground ring-1 ring-border/50 backdrop-blur-xl outline-none placeholder:text-muted-foreground/70 focus:ring-2 focus:ring-primary rounded-full"
+                    className="border-border/60 bg-card/60 text-foreground ring-border/50 placeholder:text-muted-foreground/70 focus:ring-primary flex-1 rounded-full border px-6 py-3 text-sm ring-1 backdrop-blur-xl outline-none focus:ring-2"
                 />
 
                 {/* Select Date */}
                 <div
                     onClick={() => router.push("/selectDates")}
-                    className="flex-1 cursor-pointer border border-border/60 bg-card/60 px-6 py-3 text-sm text-muted-foreground ring-1 ring-border/50 backdrop-blur-xl rounded-full flex items-center justify-between"
+                    className="border-border/60 bg-card/60 text-muted-foreground ring-border/50 flex flex-1 cursor-pointer items-center justify-between rounded-full border px-6 py-3 text-sm ring-1 backdrop-blur-xl"
                 >
                     <span>Select a date</span>
 
@@ -60,9 +57,7 @@ export default function NowPlaying() {
                         <line x1="16" y1="2" x2="16" y2="6" />
                         <line x1="8" y1="2" x2="8" y2="6" />
                     </svg>
-
                 </div>
-
             </div>
 
             {/* Movies Grid */}
@@ -74,9 +69,7 @@ export default function NowPlaying() {
                 <p className="text-muted-foreground">No movies found.</p>
             ) : (
                 <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
-
                     {filteredMovies.map((movie) => {
-
                         const genres = splitList(movie.genres);
 
                         const genre =
@@ -97,7 +90,6 @@ export default function NowPlaying() {
                             >
                                 <Card className="lift-card border-border/60 bg-card/60 hover:bg-card/80 border transition">
                                     <CardContent className="p-4">
-
                                         <div className="relative mb-3 aspect-2/3 overflow-hidden rounded-lg">
                                             <Image
                                                 src={poster}
@@ -118,16 +110,13 @@ export default function NowPlaying() {
                                         <p className="text-muted-foreground/70 text-xs">
                                             {duration}
                                         </p>
-
                                     </CardContent>
                                 </Card>
                             </Link>
                         );
                     })}
-
                 </div>
             )}
-
         </div>
     );
 }
