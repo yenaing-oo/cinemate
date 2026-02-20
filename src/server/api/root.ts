@@ -1,7 +1,9 @@
-import { exampleRouter } from "~/server/api/routers/example";
 import { emailRouter } from "~/server/api/routers/email";
+import { exampleRouter } from "~/server/api/routers/example";
 import { moviesRouter } from "~/server/api/routers/movies";
+import { showtimeRouter } from "~/server/api/routers/showtime";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
+
 
 /**
  * This is the primary router for your server.
@@ -12,6 +14,7 @@ export const appRouter = createTRPCRouter({
     example: exampleRouter,
     email: emailRouter,
     movies: moviesRouter,
+    showtime: showtimeRouter,
 });
 
 // export type definition of API
