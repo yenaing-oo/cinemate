@@ -52,7 +52,7 @@ export default function RootLayout({
                                             WatchParty
                                         </Link>
                                         <Link
-                                            href="/order-history"
+                                            href="/bookings"
                                             className="hover:text-foreground transition"
                                         >
                                             Order History
