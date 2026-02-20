@@ -51,7 +51,6 @@ CREATE TABLE "User" (
 -- CreateTable
 CREATE TABLE "Movie" (
     "id" TEXT NOT NULL,
-    "tmdbId" INTEGER NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT,
     "runtime" INTEGER NOT NULL,
@@ -145,9 +144,6 @@ CREATE UNIQUE INDEX "Session_sessionToken_key" ON "Session"("sessionToken");
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Movie_tmdbId_key" ON "Movie"("tmdbId");
-
--- CreateIndex
 CREATE INDEX "Movie_title_idx" ON "Movie"("title");
 
 -- CreateIndex
@@ -164,9 +160,6 @@ CREATE INDEX "Showtime_startTime_idx" ON "Showtime"("startTime");
 
 -- CreateIndex
 CREATE INDEX "Showtime_movieId_startTime_idx" ON "Showtime"("movieId", "startTime");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Showtime_movieId_startTime_key" ON "Showtime"("movieId", "startTime");
 
 -- CreateIndex
 CREATE INDEX "Booking_userId_idx" ON "Booking"("userId");
