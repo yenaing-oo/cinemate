@@ -15,56 +15,24 @@ datasource db {
     directUrl = env("DIRECT_URL")
 }
 
-// ==================== AUTHENTICATION (NextAuth) ====================
-
-model Account {
-    id                       String  @id @default(cuid())
-    userId                   String
-    type                     String
-    provider                 String
-    providerAccountId        String
-    refresh_token            String? // @db.Text
-    access_token             String? // @db.Text
-    expires_at               Int?
-    token_type               String?
-    scope                    String?
-    id_token                 String? // @db.Text
-    session_state            String?
-    user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-    refresh_token_expires_in Int?
-
-    @@unique([provider, providerAccountId])
-}
-
-model Session {
-    id           String   @id @default(cuid())
-    sessionToken String   @unique
-    userId       String
-    expires      DateTime
-    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
 model User {
-    id               String    @id @default(cuid())
+    id               String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    supabaseId       String? @unique
     name             String?
-    email            String?   @unique
-    emailVerified    DateTime?
-    image            String?
-    hasPaymentMethod Boolean   @default(false)
-
-    accounts Account[]
+    email            String  @unique
+    imageURL         String?
+    hasPaymentMethod Boolean @default(false)
 
     // Cinemate relations
     bookings  Booking[]
     heldSeats ShowtimeSeat[]
-    sessions  Session[]
 }
 
 // ==================== MOVIES ====================
 
 model Movie {
     id          String   @id @default(cuid())
-    tmdbId      Int      @unique        //TMDB ID
+    tmdbId      Int      @unique //TMDB ID
     title       String
     description String?  @db.Text
     runtime     Int // Duration in minutes
@@ -126,7 +94,7 @@ model Showtime {
 
 model Booking {
     id          String        @id @default(cuid())
-    userId      String
+    userId      String        @db.Uuid
     user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
     showtimeId  String
     showtime    Showtime      @relation(fields: [showtimeId], references: [id])
@@ -182,7 +150,7 @@ model ShowtimeSeat {
     seat         Seat       @relation(fields: [seatId], references: [id], onDelete: Cascade)
     status       SeatStatus @default(AVAILABLE)
     // Reservation info (when status = RESERVED)
-    heldByUserId String?
+    heldByUserId String?    @db.Uuid
     heldBy       User?      @relation(fields: [heldByUserId], references: [id], onDelete: SetNull)
     heldAt       DateTime?
     expiresAt    DateTime? // Auto-release after 10 minutes

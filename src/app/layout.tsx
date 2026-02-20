@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import "~/styles/globals.css";
-import { Button } from "~/components/ui/button";
 import { TRPCReactProvider } from "~/trpc/react";
+import { AuthButton } from "~/app/components/AuthButton";
 
 export default function RootLayout({
     children,
@@ -59,13 +59,9 @@ export default function RootLayout({
                                         </Link>
                                     </nav>
 
-                                    {/* RIGHT: SIGN IN */}
+                                    {/* RIGHT: SIGN IN/OUT */}
                                     <div className="flex justify-end">
-                                        <Button asChild>
-                                            <Link href="/api/auth/signin">
-                                                Sign in
-                                            </Link>
-                                        </Button>
+                                        <AuthButton />
                                     </div>
                                 </div>
                             </div>
