@@ -163,7 +163,7 @@ export default async function MovieDetailsPage({
 
                         {trailerUrl ? (
                             <div>
-                                <Button asChild variant="shimmer">
+                                <Button asChild>
                                     <a
                                         href={trailerUrl}
                                         target="_blank"
