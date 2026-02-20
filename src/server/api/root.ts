@@ -1,5 +1,6 @@
 import { exampleRouter } from "~/server/api/routers/example";
 import { emailRouter } from "~/server/api/routers/email";
+import { bookingSessionRouter } from "~/server/api/routers/bookingSession";
 import { moviesRouter } from "~/server/api/routers/movies";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 
@@ -11,6 +12,7 @@ import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 export const appRouter = createTRPCRouter({
     example: exampleRouter,
     email: emailRouter,
+    bookingSession: bookingSessionRouter,
     movies: moviesRouter,
 });
 
