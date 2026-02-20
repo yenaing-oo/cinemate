@@ -1,12 +1,26 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo } from "react";
 import { DatePill } from "~/components/ui/date";
 import { api } from "~/trpc/react";
 
 export default function SelectDatePage() {
     const { data: dates, isLoading } =
         api.showtime.getAvailableDates.useQuery();
+
+    const { todayString, tomorrowString } = useMemo(() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+
+        return {
+            todayString: today.toDateString(),
+            tomorrowString: tomorrow.toDateString(),
+        };
+    }, []);
 
     if (isLoading) {
         return (
@@ -38,14 +52,12 @@ export default function SelectDatePage() {
             <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
                 {(dates as string[]).map((date) => {
                     const jsDate = new Date(date);
-
-                    const today = new Date();
-                    const tomorrow = new Date(Date.now() + 86400000);
+                    const jsDateString = jsDate.toDateString();
 
                     const label =
-                        jsDate.toDateString() === today.toDateString()
+                        jsDateString === todayString
                             ? "Today"
-                            : jsDate.toDateString() === tomorrow.toDateString()
+                            : jsDateString === tomorrowString
                               ? "Tomorrow"
                               : jsDate.toLocaleDateString("en-US", {
                                     weekday: "long",
