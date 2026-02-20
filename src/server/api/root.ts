@@ -4,7 +4,6 @@ import { moviesRouter } from "~/server/api/routers/movies";
 import { showtimeRouter } from "~/server/api/routers/showtime";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 
-
 /**
  * This is the primary router for your server.
  *
