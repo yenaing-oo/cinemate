@@ -55,7 +55,7 @@ export default function RootLayout({
                                             href="/bookings"
                                             className="hover:text-foreground transition"
                                         >
-                                            Order History
+                                            Bookings
                                         </Link>
                                     </nav>
 
