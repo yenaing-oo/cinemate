@@ -7,19 +7,19 @@
 
 */
 -- DropForeignKey
-ALTER TABLE "Account" DROP CONSTRAINT "Account_userId_fkey";
+ALTER TABLE IF EXISTS "Account" DROP CONSTRAINT IF EXISTS "Account_userId_fkey";
 
 -- DropForeignKey
-ALTER TABLE "Session" DROP CONSTRAINT "Session_userId_fkey";
+ALTER TABLE IF EXISTS "Session" DROP CONSTRAINT IF EXISTS "Session_userId_fkey";
 
 -- AlterTable
 ALTER TABLE "User" ADD COLUMN     "supabaseId" TEXT;
 
 -- DropTable
-DROP TABLE "Account";
+DROP TABLE IF EXISTS "Account";
 
 -- DropTable
-DROP TABLE "Session";
+DROP TABLE IF EXISTS "Session";
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_supabaseId_key" ON "User"("supabaseId");

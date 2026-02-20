@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "Movie" ALTER COLUMN "runtime" DROP NOT NULL,
-ALTER COLUMN "releaseDate" DROP NOT NULL;
