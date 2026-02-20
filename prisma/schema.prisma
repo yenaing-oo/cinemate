@@ -24,8 +24,9 @@ model User {
     hasPaymentMethod Boolean @default(false)
 
     // Cinemate relations
-    bookings  Booking[]
-    heldSeats ShowtimeSeat[]
+    bookings        Booking[]
+    heldSeats       ShowtimeSeat[]
+    bookingSessions BookingSession[]
 }
 
 // ==================== MOVIES ====================
@@ -83,6 +84,7 @@ model Showtime {
     tickets       Ticket[]
     showtimeSeats ShowtimeSeat[]
     bookings      Booking[]
+    bookingSessions BookingSession[]
 
     @@unique([movieId, startTime])
     @@index([movieId])
@@ -152,6 +154,7 @@ model ShowtimeSeat {
     // Reservation info (when status = RESERVED)
     heldByUserId String?    @db.Uuid
     heldBy       User?      @relation(fields: [heldByUserId], references: [id], onDelete: SetNull)
+    heldBySessionToken String?
     heldAt       DateTime?
     expiresAt    DateTime? // Auto-release after 10 minutes
     updatedAt    DateTime   @updatedAt
@@ -160,10 +163,46 @@ model ShowtimeSeat {
     @@index([showtimeId, status])
     @@index([expiresAt])
     @@index([heldByUserId])
+    @@index([heldBySessionToken])
 }
 
 enum SeatStatus {
     AVAILABLE
     RESERVED // Temporarily held during checkout
     BOOKED // Ticket purchased
+}
+
+// ==================== BOOKING SESSIONS ====================
+
+model BookingSession {
+    id              String               @id @default(cuid())
+    userId          String?              @db.Uuid
+    user            User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+    sessionToken    String?              @unique
+    showtimeId      String?
+    showtime        Showtime?            @relation(fields: [showtimeId], references: [id], onDelete: SetNull)
+    ticketQuantity  Int?
+    selectedSeatIds String[]             @default([])
+    currentStep     BookingSessionStep   @default(QUANTITY)
+    status          BookingSessionStatus @default(ACTIVE)
+    startedAt       DateTime             @default(now())
+    expiresAt       DateTime
+    updatedAt       DateTime             @updatedAt
+
+    @@index([userId])
+    @@index([sessionToken])
+    @@index([status])
+    @@index([expiresAt])
+}
+
+enum BookingSessionStep {
+    QUANTITY
+    SEATS
+    CHECKOUT
+}
+
+enum BookingSessionStatus {
+    ACTIVE
+    EXPIRED
+    COMPLETED
 }
