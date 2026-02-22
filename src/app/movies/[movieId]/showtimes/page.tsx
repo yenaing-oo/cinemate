@@ -89,14 +89,19 @@ export default async function MovieShowtimesPage({
                         {selectedDayShowtimes.length > 0 ? (
                             <div className="flex flex-wrap gap-3">
                                 {selectedDayShowtimes.map((showtime) => {
-                                    const isSelected = showtime.id === showtimeId;
+                                    const isSelected =
+                                        showtime.id === showtimeId;
                                     const href = `/movies/${movieId}/showtimes?date=${selectedDate}&showtimeId=${showtime.id}`;
 
                                     return (
                                         <Button
                                             key={showtime.id}
                                             asChild
-                                            variant={isSelected ? "default" : "outline"}
+                                            variant={
+                                                isSelected
+                                                    ? "default"
+                                                    : "outline"
+                                            }
                                             size="lg"
                                             className="min-w-28"
                                         >
@@ -143,7 +148,9 @@ export default async function MovieShowtimesPage({
                                         <Button
                                             key={dateKey}
                                             asChild
-                                            variant={isActive ? "default" : "outline"}
+                                            variant={
+                                                isActive ? "default" : "outline"
+                                            }
                                             className="h-auto w-full justify-start py-4 whitespace-normal"
                                         >
                                             <Link
