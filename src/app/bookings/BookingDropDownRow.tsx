@@ -18,7 +18,9 @@ export function BookingDropDownRow({
 }: BookingDropdownRowProps) {
     const formattedTime = formatShowtime(showtime);
 
-    const formattedSeats = seats.map((s) => formatSeatFromCode(s.row, s.number)).join(", ");
+    const formattedSeats = seats
+        .map((s) => formatSeatFromCode(s.row, s.number))
+        .join(", ");
 
     return (
         <Card className="border-border/60 bg-card/60 rounded-xl border">
