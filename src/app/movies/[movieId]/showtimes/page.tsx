@@ -216,8 +216,7 @@ export default async function MovieShowtimesPage({
                                                 </span>
                                                 <span className="text-muted-foreground mt-1 block text-left text-sm">
                                                     {dayShowtimes.length}{" "}
-                                                    showings
-                                                    · from{" "}
+                                                    showings · from{" "}
                                                     {priceFormatter.format(
                                                         firstPrice
                                                     )}
