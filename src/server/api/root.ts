@@ -1,7 +1,7 @@
 import { exampleRouter } from "~/server/api/routers/example";
 import { emailRouter } from "~/server/api/routers/email";
 import { moviesRouter } from "~/server/api/routers/movies";
-import { bookingsRouter } from "./routers/bookings";
+import { bookingsRouter } from "~/server/api/routers/bookings";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 
 /**
