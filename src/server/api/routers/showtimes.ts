@@ -39,7 +39,7 @@ export const showtimesRouter = createTRPCRouter({
             }
 
             const groups: Record<string, ShowtimeItem[]> = {};
-            for (const showtime of showtimes) {
+            for (const showtime of movie.showtimes) {
                 const day = showtime.startTime.toISOString().slice(0, 10);
                 if (!groups[day]) groups[day] = [];
                 groups[day]!.push({
