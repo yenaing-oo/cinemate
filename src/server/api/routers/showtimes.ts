@@ -13,32 +13,30 @@ export const showtimesRouter = createTRPCRouter({
     getByMovie: publicProcedure
         .input(z.object({ movieId: z.string() }))
         .query(async ({ input }) => {
-            const movie = await db.movie.findUnique({
+           const movie = await db.movie.findUnique({
                 where: { id: input.movieId },
                 select: {
                     id: true,
                     title: true,
                     posterUrl: true,
+                    showtimes: {
+                        where: {
+                            startTime: { gt: new Date() },
+                        },
+                        orderBy: { startTime: "asc" },
+                        select: {
+                            id: true,
+                            startTime: true,
+                            availableSeats: true,
+                            price: true,
+                        },
+                    },
                 },
             });
 
             if (!movie) {
                 return null;
             }
-
-            const showtimes = await db.showtime.findMany({
-                where: {
-                    movieId: input.movieId,
-                    startTime: { gt: new Date() },
-                },
-                orderBy: { startTime: "asc" },
-                select: {
-                    id: true,
-                    startTime: true,
-                    availableSeats: true,
-                    price: true,
-                },
-            });
 
             const groups: Record<string, ShowtimeItem[]> = {};
             for (const showtime of showtimes) {
