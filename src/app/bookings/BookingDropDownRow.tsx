@@ -6,8 +6,8 @@ import { formatSeatFromCode } from "~/lib/utils";
 interface BookingDropdownRowProps {
     posterUrl?: string;
     movieTitle: string;
-    showtime: string | Date;
-    seats: string[];
+    showtime: Date;
+    seats: { row: number; number: number }[];
 }
 
 export function BookingDropDownRow({
@@ -16,10 +16,9 @@ export function BookingDropDownRow({
     showtime,
     seats,
 }: BookingDropdownRowProps) {
-    const formattedTime =
-        typeof showtime === "string" ? showtime : formatShowtime(showtime);
+    const formattedTime = formatShowtime(showtime);
 
-    const formattedSeats = seats.map((s) => formatSeatFromCode(s)).join(", ");
+    const formattedSeats = seats.map((s) => formatSeatFromCode(s.row, s.number)).join(", ");
 
     return (
         <Card className="border-border/60 bg-card/60 rounded-xl border">

@@ -48,18 +48,15 @@ export function formatShowtime(d: Date) {
     }).format(d);
 }
 
-export function formatSeatFromCode(seatCode: number): string {
-    const codeStr = seatCode.toString();
-
-    if (codeStr.length !== 2) {
-        return seatCode.toString(); // fallback safety
+export function formatSeatFromCode(row: number, seat: number): string {
+    if (
+        !Number.isInteger(row) ||
+        row <= 0 ||
+        !Number.isInteger(seat) ||
+        seat <= 0
+    ) {
+        throw new Error("Invalid seat: row and seat must be positive integers");
     }
-
-    const rowNumber = parseInt(codeStr.charAt(0), 10);
-    const columnNumber = parseInt(codeStr.charAt(1), 10);
-
-    const rowLetter = String.fromCharCode(64 + rowNumber);
-    // 65 = A, so 64 + 1 = 65
-
-    return `${rowLetter}${columnNumber}`;
+    const rowLetter = String.fromCharCode(64 + row);
+    return `${rowLetter}${seat}`;
 }
