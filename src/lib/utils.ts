@@ -36,3 +36,27 @@ export const splitList = (value: string | null) =>
               .map((item) => item.trim())
               .filter(Boolean)
         : [];
+
+export function formatShowtime(d: Date) {
+    return new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+    }).format(d);
+}
+
+export function formatSeatFromCode(row: number, seat: number): string {
+    if (
+        !Number.isInteger(row) ||
+        row <= 0 ||
+        !Number.isInteger(seat) ||
+        seat <= 0
+    ) {
+        throw new Error("Invalid seat: row and seat must be positive integers");
+    }
+    const rowLetter = String.fromCharCode(64 + row);
+    return `${rowLetter}${seat}`;
+}
