@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { splitList } from "~/lib/utils";
 import { Card, CardContent } from "~/components/ui/card";
 import { MinusCircledIcon, PlusCircledIcon } from "@radix-ui/react-icons";
+import { MovieDetail } from "~/components/ui/movieDetail";
 import { useState } from "react";
 
 interface TicketSelectionProps {
@@ -43,55 +43,16 @@ export default function TicketSelection({ props }: TicketSelectionProps) {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(32,201,255,0.28),transparent_45%),radial-gradient(circle_at_85%_10%,rgba(255,181,92,0.22),transparent_40%)]" />
             <div className="from-background/95 via-background/70 to-background/10 absolute inset-0 bg-gradient-to-r" />
             <div className="from-background/90 via-background/40 absolute inset-0 bg-gradient-to-t to-transparent" />
-            <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col justify-center px-6 pb-20 max-[500px]:pt-25">
+            <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col justify-center px-6 pt-25 pb-20">
                 <div className="grid gap-10 lg:grid-cols-[550px_1fr]">
-                    <div className="grid grid-cols-[auto_auto] gap-10 max-[500px]:grid-cols-1">
-                        <div className="relative h-80 w-45 shrink-0 justify-self-center overflow-hidden rounded-lg">
-                            <Card>
-                                <CardContent className="p-0">
-                                    {props.posterUrl ? (
-                                        <div className="h-130 w-full">
-                                            <Image
-                                                src={props.posterUrl}
-                                                alt={`${props.title} poster`}
-                                                fill
-                                                sizes="(min-width: 500px) 360px, 80vw"
-                                                className="object-cover"
-                                            />
-                                        </div>
-                                    ) : (
-                                        <div className="bg-muted/40 text-muted-foreground flex h-[520px] items-center justify-center px-6 text-center text-sm">
-                                            Poster not available
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </div>
-
-                        <div>
-                            <p className="text-muted-foreground/70 text-s font-semibold tracking-[0.45em] uppercase">
-                                Movie Details
-                            </p>
-                            <h1 className="mt-2 mb-5 text-4xl leading-tight font-bold md:text-5xl">
-                                {props.title}
-                            </h1>
-                            {props.languages.length > 0 && (
-                                <div className="flex flex-wrap gap-2">
-                                    {props.languages.map((language) => (
-                                        <span
-                                            key={`language-${language}`}
-                                            className="border-border/60 bg-background rounded-full border px-3 py-1 text-xs"
-                                        >
-                                            {language}
-                                        </span>
-                                    ))}
-                                </div>
-                            )}
-                            <p className="text-muted-foreground/70 text-s mt-5 font-semibold uppercase">
-                                Mon Feb 16, 2026 | 8:00 PM
-                            </p>
-                        </div>
-                    </div>
+                    <MovieDetail
+                        props={{
+                            posterUrl: props.posterUrl,
+                            title: props.title,
+                            languages: props.languages,
+                            showTime: "Mon Feb 16, 2026 | 8:00 PM",
+                        }}
+                    />
                     <div>
                         <div className="flex justify-center">
                             <Card className="glass-panel w-full max-w-200 rounded-2xl">

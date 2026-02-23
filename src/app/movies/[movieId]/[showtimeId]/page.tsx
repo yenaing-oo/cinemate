@@ -27,16 +27,12 @@ export default async function MovieShowtimePage({
         notFound();
     }
 
-    //const
-    let { title, posterUrl, backdropUrl, languages } = {
+    const { title, posterUrl, backdropUrl, languages } = {
         title: movie.title,
         posterUrl: movie.posterUrl ?? "",
         backdropUrl: movie.backdropUrl ?? "",
         languages: splitList(movie.languages),
     };
-
-    languages.push("hest", "sdfsd", "sdfds");
-    // languages.pop();
 
     console.log("movieID: ", movieId);
     console.log("showtimeID: ", showtimeId);

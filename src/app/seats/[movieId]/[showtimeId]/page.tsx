@@ -1,6 +1,50 @@
-import React from "react";
-import SeatmapCanvas from "@alisaitteke/seatmap-canvas-react";
+import { notFound } from "next/navigation";
+import { api } from "~/trpc/server";
+import { splitList } from "~/lib/utils";
+import SeatSelection from "./seatSelectionPage";
 
-export default function SeatMapPage() {
-    return <p>Hello from seat map!</p>;
+interface SeatMapPageProps {
+    params: Promise<{ movieId: string; showtimeId: string }>;
+}
+
+export default async function SeatMapPage({ params }: SeatMapPageProps) {
+    const { movieId, showtimeId } = await params;
+
+    // Fetch showtimeID from DB to verify its existence
+
+    // if DB not found, return not found page:
+    // if (!showtimeId) {
+    //     notFound();
+    // }
+
+    const movie = await api.movies.getById({ id: movieId });
+
+    if (!movie) {
+        notFound();
+    }
+
+    const movieDetails = {
+        title: movie.title,
+        posterUrl: movie.posterUrl ?? "",
+        languages: splitList(movie.languages),
+    };
+
+    // Track selected seats: map seatId -> seatNumber for easy lookup
+    // const [selectedSeats, setSelectedSeats] = useState<Map<string, string>>(
+    //     new Map()
+    // );
+
+    // const getSelectedSeatNumbers = () => {
+    //     return Array.from(selectedSeats.values());
+    // };
+
+    return (
+        <SeatSelection
+            props={{
+                ...movieDetails,
+                movieId: movieId,
+                showtimeId: showtimeId,
+            }}
+        />
+    );
 }
