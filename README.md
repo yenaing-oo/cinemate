@@ -13,6 +13,25 @@ This guide will help you set up the development environment for Cinemate, a T3 s
 - **pnpm**: Package manager. Install via npm: `npm install -g pnpm@latest`
 - **Docker**: For running the database locally. [Download Docker Desktop](https://docs.docker.com/get-docker/).
 - **Git**: For version control.
+- **Supabase CLI**:
+    - On macOS:
+        ```bash
+        brew install supabase/tap/supabase
+        ```
+    - On Windows:
+        1. Install Scoop in PowerShell:
+            ```powershell
+            Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+            Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+            ```
+        2. Add the Supabase bucket:
+            ```powershell
+            scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+            ```
+        3. Install Supabase CLI:
+            ```powershell
+            scoop install supabase
+            ```
 
 ## Installation
 
@@ -50,65 +69,60 @@ This guide will help you set up the development environment for Cinemate, a T3 s
 
 2. **Configure environment variables**:
     - Populate `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` from your Google OAuth credentials.
-    - Generate `AUTH_SECRET`:
-      Run the following command to generate a random secret:
-        ```bash
-        npx auth secret
-        ```
-        This will create a `.env.local` file with the generated value. Copy the value to `AUTH_SECRET` in your `.env` file, then delete `.env.local`.
     - Adjust other variables as needed (e.g., database URL if not using default Docker setup).
 
-## Database Setup
+## Supabase Authentication & Local Database Setup
 
-1. **Start the database**:
+Supabase is used as the authentication provider for this project. It handles user sign-up, sign-in, password reset, and email confirmation flows. All transactional emails (such as confirmation and password reset) are sent via Supabase, and for local development, these emails are intercepted by the Mailpit email server running at http://localhost:54324/.
+
+1. **Start Supabase local development environment**
+    
+    Make sure you have Docker running, then start Supabase:
 
     ```bash
-    ./start-database.sh
+    supabase start
     ```
 
-2. **Verify Docker container**:
-   Check that the PostgreSQL container is running in Docker Desktop.
+2. **Reset and migrate the database**
 
-3. **Generate and apply database migrations**:
+    ```bash
+    supabase db reset
+    ```
+
+3. **Generate Prisma Client and apply migrations**
+
     ```bash
     pnpm db:generate
     ```
 
-## Seeding the Database
+4. **Seed the database with development data**
 
-After setting up the database, you can seed it with data for development. There are a few ways to do this:
+    ```bash
+    pnpm db:seed --dev
+    ```
 
-### 1. Development Seed (Recommended)
+5. **Sync movies from TMDB**
 
-This is the fastest way to get a complete local environment with sample data. It creates foundational data (like cinema seats) and also a sample movie, a sample user, and several sample bookings.
+    ```bash
+    pnpm sync:movies
+    ```
 
-Run the following command:
+6. **Start the development server**
 
-```bash
-pnpm db:seed --dev
-```
+    ```bash
+    pnpm dev
+    ```
 
-> **Note:** This command is idempotent and can be run multiple times.
+7. **Sign up for a test user**
+    - Go to [http://localhost:3000/auth/sign-up](http://localhost:3000/auth/sign-up)
+    - Use `user@example.com` and any password. Associated seed data exists for this email from step 4.
 
-### 2. Sync with Live Movie Data
+8. **Confirm your email**
+    - Open [http://localhost:54324/](http://localhost:54324/) (Mailpit email server)
+    - Find the confirmation email and click the link
 
-If you want to populate the database with a larger, more realistic set of currently playing movies, you can use the `sync:movies` script. This script fetches the top 10 now-playing movies from The Movie Database (TMDB) and populates the database with them, including creating showtimes.
-
-```bash
-pnpm sync:movies
-```
-
-> **Note:** You can run this *after* running the development seed if you want to add more movies alongside the sample movie.
-
-### 3. Foundational Seed (Seats Only)
-
-If you only need the foundational data (i.e., the cinema seat layout) without any sample movies or bookings, you can run the seed command without the `--dev` flag:
-
-```bash
-pnpm db:seed
-```
-
-This is useful for setting up a clean environment before running the `sync:movies` script, or for production-like setups.
+9. **Sign in with your test credentials**
+    - `user@example.com` is seeded with sample bookings and tickets
 
 ## Running the Application
 
@@ -119,7 +133,6 @@ pnpm dev
 ```
 
 The application will be available at [http://localhost:3000](http://localhost:3000).
-
 
 ## Useful Scripts
 

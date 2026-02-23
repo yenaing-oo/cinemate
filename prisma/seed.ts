@@ -131,7 +131,6 @@ async function main() {
         data: {
             name: "John Doe",
             email: "user@example.com",
-            emailVerified: new Date(),
         },
     });
     console.log(`Created sample user: ${user.email}`);
