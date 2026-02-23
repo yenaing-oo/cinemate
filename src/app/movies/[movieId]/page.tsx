@@ -1,16 +1,17 @@
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
-import { db } from "~/server/db";
 import {
     formatDate,
     formatRating,
     formatRuntime,
     splitList,
 } from "~/lib/utils";
+import { db } from "~/server/db";
 
 interface MovieDetailsPageProps {
     params: Promise<{ movieId: string }>;
@@ -161,9 +162,14 @@ export default async function MovieDetailsPage({
                             </Badge>
                         </div>
 
-                        {trailerUrl ? (
-                            <div>
-                                <Button asChild>
+                        <div className="flex flex-wrap gap-3">
+                            <Button asChild size="lg" className="font-semibold">
+                                <Link href={`/movies/${movieId}/showtimes`}>
+                                    Get Tickets
+                                </Link>
+                            </Button>
+                            {trailerUrl ? (
+                                <Button asChild variant="outline" size="lg">
                                     <a
                                         href={trailerUrl}
                                         target="_blank"
@@ -172,8 +178,8 @@ export default async function MovieDetailsPage({
                                         Watch Trailer
                                     </a>
                                 </Button>
-                            </div>
-                        ) : null}
+                            ) : null}
+                        </div>
 
                         <Card className="glass-panel rounded-2xl">
                             <CardContent className="space-y-6 p-6">
