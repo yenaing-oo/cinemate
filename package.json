@@ -27,7 +27,6 @@
         "sync:movies": "pnpm tsx scripts/syncMovies.ts"
     },
     "dependencies": {
-        "@alisaitteke/seatmap-canvas-react": "^1.0.7",
         "@auth/prisma-adapter": "^2.7.2",
         "@prisma/client": "^6.6.0",
         "@radix-ui/react-icons": "^1.3.2",
@@ -48,6 +47,7 @@
         "radix-ui": "^1.4.3",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
+        "react-konva": "^19.2.2",
         "resend": "^6.9.2",
         "server-only": "^0.0.1",
         "superjson": "^2.2.1",
