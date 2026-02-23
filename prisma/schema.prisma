@@ -150,43 +150,33 @@ model ShowtimeSeat {
     showtime         Showtime        @relation(fields: [showtimeId], references: [id], onDelete: Cascade)
     seatId           String
     seat             Seat            @relation(fields: [seatId], references: [id], onDelete: Cascade)
-    status           SeatStatus      @default(AVAILABLE)
-    // Reservation info (when status = RESERVED)
+    isBooked         Boolean         @default(false)
     heldByUserId     String?         @db.Uuid
     heldBy           User?           @relation(fields: [heldByUserId], references: [id], onDelete: SetNull)
-    heldAt           DateTime?
-    expiresAt        DateTime? // Auto-release after 10 minutes
+    heldTill         DateTime?
     updatedAt        DateTime        @updatedAt
     bookingSession   BookingSession? @relation(fields: [bookingSessionId], references: [id])
     bookingSessionId String?
 
     @@unique([showtimeId, seatId])
-    @@index([showtimeId, status])
-    @@index([expiresAt])
-    @@index([heldByUserId])
-}
-
-enum SeatStatus {
-    AVAILABLE
-    RESERVED // Temporarily held during checkout
-    BOOKED // Ticket purchased
+    @@index([heldByUserId, heldTill])
+    @@index([heldTill])
 }
 
 // ==================== BOOKING SESSION ====================
 
 model BookingSession {
-    id            String               @id @default(cuid())
-    userId        String?              @db.Uuid
-    user          User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+    id            String         @id @default(cuid())
+    userId        String?        @db.Uuid
+    user          User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
     showtimeId    String
-    showtime      Showtime             @relation(fields: [showtimeId], references: [id], onDelete: Cascade)
+    showtime      Showtime       @relation(fields: [showtimeId], references: [id], onDelete: Cascade)
     step          BookingStep
     ticketCount   Int?
     selectedSeats ShowtimeSeat[]
-    startedAt     DateTime             @default(now())
+    startedAt     DateTime       @default(now())
     expiresAt     DateTime
-    status        BookingSessionStatus @default(ACTIVE)
-    lastUpdatedAt DateTime             @updatedAt
+    lastUpdatedAt DateTime       @updatedAt
 
     @@index([userId])
     @@index([showtimeId])
@@ -197,10 +187,4 @@ enum BookingStep {
     TICKET_QUANTITY
     SEAT_SELECTION
     CHECKOUT
-}
-
-enum BookingSessionStatus {
-    ACTIVE
-    EXPIRED
-    COMPLETED
 }
