@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { db } from "../src/server/db";
+import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import {
     fetchNowPlaying,
     fetchMovieFull,
@@ -19,6 +20,8 @@ const FRIDAY_DAY_OF_WEEK = 5; // Sunday = 0, ..., Friday = 5
 const SHOWTIME_HOURS = [14, 18, 22];
 const LAST_SHOWTIME_HOUR = Math.max(...SHOWTIME_HOURS);
 
+const CINEMA_TIMEZONE = process.env.CINEMA_TIMEZONE;
+
 // --- Helper Functions ---
 
 /**
@@ -26,26 +29,35 @@ const LAST_SHOWTIME_HOUR = Math.max(...SHOWTIME_HOURS);
  * @returns An array of Date objects representing the start times for each showtime.
  */
 function getShowtimeSchedule(): Date[] {
+    if (!CINEMA_TIMEZONE) {
+        throw new Error(
+            "CINEMA_TIMEZONE is not defined in the environment variables."
+        );
+    }
+
     const schedule: Date[] = [];
-    const today = new Date();
-    const currentDay = today.getDay();
+    // Get current time in the configured cinema timezone
+    const nowLocal = toZonedTime(new Date(), CINEMA_TIMEZONE);
+    const currentDay = nowLocal.getDay();
 
     let daysUntilFriday =
         (FRIDAY_DAY_OF_WEEK - currentDay + DAYS_IN_WEEK) % DAYS_IN_WEEK;
-    if (daysUntilFriday === 0 && today.getHours() >= LAST_SHOWTIME_HOUR) {
+    if (daysUntilFriday === 0 && nowLocal.getHours() >= LAST_SHOWTIME_HOUR) {
         daysUntilFriday = DAYS_IN_WEEK;
     }
 
-    // Calculate the date of the next Friday
-    const nextFriday = new Date(today);
-    nextFriday.setDate(today.getDate() + daysUntilFriday);
+    // Calculate the date of the next Friday in cinema local time
+    const nextFriday = new Date(nowLocal);
+    nextFriday.setDate(nowLocal.getDate() + daysUntilFriday);
 
     for (let i = 0; i < DAYS_IN_WEEK; i++) {
-        const date = new Date(nextFriday);
-        date.setDate(nextFriday.getDate() + i);
         for (const hour of SHOWTIME_HOURS) {
-            date.setHours(hour, 0, 0, 0);
-            schedule.push(new Date(date));
+            const showtimeLocal = new Date(nextFriday);
+            showtimeLocal.setDate(nextFriday.getDate() + i);
+            showtimeLocal.setHours(hour, 0, 0, 0);
+            // Convert cinema local time to UTC
+            const utcDate = fromZonedTime(showtimeLocal, CINEMA_TIMEZONE);
+            schedule.push(utcDate);
         }
     }
     return schedule;
