@@ -46,6 +46,7 @@ export const bookingSessionRouter = createTRPCRouter({
             })
         )
         .mutation(async ({ ctx, input }) => {
+            const now = new Date();
             const session = await ctx.db.bookingSession.findUnique({
                 where: { id: input.sessionId },
                 include: { selectedSeats: true },
@@ -56,7 +57,7 @@ export const bookingSessionRouter = createTRPCRouter({
                 throw new Error("Unauthorized");
             }
 
-            if (session.expiresAt < new Date()) {
+            if (session.expiresAt < now) {
                 throw new Error("Session has expired");
             }
 
@@ -74,7 +75,8 @@ export const bookingSessionRouter = createTRPCRouter({
                     input.ticketCount,
                     session.showtimeId,
                     ctx.user.id,
-                    session.id
+                    session.id,
+                    now
                 );
             } else if (
                 session.step === BookingStep.SEAT_SELECTION &&
@@ -96,7 +98,8 @@ export const bookingSessionRouter = createTRPCRouter({
                     ctx.db,
                     input.selectedShowtimeSeatIds,
                     ctx.user.id,
-                    session.id
+                    session.id,
+                    now
                 );
             } else if (
                 session.step === BookingStep.CHECKOUT &&
@@ -112,9 +115,9 @@ async function setTicketCount(
     ticketCount: number,
     showtimeId: string,
     userId: string,
-    bookingSessionId: string
+    bookingSessionId: string,
+    now: Date
 ) {
-    const now = new Date();
     const availableSeatsCount = await db.showtimeSeat.count({
         where: {
             showtimeId,
@@ -144,7 +147,8 @@ async function reserveSeats(
     db: PrismaClient,
     showtimeSeatIds: string[],
     userId: string,
-    bookingSessionId: string
+    bookingSessionId: string,
+    now: Date
 ) {
     await db.$transaction(async (tx) => {
         const count = await tx.showtimeSeat.updateMany({
@@ -153,13 +157,13 @@ async function reserveSeats(
                 isBooked: false,
                 OR: [
                     { heldTill: null },
-                    { heldTill: { lt: new Date() } },
+                    { heldTill: { lt: now } },
                     { heldByUserId: userId },
                 ],
             },
             data: {
                 heldByUserId: userId,
-                heldTill: new Date(Date.now() + SEAT_HOLD_DURATION_MS),
+                heldTill: new Date(now.getTime() + SEAT_HOLD_DURATION_MS),
             },
         });
         if (count.count !== showtimeSeatIds.length) {
