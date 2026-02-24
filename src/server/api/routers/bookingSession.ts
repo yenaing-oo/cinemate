@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { BOOKING_SESSION_DURATION_MS } from "../../config";
+import {
+    BOOKING_SESSION_DURATION_MS,
+    SEAT_HOLD_DURATION_MS,
+} from "../../config";
 import { BookingStep, type PrismaClient } from "@prisma/client";
 
 export const bookingSessionRouter = createTRPCRouter({
@@ -72,6 +75,21 @@ export const bookingSessionRouter = createTRPCRouter({
                     ctx.user.id,
                     input.ticketCount
                 );
+            } else if (
+                session.step === BookingStep.SEAT_SELECTION &&
+                input.step === BookingStep.CHECKOUT
+            ) {
+                if (!input.selectedShowtimeSeatIds) {
+                    throw new Error(
+                        "Selected seat IDs are required for checkout"
+                    );
+                }
+                await reserveSeats(
+                    ctx.db,
+                    input.selectedShowtimeSeatIds,
+                    ctx.user.id,
+                    session.id
+                );
             }
 
             const updateData: Record<string, any> = {
@@ -85,7 +103,6 @@ export const bookingSessionRouter = createTRPCRouter({
         }),
 });
 
-// Helper function for seat availability check
 async function checkEnoughSeatsAvailable(
     db: PrismaClient,
     showtimeId: string,
@@ -109,4 +126,43 @@ async function checkEnoughSeatsAvailable(
             "Not enough seats available for the requested ticket count"
         );
     }
+}
+
+async function reserveSeats(
+    db: PrismaClient,
+    showtimeSeatIds: string[],
+    userId: string,
+    bookingSessionId: string
+) {
+    await db.$transaction(async (tx) => {
+        const count = await tx.showtimeSeat.updateMany({
+            where: {
+                id: { in: showtimeSeatIds },
+                isBooked: false,
+                OR: [
+                    { heldTill: null },
+                    { heldTill: { lt: new Date() } },
+                    { heldByUserId: userId },
+                ],
+            },
+            data: {
+                heldByUserId: userId,
+                heldTill: new Date(Date.now() + SEAT_HOLD_DURATION_MS),
+            },
+        });
+        if (count.count !== showtimeSeatIds.length) {
+            throw new Error(
+                "Some selected seats are no longer available. Please choose different seats."
+            );
+        }
+        await tx.bookingSession.update({
+            where: { id: bookingSessionId },
+            data: {
+                step: BookingStep.CHECKOUT,
+                selectedSeats: {
+                    connect: showtimeSeatIds.map((id) => ({ id })),
+                },
+            },
+        });
+    });
 }

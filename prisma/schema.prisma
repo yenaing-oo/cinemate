@@ -151,6 +151,7 @@ model ShowtimeSeat {
     seatId           String
     seat             Seat            @relation(fields: [seatId], references: [id], onDelete: Cascade)
     isBooked         Boolean         @default(false)
+    // Temporary hold fields for seat selection process
     heldByUserId     String?         @db.Uuid
     heldBy           User?           @relation(fields: [heldByUserId], references: [id], onDelete: SetNull)
     heldTill         DateTime?
