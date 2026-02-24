@@ -57,7 +57,7 @@ export const bookingSessionRouter = createTRPCRouter({
                 throw new Error("Unauthorized");
             }
 
-            if (session.expiresAt < now) {
+            if (session.expiresAt < now || session.step === BookingStep.COMPLETED) {
                 throw new Error("Session has expired");
             }
 
