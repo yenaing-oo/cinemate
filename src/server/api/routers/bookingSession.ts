@@ -98,6 +98,11 @@ export const bookingSessionRouter = createTRPCRouter({
                     ctx.user.id,
                     session.id
                 );
+            } else if (
+                session.step === BookingStep.CHECKOUT &&
+                input.step === BookingStep.COMPLETED
+            ) {
+                await completeBooking(ctx.db, session);
             }
         }),
 });
@@ -170,6 +175,32 @@ async function reserveSeats(
                     connect: showtimeSeatIds.map((id) => ({ id })),
                 },
             },
+        });
+    });
+}
+
+async function completeBooking(db: PrismaClient, session: any) {
+    await db.$transaction(async (tx) => {
+        const count = await tx.showtimeSeat.updateMany({
+            where: {
+                id: { in: session.selectedSeats.map((s: any) => s.id) },
+                isBooked: false,
+                heldByUserId: session.userId,
+            },
+            data: {
+                isBooked: true,
+                heldByUserId: null,
+                heldTill: null,
+            },
+        });
+        if (count.count !== session.selectedSeats.length) {
+            throw new Error(
+                "Some selected seats could not be booked. Please try again."
+            );
+        }
+        await tx.bookingSession.update({
+            where: { id: session.id },
+            data: { step: BookingStep.COMPLETED },
         });
     });
 }
