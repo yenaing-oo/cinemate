@@ -49,6 +49,14 @@ export const bookingSessionRouter = createTRPCRouter({
             });
             if (!session) throw new Error("Session not found");
 
+            if (session.userId !== ctx.user.id) {
+                throw new Error("Unauthorized");
+            }
+
+            if (session.expiresAt < new Date()) {
+                throw new Error("Session has expired");
+            }
+
             if (
                 session.step === BookingStep.TICKET_QUANTITY &&
                 input.step === BookingStep.SEAT_SELECTION
