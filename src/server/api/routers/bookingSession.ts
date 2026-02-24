@@ -69,11 +69,12 @@ export const bookingSessionRouter = createTRPCRouter({
                         "Ticket count is required for seat selection"
                     );
                 }
-                await checkEnoughSeatsAvailable(
+                await setTicketCount(
                     ctx.db,
+                    input.ticketCount,
                     session.showtimeId,
                     ctx.user.id,
-                    input.ticketCount
+                    session.id
                 );
             } else if (
                 session.step === BookingStep.SEAT_SELECTION &&
@@ -84,6 +85,13 @@ export const bookingSessionRouter = createTRPCRouter({
                         "Selected seat IDs are required for checkout"
                     );
                 }
+                if (
+                    input.selectedShowtimeSeatIds.length !== session.ticketCount
+                ) {
+                    throw new Error(
+                        "Selected seat count does not match ticket count"
+                    );
+                }
                 await reserveSeats(
                     ctx.db,
                     input.selectedShowtimeSeatIds,
@@ -91,23 +99,15 @@ export const bookingSessionRouter = createTRPCRouter({
                     session.id
                 );
             }
-
-            const updateData: Record<string, any> = {
-                step: input.step,
-            };
-
-            return ctx.db.bookingSession.update({
-                where: { id: input.sessionId },
-                data: updateData,
-            });
         }),
 });
 
-async function checkEnoughSeatsAvailable(
+async function setTicketCount(
     db: PrismaClient,
+    ticketCount: number,
     showtimeId: string,
     userId: string,
-    ticketCount: number
+    bookingSessionId: string
 ) {
     const now = new Date();
     const availableSeatsCount = await db.showtimeSeat.count({
@@ -126,6 +126,13 @@ async function checkEnoughSeatsAvailable(
             "Not enough seats available for the requested ticket count"
         );
     }
+    await db.bookingSession.update({
+        where: { id: bookingSessionId },
+        data: {
+            step: BookingStep.SEAT_SELECTION,
+            ticketCount,
+        },
+    });
 }
 
 async function reserveSeats(
