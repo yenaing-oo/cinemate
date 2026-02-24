@@ -47,19 +47,12 @@ export const bookingSessionRouter = createTRPCRouter({
         )
         .mutation(async ({ ctx, input }) => {
             const now = new Date();
-            const session = await ctx.db.bookingSession.findUnique({
+            const session = await ctx.db.bookingSession.findUniqueOrThrow({
                 where: { id: input.sessionId },
                 include: { selectedSeats: true },
             });
-            if (!session) throw new Error("Session not found");
 
-            if (session.userId !== ctx.user.id) {
-                throw new Error("Unauthorized");
-            }
-
-            if (session.expiresAt < now || session.step === BookingStep.COMPLETED) {
-                throw new Error("Session has expired");
-            }
+            validateSession(session, ctx.user.id, now);
 
             if (
                 session.step === BookingStep.TICKET_QUANTITY &&
@@ -78,6 +71,7 @@ export const bookingSessionRouter = createTRPCRouter({
                     session.id,
                     now
                 );
+                return;
             } else if (
                 session.step === BookingStep.SEAT_SELECTION &&
                 input.step === BookingStep.CHECKOUT
@@ -101,14 +95,31 @@ export const bookingSessionRouter = createTRPCRouter({
                     session.id,
                     now
                 );
+                return;
             } else if (
                 session.step === BookingStep.CHECKOUT &&
                 input.step === BookingStep.COMPLETED
             ) {
                 await completeBooking(ctx.db, session);
+                return;
+            } else {
+                // No valid transition
+                return;
             }
         }),
 });
+
+function validateSession(session: any, userId: string, now: Date) {
+    if (!session) {
+        throw new Error("Session not found");
+    }
+    if (session.userId !== userId) {
+        throw new Error("Unauthorized");
+    }
+    if (session.expiresAt < now || session.step === BookingStep.COMPLETED) {
+        throw new Error("Session has expired");
+    }
+}
 
 async function setTicketCount(
     db: PrismaClient,
