@@ -33,7 +33,7 @@ export const bookingSessionRouter = createTRPCRouter({
         .input(
             z.object({
                 sessionId: z.string(),
-                step: z
+                goToStep: z
                     .enum(
                         Object.values(BookingStep) as [
                             BookingStep,
@@ -56,7 +56,7 @@ export const bookingSessionRouter = createTRPCRouter({
 
             if (
                 session.step === BookingStep.TICKET_QUANTITY &&
-                input.step === BookingStep.SEAT_SELECTION
+                input.goToStep === BookingStep.SEAT_SELECTION
             ) {
                 if (!input.ticketCount) {
                     throw new Error(
@@ -74,7 +74,7 @@ export const bookingSessionRouter = createTRPCRouter({
                 return;
             } else if (
                 session.step === BookingStep.SEAT_SELECTION &&
-                input.step === BookingStep.CHECKOUT
+                input.goToStep === BookingStep.CHECKOUT
             ) {
                 if (!input.selectedShowtimeSeatIds) {
                     throw new Error(
@@ -98,7 +98,7 @@ export const bookingSessionRouter = createTRPCRouter({
                 return;
             } else if (
                 session.step === BookingStep.CHECKOUT &&
-                input.step === BookingStep.COMPLETED
+                input.goToStep === BookingStep.COMPLETED
             ) {
                 await completeBooking(ctx.db, session);
                 return;
