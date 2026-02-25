@@ -39,7 +39,8 @@
         "**/*.js",
         ".next/types/**/*.ts",
         "eslint.config.mjs",
-        "vitest.config.mts"
+        "vitest.config.mts",
+        "src/env.mjs"
     ],
     "exclude": ["node_modules"]
 }
