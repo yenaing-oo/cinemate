@@ -4,7 +4,12 @@ import {
     BOOKING_SESSION_DURATION_MS,
     SEAT_HOLD_DURATION_MS,
 } from "../../config";
-import { BookingStep, type PrismaClient } from "@prisma/client";
+import {
+    BookingStatus,
+    BookingStep,
+    TicketStatus,
+    type PrismaClient,
+} from "@prisma/client";
 
 export const bookingSessionRouter = createTRPCRouter({
     create: protectedProcedure
@@ -196,6 +201,7 @@ async function reserveSeats(
 
 async function completeBooking(db: PrismaClient, session: any) {
     await db.$transaction(async (tx) => {
+        // 1. Mark seats as booked
         const count = await tx.showtimeSeat.updateMany({
             where: {
                 id: { in: session.selectedSeats.map((s: any) => s.id) },
@@ -213,6 +219,40 @@ async function completeBooking(db: PrismaClient, session: any) {
                 "Some selected seats could not be booked. Please try again."
             );
         }
+
+        // 2. Calculate total amount (fetch price from showtime)
+        const showtime = await tx.showtime.findUniqueOrThrow({
+            where: { id: session.showtimeId },
+            select: { price: true },
+        });
+        const totalAmount = showtime.price.mul(session.selectedSeats.length);
+
+        // 3. Create booking
+        const booking = await tx.booking.create({
+            data: {
+                totalAmount,
+                status: BookingStatus.CONFIRMED,
+                userId: session.userId,
+                showtimeId: session.showtimeId,
+            },
+        });
+
+        // 4. Create tickets
+        await Promise.all(
+            session.selectedSeats.map((seat: any) =>
+                tx.ticket.create({
+                    data: {
+                        bookingId: booking.id,
+                        seatId: seat.seatId,
+                        showtimeId: session.showtimeId,
+                        price: showtime.price,
+                        status: TicketStatus.VALID,
+                    },
+                })
+            )
+        );
+
+        // 5. Update booking session step
         await tx.bookingSession.update({
             where: { id: session.id },
             data: { step: BookingStep.COMPLETED },
