@@ -24,9 +24,9 @@ model User {
     hasPaymentMethod Boolean @default(false)
 
     // Cinemate relations
-    bookings        Booking[]
-    heldSeats       ShowtimeSeat[]
-    bookingSessions BookingSession[]
+    bookings       Booking[]
+    heldSeats      ShowtimeSeat[]
+    bookingSession BookingSession?
 }
 
 // ==================== MOVIES ====================
@@ -71,14 +71,14 @@ model Seat {
 // ==================== SHOWTIMES ====================
 
 model Showtime {
-    id             String   @id @default(cuid())
-    movieId        String
-    movie          Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
-    startTime      DateTime
-    endTime        DateTime
-    price          Decimal  @db.Decimal(10, 2)
-    createdAt      DateTime @default(now())
-    updatedAt      DateTime @updatedAt
+    id        String   @id @default(cuid())
+    movieId   String
+    movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+    startTime DateTime
+    endTime   DateTime
+    price     Decimal  @db.Decimal(10, 2)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
     tickets         Ticket[]
     showtimeSeats   ShowtimeSeat[]
@@ -166,7 +166,7 @@ model ShowtimeSeat {
 
 model BookingSession {
     id            String         @id @default(cuid())
-    userId        String?        @db.Uuid
+    userId        String?        @unique @db.Uuid
     user          User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
     showtimeId    String
     showtime      Showtime       @relation(fields: [showtimeId], references: [id], onDelete: Cascade)
