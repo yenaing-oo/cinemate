@@ -152,7 +152,7 @@ async function main() {
 
     // --- Booking 1: Single Ticket ---
     const seatForBooking1 = await prisma.showtimeSeat.findFirst({
-        where: { showtimeId: showtimeForBooking1.id, status: "AVAILABLE" },
+        where: { showtimeId: showtimeForBooking1.id },
     });
 
     if (!seatForBooking1) {
@@ -182,7 +182,7 @@ async function main() {
         });
         await tx.showtimeSeat.update({
             where: { id: seatForBooking1.id },
-            data: { status: "BOOKED" },
+            data: { isBooked: true },
         });
         await tx.showtime.update({
             where: { id: showtimeForBooking1.id },
@@ -193,7 +193,7 @@ async function main() {
 
     // --- Booking 2: Multiple Tickets ---
     const seatsForBooking2 = await prisma.showtimeSeat.findMany({
-        where: { showtimeId: showtimeForBooking2.id, status: "AVAILABLE" },
+        where: { showtimeId: showtimeForBooking2.id, isBooked: false },
         take: 3,
     });
 
@@ -231,7 +231,7 @@ async function main() {
 
         await tx.showtimeSeat.updateMany({
             where: { id: { in: seatIdsToUpdate } },
-            data: { status: "BOOKED" },
+            data: { isBooked: true },
         });
 
         await tx.showtime.update({
