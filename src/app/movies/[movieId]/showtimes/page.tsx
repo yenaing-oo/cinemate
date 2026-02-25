@@ -37,7 +37,6 @@ function MoviePoster({
 }) {
     return (
         <div className="space-y-4 lg:pt-10">
-            <h1 className="text-2xl font-bold">{title}</h1>
             <div className="relative aspect-2/3 overflow-hidden rounded-2xl border border-white/10">
                 <Image
                     src={posterUrl ?? "/posters/placeholder.png"}
@@ -47,6 +46,7 @@ function MoviePoster({
                     sizes="320px"
                 />
             </div>
+            <h1 className="text-xl font-bold ml-1">{title}</h1>
         </div>
     );
 }
