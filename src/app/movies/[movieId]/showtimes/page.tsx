@@ -144,10 +144,9 @@ function ShowtimePicker({
 export default function MovieShowtimesPage({ params }: ShowtimesPageProps) {
     const { movieId } = use(params);
 
-    const { data: payload, isLoading } = api.showtimes.getByMovie.useQuery(
-        { movieId },
-        { staleTime: 60_000 }
-    );
+    const { data: payload, isLoading } = api.showtimes.getByMovie.useQuery({
+        movieId,
+    });
 
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
     const [selectedShowtimeId, setSelectedShowtimeId] = useState<string | null>(
