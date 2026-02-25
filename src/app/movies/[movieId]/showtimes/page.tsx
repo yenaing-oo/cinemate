@@ -200,9 +200,7 @@ export default function MovieShowtimesPage({ params }: ShowtimesPageProps) {
                     )}
 
                     {isLoading ? (
-                        <p className="text-muted-foreground text-sm">
-                            Loading…
-                        </p>
+                        <></>
                     ) : availableDates.length > 0 ? (
                         <DateList
                             availableDates={availableDates}
