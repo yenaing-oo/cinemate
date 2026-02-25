@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { env } from "~/env.mjs";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -23,18 +24,18 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
-    timeZone: "America/Chicago",
+    timeZone: env.NEXT_PUBLIC_CINEMA_TIMEZONE,
 });
 
-const showtimeDateLabelFormatter = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "America/Chicago",
+const showtimeDateLabelFormatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: env.NEXT_PUBLIC_CINEMA_TIMEZONE,
     year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
+    month: "long",
+    day: "numeric",
 });
 
 const showtimeTimeLabelFormatter = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Chicago",
+    timeZone: env.NEXT_PUBLIC_CINEMA_TIMEZONE,
     hour: "numeric",
     minute: "2-digit",
 });
