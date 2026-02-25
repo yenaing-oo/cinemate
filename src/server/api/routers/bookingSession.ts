@@ -53,7 +53,7 @@ export const bookingSessionRouter = createTRPCRouter({
             });
         }),
 
-    get: protectedProcedure.mutation(async ({ ctx }) => {
+    get: protectedProcedure.query(async ({ ctx }) => {
         const now = new Date();
         const session = await ctx.db.bookingSession.findFirst({
             where: {
