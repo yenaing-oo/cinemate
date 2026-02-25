@@ -87,3 +87,15 @@ export function formatSeatFromCode(row: number, seat: number): string {
     const rowLetter = String.fromCharCode(64 + row);
     return `${rowLetter}${seat}`;
 }
+
+/**
+ * Formats a duration in milliseconds as M:SS.
+ * @param ms Duration in milliseconds
+ * @returns Formatted time string
+ */
+export function formatTime(ms: number) {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
