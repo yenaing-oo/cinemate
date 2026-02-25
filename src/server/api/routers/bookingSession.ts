@@ -23,6 +23,12 @@ export const bookingSessionRouter = createTRPCRouter({
             const expiresAt = new Date(
                 now.getTime() + BOOKING_SESSION_DURATION_MS
             );
+            // Delete any existing sessions for this user
+            await ctx.db.bookingSession.deleteMany({
+                where: {
+                    userId: ctx.user.id,
+                },
+            });
             return ctx.db.bookingSession.create({
                 data: {
                     userId: ctx.user.id,
@@ -31,8 +37,59 @@ export const bookingSessionRouter = createTRPCRouter({
                     startedAt: now,
                     expiresAt,
                 },
+                include: {
+                    showtime: {
+                        include: {
+                            movie: {
+                                select: {
+                                    id: true,
+                                    title: true,
+                                    posterUrl: true,
+                                },
+                            },
+                        },
+                    },
+                },
             });
         }),
+
+    get: protectedProcedure.mutation(async ({ ctx }) => {
+        const now = new Date();
+        const session = await ctx.db.bookingSession.findFirst({
+            where: {
+                userId: ctx.user.id,
+                expiresAt: { gt: now },
+                step: { not: BookingStep.COMPLETED },
+            },
+            orderBy: { startedAt: "desc" },
+            include: {
+                showtime: {
+                    include: {
+                        movie: {
+                            select: {
+                                id: true,
+                                title: true,
+                                posterUrl: true,
+                            },
+                        },
+                    },
+                },
+                selectedSeats: {
+                    include: {
+                        seat: {
+                            select: {
+                                id: true,
+                                row: true,
+                                number: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        return session;
+    }),
 
     update: protectedProcedure
         .input(
