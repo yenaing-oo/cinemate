@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
+import { format } from "date-fns-tz";
+import { env } from "~/env.mjs";
 
 type ShowtimeItem = {
     id: string;
@@ -38,7 +40,9 @@ export const showtimesRouter = createTRPCRouter({
 
             const groups: Record<string, ShowtimeItem[]> = {};
             for (const showtime of movie.showtimes) {
-                const day = showtime.startTime.toISOString().slice(0, 10);
+                const day = format(showtime.startTime, "yyyy-MM-dd", {
+                    timeZone: env.CINEMA_TIMEZONE,
+                });
                 if (!groups[day]) groups[day] = [];
                 groups[day]!.push({
                     id: showtime.id,
