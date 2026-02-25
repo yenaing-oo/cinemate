@@ -1,3 +1,4 @@
+import type { $Enums } from "@prisma/client";
 import { layoutConfig } from "./seatmapLayoutConfig";
 
 export interface ScreenPosition {
@@ -33,45 +34,25 @@ export interface SeatPosition {
     y: number;
     row: number;
     col: number;
+    seatId: string;
     size: number; // include dynamic seat size
-    seatNumber: string;
+    seatLable: string;
 }
 
 export const calculateSeatLayout = (
     stageWidth: number,
     stageHeight: number,
     rows: number,
-    seatsPerRow: number
+    seatsPerRow: number,
+    seatInfo: {
+        seatId: string;
+        row: number;
+        number: number;
+        status: $Enums.SeatStatus;
+    }[]
 ): SeatPosition[] => {
     const { screenUI, seats, section, curvature } = layoutConfig;
-    const rowID: String[] = [
-        "A",
-        "B",
-        "C",
-        "D",
-        "E",
-        "F",
-        "G",
-        "H",
-        "I",
-        "J",
-        "K",
-        "L",
-        "M",
-        "N",
-        "O",
-        "P",
-        "Q",
-        "R",
-        "S",
-        "T",
-        "U",
-        "V",
-        "W",
-        "X",
-        "Y",
-        "Z",
-    ];
+    const rowID: String[] = ["A", "B", "C", "D", "E", "F", "G", "H", "I"];
 
     // Calculate max available width for seats
     const availableWidth = stageWidth * (2 * section.paddingXPercent);
@@ -93,13 +74,13 @@ export const calculateSeatLayout = (
 
     const layout: SeatPosition[] = [];
 
-    for (let r = 0; r < rows; r++) {
+    for (let r = 1; r <= rows; r++) {
         const rowWidth =
             seatsPerRow * dynamicSeatSize + (seatsPerRow - 1) * seats.gap;
         const rowStartX = (stageWidth - rowWidth) / 2;
 
-        for (let c = 0; c < seatsPerRow; c++) {
-            let x = rowStartX + c * (dynamicSeatSize + seats.gap);
+        for (let c = 1; c <= seatsPerRow; c++) {
+            let x = rowStartX + (c - 1) * (dynamicSeatSize + seats.gap);
             let y =
                 screenUI.distanceFromTop +
                 section.paddingTop +
@@ -107,18 +88,23 @@ export const calculateSeatLayout = (
 
             // Apply curvature if enabled
             if (curvature.enabled) {
-                const t = c / (seatsPerRow - 1);
+                const t = (c - 1) / (seatsPerRow - 1);
                 const curveOffset = Math.sin(t * Math.PI) * curvature.intensity;
                 y += curveOffset;
             }
+
+            const seatDetail = seatInfo.find(
+                (s) => s.row === r && s.number === c
+            );
 
             layout.push({
                 x,
                 y,
                 row: r,
                 col: c,
+                seatId: seatDetail ? seatDetail.seatId : `${r}-${c}`,
                 size: dynamicSeatSize,
-                seatNumber: `${rowID[r]}${c + 1}`,
+                seatLable: `${rowID[r - 1]}${c}`,
             });
         }
     }

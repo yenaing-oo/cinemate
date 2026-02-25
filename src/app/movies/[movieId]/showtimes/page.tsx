@@ -91,7 +91,7 @@ export default async function MovieShowtimesPage({
                                 {selectedDayShowtimes.map((showtime) => {
                                     const isSelected =
                                         showtime.id === showtimeId;
-                                    const href = `/movies/${movieId}/showtimes?date=${selectedDate}&showtimeId=${showtime.id}`;
+                                    const href = `/movies/${movieId}/${showtime.id}?date=${selectedDate}`;
 
                                     return (
                                         <Button

@@ -16,8 +16,8 @@ export const layoutConfig = {
     },
     seats: {
         size: 45,
-        gap: 20,
-        rowGap: 30,
+        gap: 12,
+        rowGap: 20,
     },
     curvature: {
         enabled: true,

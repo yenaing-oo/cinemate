@@ -19,9 +19,15 @@ export default async function SeatMapPage({ params }: SeatMapPageProps) {
 
     const movie = await api.movies.getById({ id: movieId });
 
-    if (!movie) {
+    const seatInfo = await api.seats.getSeatsForShowtime({
+        showtimeId: showtimeId,
+    });
+
+    if (!movie || !seatInfo) {
         notFound();
     }
+
+    console.log("seat info: ", seatInfo);
 
     const movieDetails = {
         title: movie.title,
@@ -44,6 +50,7 @@ export default async function SeatMapPage({ params }: SeatMapPageProps) {
                 ...movieDetails,
                 movieId: movieId,
                 showtimeId: showtimeId,
+                seatInfo: seatInfo,
             }}
         />
     );
