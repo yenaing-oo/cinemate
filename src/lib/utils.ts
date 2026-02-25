@@ -40,9 +40,9 @@ const showtimeTimeLabelFormatter = new Intl.DateTimeFormat("en-US", {
     minute: "2-digit",
 });
 
-const usdFormatter = new Intl.NumberFormat("en-US", {
+const cadFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency: "CAD",
 });
 
 export const formatDate = (date: string | Date) =>
@@ -54,7 +54,7 @@ export const formatShowtimeDateLabel = (date: string | Date) =>
 export const formatShowtimeTimeLabel = (date: string | Date) =>
     showtimeTimeLabelFormatter.format(new Date(date));
 
-export const formatUsd = (amount: number) => usdFormatter.format(amount);
+export const formatCad = (amount: number) => cadFormatter.format(amount);
 
 export const splitList = (value: string | null) =>
     value
