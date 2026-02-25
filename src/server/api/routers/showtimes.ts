@@ -5,7 +5,6 @@ import { db } from "~/server/db";
 type ShowtimeItem = {
     id: string;
     startTime: Date;
-    availableSeats: number;
     price: number;
 };
 
@@ -27,7 +26,6 @@ export const showtimesRouter = createTRPCRouter({
                         select: {
                             id: true,
                             startTime: true,
-                            availableSeats: true,
                             price: true,
                         },
                     },
@@ -45,7 +43,6 @@ export const showtimesRouter = createTRPCRouter({
                 groups[day]!.push({
                     id: showtime.id,
                     startTime: showtime.startTime,
-                    availableSeats: showtime.availableSeats,
                     price: Number(showtime.price),
                 });
             }

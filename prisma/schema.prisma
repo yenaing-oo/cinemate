@@ -77,7 +77,6 @@ model Showtime {
     startTime      DateTime
     endTime        DateTime
     price          Decimal  @db.Decimal(10, 2)
-    availableSeats Int // Cached count for quick filtering
     createdAt      DateTime @default(now())
     updatedAt      DateTime @updatedAt
 
@@ -100,7 +99,6 @@ model Booking {
     user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
     showtimeId  String
     showtime    Showtime      @relation(fields: [showtimeId], references: [id])
-    ticketCount Int
     totalAmount Decimal       @db.Decimal(10, 2)
     status      BookingStatus @default(CONFIRMED)
     createdAt   DateTime      @default(now())

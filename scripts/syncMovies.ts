@@ -147,7 +147,6 @@ async function createShowtimesForMovies(
     schedule: Date[]
 ): Promise<Showtime[]> {
     console.log("Preparing to create showtimes for synced movies...");
-    const totalSeatCount = seats.length;
     const showtimesToCreate = movies.flatMap((movie) =>
         schedule.map((startTime) => {
             const endTime = new Date(
@@ -158,7 +157,6 @@ async function createShowtimesForMovies(
                 startTime,
                 endTime,
                 price: SHOWTIME_PRICE,
-                availableSeats: totalSeatCount,
             };
         })
     );

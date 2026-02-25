@@ -86,7 +86,6 @@ async function main() {
                     showtime1StartTime.getTime() + sampleMovie.runtime * 60000
                 ),
                 price: showtimePrice,
-                availableSeats: allSeats.length,
             },
             {
                 movieId: sampleMovie.id,
@@ -95,7 +94,6 @@ async function main() {
                     showtime2StartTime.getTime() + sampleMovie.runtime * 60000
                 ),
                 price: showtimePrice,
-                availableSeats: allSeats.length,
             },
         ],
         skipDuplicates: true,
@@ -168,7 +166,6 @@ async function main() {
             data: {
                 userId: user.id,
                 showtimeId: showtimeForBooking1.id,
-                ticketCount: 1,
                 totalAmount: showtimeForBooking1.price,
             },
         });
@@ -183,10 +180,6 @@ async function main() {
         await tx.showtimeSeat.update({
             where: { id: seatForBooking1.id },
             data: { isBooked: true },
-        });
-        await tx.showtime.update({
-            where: { id: showtimeForBooking1.id },
-            data: { availableSeats: { decrement: 1 } },
         });
         console.log(`- Booking ${booking.id} created with 1 ticket.`);
     });
@@ -206,13 +199,11 @@ async function main() {
 
     console.log("Creating booking with 3 tickets...");
     await prisma.$transaction(async (tx) => {
-        const ticketCount = 3;
         const booking = await tx.booking.create({
             data: {
                 userId: user.id,
                 showtimeId: showtimeForBooking2.id,
-                ticketCount: ticketCount,
-                totalAmount: showtimeForBooking2.price.mul(ticketCount),
+                totalAmount: showtimeForBooking2.price.mul(seatsForBooking2.length),
             },
         });
 
@@ -234,13 +225,8 @@ async function main() {
             data: { isBooked: true },
         });
 
-        await tx.showtime.update({
-            where: { id: showtimeForBooking2.id },
-            data: { availableSeats: { decrement: ticketCount } },
-        });
-
         console.log(
-            `- Booking ${booking.id} created with ${ticketCount} tickets.`
+            `- Booking ${booking.id} created with ${seatsForBooking2.length} tickets.`
         );
     });
 }
