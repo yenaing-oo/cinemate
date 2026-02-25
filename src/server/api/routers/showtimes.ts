@@ -38,33 +38,19 @@ export const showtimesRouter = createTRPCRouter({
                 return null;
             }
 
-            const groups: Record<string, ShowtimeItem[]> = {};
-            for (const showtime of movie.showtimes) {
-                const day = format(showtime.startTime, "yyyy-MM-dd", {
-                    timeZone: env.CINEMA_TIMEZONE,
-                });
-                if (!groups[day]) groups[day] = [];
-                groups[day]!.push({
-                    id: showtime.id,
-                    startTime: showtime.startTime,
-                    price: Number(showtime.price),
-                });
-            }
-
-            const groupedShowtimes = Object.entries(groups).map(
-                ([date, dayShowtimes]) => ({
-                    date,
-                    showtimes: dayShowtimes,
-                })
-            );
+            const showtimes = movie.showtimes.map((showtime) => ({
+                id: showtime.id,
+                startTime: showtime.startTime,
+                price: Number(showtime.price),
+            }));
 
             return {
                 movie: {
                     id: movie.id,
                     title: movie.title,
-                    posterUrl: movie.posterUrl ?? "/posters/placeholder.png",
+                    posterUrl: movie.posterUrl,
                 },
-                groupedShowtimes,
+                showtimes,
             };
         }),
 });
