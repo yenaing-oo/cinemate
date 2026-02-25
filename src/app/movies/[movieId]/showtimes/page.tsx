@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { use, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { formatShowtimeDateLabel, formatShowtimeTimeLabel } from "~/lib/utils";
@@ -152,6 +153,13 @@ export default function MovieShowtimesPage({ params }: ShowtimesPageProps) {
     const [selectedShowtimeId, setSelectedShowtimeId] = useState<string | null>(
         null
     );
+    const router = useRouter();
+
+    const createBookingSession = api.bookingSession.create.useMutation({
+        onSuccess: () => {
+            router.push("/ticketing");
+        },
+    });
 
     const showtimesByDate = useMemo(() => {
         const showtimes = payload?.showtimes ?? [];
@@ -168,6 +176,11 @@ export default function MovieShowtimesPage({ params }: ShowtimesPageProps) {
     function handleSelectDate(date: string) {
         setSelectedDate(date);
         setSelectedShowtimeId(null);
+    }
+
+    function handleSelectShowtime(showtimeId: string) {
+        setSelectedShowtimeId(showtimeId);
+        createBookingSession.mutate({ showtimeId });
     }
 
     return (
@@ -194,7 +207,7 @@ export default function MovieShowtimesPage({ params }: ShowtimesPageProps) {
                         <ShowtimePicker
                             showtimes={selectedDayShowtimes}
                             selectedShowtimeId={selectedShowtimeId}
-                            onSelect={setSelectedShowtimeId}
+                            onSelect={handleSelectShowtime}
                         />
                     )}
 
