@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { splitList } from "~/lib/utils";
+import { formatList } from "~/lib/utils";
 import TicketSelection from "./ticketSelection";
 import { db } from "~/server/db";
 
@@ -31,7 +31,7 @@ export default async function MovieShowtimePage({
         title: movie.title,
         posterUrl: movie.posterUrl ?? "",
         backdropUrl: movie.backdropUrl ?? "",
-        languages: splitList(movie.languages),
+        languages: formatList(movie.languages),
     };
 
     console.log("movieID: ", movieId);

@@ -9,7 +9,7 @@ import {
     formatDate,
     formatRating,
     formatRuntime,
-    splitList,
+    formatList,
 } from "~/lib/utils";
 import { db } from "~/server/db";
 
@@ -84,10 +84,10 @@ export default async function MovieDetailsPage({
         posterUrl: movie.posterUrl ?? "",
         backdropUrl: movie.backdropUrl ?? "",
         trailerUrl: movie.trailerUrl ?? "",
-        genres: splitList(movie.genres),
-        languages: splitList(movie.languages),
-        cast: splitList(movie.cast),
-        directors: splitList(movie.directors),
+        genres: formatList(movie.genres),
+        languages: formatList(movie.languages),
+        cast: formatList(movie.cast),
+        directors: formatList(movie.directors),
     };
 
     return (
