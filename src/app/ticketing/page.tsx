@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
-import { formatTime } from "~/lib/utils";
+import { formatShowtimeTime, formatTime } from "~/lib/utils";
 
 export default function TicketingPage() {
     const router = useRouter();
@@ -43,6 +43,12 @@ export default function TicketingPage() {
                     <span className="font-mono text-red-600">
                         {timeLeft !== null ? formatTime(timeLeft) : "00:00"}
                     </span>
+                    <p className="text-sm text-gray-500">
+                        Movie: {session.showtime.movie.title}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                        Showtime: {formatShowtimeTime(session.showtime.startTime)}
+                    </p>
                 </div>
             ) : (
                 <p className="text-lg text-gray-600">
