@@ -5,10 +5,15 @@ import NowPlaying from "./nowPlaying";
 
 //Mocking Next.js components and utilities
 vi.mock("next/image", () => ({
-  __esModule: true,
-  default: (props: any) => {
-    return <div data-testid="next-image" {...props} />;
-  },
+    __esModule: true,
+    default: ({ alt, src, ...rest }: any) => (
+        <div
+            role="img"
+            aria-label={alt ?? ""}
+            data-src={typeof src === "string" ? src : src?.src}
+            {...rest}
+        />
+    ),
 }));
 
 vi.mock("next/link", () => ({
@@ -105,10 +110,12 @@ describe("NowPlaying", () => {
         expect(screen.getByText("How to Make a Killing")).toBeInTheDocument();
 
         // Image (poster)
-        const img = screen.getByRole("img", { name: "How to Make a Killing" });
+        const img = screen.getByRole("img", {
+            name: "How to make a killing poster",
+        });
         expect(img).toBeInTheDocument();
         expect(img).toHaveAttribute(
-            "src",
+            "data-src",
             "/posters/how-to-make-a-killing.jpg"
         );
 

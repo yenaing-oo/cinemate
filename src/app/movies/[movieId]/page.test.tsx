@@ -5,10 +5,10 @@ import MovieDetailsPage from "./page";
 
 //Mocking Next.js components and utilities
 vi.mock("next/image", () => ({
-  __esModule: true,
-  default: (props: any) => {
-    return <div data-testid="next-image" {...props} />;
-  },
+    __esModule: true,
+    default: (props: any) => {
+        return <div data-testid="next-image" {...props} />;
+    },
 }));
 
 vi.mock("next/link", () => ({
