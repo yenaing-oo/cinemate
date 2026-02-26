@@ -7,7 +7,7 @@ import { use, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
-import { formatShowtimeDateLabel, formatShowtimeTimeLabel } from "~/lib/utils";
+import { formatShowtimeDate, formatShowtimeTime } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
 interface ShowtimesPageProps {
@@ -22,7 +22,7 @@ interface Showtime {
 
 function groupShowtimesByDate(showtimes: Showtime[]): Map<string, Showtime[]> {
     return showtimes.reduce((map, showtime) => {
-        const key = formatShowtimeDateLabel(showtime.startTime);
+        const key = formatShowtimeDate(showtime.startTime);
         map.set(key, [...(map.get(key) ?? []), showtime]);
         return map;
     }, new Map<string, Showtime[]>());
@@ -46,7 +46,7 @@ function MoviePoster({
                     sizes="320px"
                 />
             </div>
-            <h1 className="text-xl font-bold ml-1">{title}</h1>
+            <h1 className="ml-1 text-xl font-bold">{title}</h1>
         </div>
     );
 }
@@ -84,7 +84,7 @@ function DateList({
                         >
                             <span className="block w-full min-w-0">
                                 <span className="block text-left text-base font-semibold">
-                                    {formatShowtimeDateLabel(dateKey)}
+                                    {formatShowtimeDate(dateKey)}
                                 </span>
                                 <span className="text-muted-foreground mt-1 block text-left text-sm">
                                     {dayShowtimes.length} showings
@@ -128,7 +128,7 @@ function ShowtimePicker({
                                 className="min-w-28"
                                 onClick={() => onSelect(showtime.id)}
                             >
-                                {formatShowtimeTimeLabel(showtime.startTime)}
+                                {formatShowtimeTime(showtime.startTime)}
                             </Button>
                         ))}
                     </div>

@@ -203,7 +203,9 @@ async function main() {
             data: {
                 userId: user.id,
                 showtimeId: showtimeForBooking2.id,
-                totalAmount: showtimeForBooking2.price.mul(seatsForBooking2.length),
+                totalAmount: showtimeForBooking2.price.mul(
+                    seatsForBooking2.length
+                ),
             },
         });
 

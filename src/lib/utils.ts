@@ -48,10 +48,10 @@ export const formatRating = (rating: number | null) => {
 export const formatDate = (date: string | Date) =>
     dateFormatter.format(new Date(date));
 
-export const formatShowtimeDateLabel = (date: string | Date) =>
+export const formatShowtimeDate = (date: string | Date) =>
     showtimeDateLabelFormatter.format(new Date(date));
 
-export const formatShowtimeTimeLabel = (date: string | Date) =>
+export const formatShowtimeTime = (date: string | Date) =>
     showtimeTimeLabelFormatter.format(new Date(date));
 
 export const formatCad = (amount: number) => cadFormatter.format(amount);

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Card, CardContent } from "~/components/ui/card";
-import { formatShowtimeTimeLabel as formatShowtimeTime, formatShowtimeDateLabel as formatShowtimeDate } from "~/lib/utils";
+import { formatShowtimeTime, formatShowtimeDate } from "~/lib/utils";
 import { formatSeatFromCode } from "~/lib/utils";
 
 interface BookingDropdownRowProps {
