@@ -6,6 +6,7 @@ import NowPlaying from "./nowPlaying";
 //Mocking Next.js components and utilities
 vi.mock("next/image", () => ({
     default: (props: any) => {
+        // eslint-disable-next-line @next/next/no-img-element
         return <img alt={props.alt} src={props.src} />;
     },
 }));
@@ -26,6 +27,7 @@ vi.mock("~/components/ui/card", () => ({
 }));
 
 vi.mock("~/lib/utils", async (importOriginal) => {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
     const actual = await importOriginal<typeof import("~/lib/utils")>();
     return {
         ...actual,

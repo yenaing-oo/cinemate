@@ -48,8 +48,8 @@ describe("fetchNowPlaying", () => {
         ) as any;
 
         const result = await fetchNowPlaying();
-        expect(result.results[0].id).toBe(1);
-        expect(result.results[0].title).toBe("Dune");
+        expect(result.results[0]!.id).toBe(1);
+        expect(result.results[0]!.title).toBe("Dune");
         expect(result.page).toBe(1);
         expect(result.total_pages).toBe(10);
         expect(result.total_results).toBe(100);
@@ -127,14 +127,14 @@ describe("fetchMovieFull", () => {
         expect(result.runtime).toBe(155);
         expect(result.vote_average).toBe(8.5);
         expect(result.backdrop_path).toBe("/backdrop.jpg");
-        expect(result.genres?.[0].name).toBe("Sci-Fi");
-        expect(result.spoken_languages?.[0].english_name).toBe("English");
-        expect(result.credits?.cast?.[0].name).toBe("Timothée Chalamet");
-        expect(result.credits?.crew?.[0].job).toBe("Director");
-        expect(result.credits?.crew?.[0].name).toBe("Denis Villeneuve");
-        expect(result.videos?.results?.[0].site).toBe("YouTube");
-        expect(result.videos?.results?.[0].type).toBe("Trailer");
-        expect(result.videos?.results?.[0].key).toBe("trailerkey123");
+        expect(result.genres?.[0]!.name).toBe("Sci-Fi");
+        expect(result.spoken_languages?.[0]!.english_name).toBe("English");
+        expect(result.credits?.cast?.[0]!.name).toBe("Timothée Chalamet");
+        expect(result.credits?.crew?.[0]!.job).toBe("Director");
+        expect(result.credits?.crew?.[0]!.name).toBe("Denis Villeneuve");
+        expect(result.videos?.results?.[0]!.site).toBe("YouTube");
+        expect(result.videos?.results?.[0]!.type).toBe("Trailer");
+        expect(result.videos?.results?.[0]!.key).toBe("trailerkey123");
 
         // Assert
         expect(globalThis.fetch).toHaveBeenCalledTimes(1);

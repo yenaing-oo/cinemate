@@ -41,7 +41,7 @@ describe("moviesRouter", () => {
 
         // Assert (return value)
         expect(result).toHaveLength(1);
-        expect(result[0].id).toBe("m1");
+        expect(result[0]!.id).toBe("m1");
 
         // Assert (Prisma call shape)
         expect(db.movie.findMany).toHaveBeenCalledTimes(1);
