@@ -1,14 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
-import { format } from "date-fns-tz";
-import { env } from "~/env.mjs";
-
-type ShowtimeItem = {
-    id: string;
-    startTime: Date;
-    price: number;
-};
 
 export const showtimesRouter = createTRPCRouter({
     getByMovie: publicProcedure
