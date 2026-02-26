@@ -106,7 +106,10 @@ describe("NowPlaying", () => {
         // Image (poster)
         const img = screen.getByRole("img", { name: "How to Make a Killing" });
         expect(img).toBeInTheDocument();
-        expect(img).toHaveAttribute("src", "/posters/how-to-make-a-killing.jpg");
+        expect(img).toHaveAttribute(
+            "src",
+            "/posters/how-to-make-a-killing.jpg"
+        );
 
         // Link to movie page
         const link = screen.getByRole("link");
