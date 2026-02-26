@@ -86,7 +86,6 @@ async function main() {
                     showtime1StartTime.getTime() + sampleMovie.runtime * 60000
                 ),
                 price: showtimePrice,
-                availableSeats: allSeats.length,
             },
             {
                 movieId: sampleMovie.id,
@@ -95,7 +94,6 @@ async function main() {
                     showtime2StartTime.getTime() + sampleMovie.runtime * 60000
                 ),
                 price: showtimePrice,
-                availableSeats: allSeats.length,
             },
         ],
         skipDuplicates: true,
@@ -152,7 +150,7 @@ async function main() {
 
     // --- Booking 1: Single Ticket ---
     const seatForBooking1 = await prisma.showtimeSeat.findFirst({
-        where: { showtimeId: showtimeForBooking1.id, status: "AVAILABLE" },
+        where: { showtimeId: showtimeForBooking1.id },
     });
 
     if (!seatForBooking1) {
@@ -168,7 +166,6 @@ async function main() {
             data: {
                 userId: user.id,
                 showtimeId: showtimeForBooking1.id,
-                ticketCount: 1,
                 totalAmount: showtimeForBooking1.price,
             },
         });
@@ -182,18 +179,14 @@ async function main() {
         });
         await tx.showtimeSeat.update({
             where: { id: seatForBooking1.id },
-            data: { status: "BOOKED" },
-        });
-        await tx.showtime.update({
-            where: { id: showtimeForBooking1.id },
-            data: { availableSeats: { decrement: 1 } },
+            data: { isBooked: true },
         });
         console.log(`- Booking ${booking.id} created with 1 ticket.`);
     });
 
     // --- Booking 2: Multiple Tickets ---
     const seatsForBooking2 = await prisma.showtimeSeat.findMany({
-        where: { showtimeId: showtimeForBooking2.id, status: "AVAILABLE" },
+        where: { showtimeId: showtimeForBooking2.id, isBooked: false },
         take: 3,
     });
 
@@ -206,13 +199,13 @@ async function main() {
 
     console.log("Creating booking with 3 tickets...");
     await prisma.$transaction(async (tx) => {
-        const ticketCount = 3;
         const booking = await tx.booking.create({
             data: {
                 userId: user.id,
                 showtimeId: showtimeForBooking2.id,
-                ticketCount: ticketCount,
-                totalAmount: showtimeForBooking2.price.mul(ticketCount),
+                totalAmount: showtimeForBooking2.price.mul(
+                    seatsForBooking2.length
+                ),
             },
         });
 
@@ -231,16 +224,11 @@ async function main() {
 
         await tx.showtimeSeat.updateMany({
             where: { id: { in: seatIdsToUpdate } },
-            data: { status: "BOOKED" },
-        });
-
-        await tx.showtime.update({
-            where: { id: showtimeForBooking2.id },
-            data: { availableSeats: { decrement: ticketCount } },
+            data: { isBooked: true },
         });
 
         console.log(
-            `- Booking ${booking.id} created with ${ticketCount} tickets.`
+            `- Booking ${booking.id} created with ${seatsForBooking2.length} tickets.`
         );
     });
 }

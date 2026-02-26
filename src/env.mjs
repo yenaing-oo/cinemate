@@ -13,6 +13,7 @@ export const env = createEnv({
         DIRECT_URL: z.string().url().optional(),
         TMDB_ACCESS_TOKEN: z.string(),
         RESEND_EMAIL_API_KEY: z.string(),
+        CINEMA_TIMEZONE: z.string(),
         NODE_ENV: z
             .enum(["development", "test", "production"])
             .default("development"),
@@ -26,6 +27,7 @@ export const env = createEnv({
     client: {
         NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
         NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string(),
+        NEXT_PUBLIC_CINEMA_TIMEZONE: z.string(),
     },
 
     /**
@@ -39,10 +41,12 @@ export const env = createEnv({
         DIRECT_URL: process.env.DIRECT_URL,
         TMDB_ACCESS_TOKEN: process.env.TMDB_ACCESS_TOKEN,
         RESEND_EMAIL_API_KEY: process.env.RESEND_EMAIL_API_KEY,
+        CINEMA_TIMEZONE: process.env.CINEMA_TIMEZONE,
         NODE_ENV: process.env.NODE_ENV,
         NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
         NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
             process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+        NEXT_PUBLIC_CINEMA_TIMEZONE: process.env.NEXT_PUBLIC_CINEMA_TIMEZONE,
     },
     /**
      * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

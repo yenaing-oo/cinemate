@@ -2,13 +2,6 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
 
-type ShowtimeItem = {
-    id: string;
-    startTime: Date;
-    availableSeats: number;
-    price: number;
-};
-
 export const showtimesRouter = createTRPCRouter({
     getByMovie: publicProcedure
         .input(z.object({ movieId: z.string() }))
@@ -27,7 +20,6 @@ export const showtimesRouter = createTRPCRouter({
                         select: {
                             id: true,
                             startTime: true,
-                            availableSeats: true,
                             price: true,
                         },
                     },
@@ -38,32 +30,19 @@ export const showtimesRouter = createTRPCRouter({
                 return null;
             }
 
-            const groups: Record<string, ShowtimeItem[]> = {};
-            for (const showtime of movie.showtimes) {
-                const day = showtime.startTime.toISOString().slice(0, 10);
-                if (!groups[day]) groups[day] = [];
-                groups[day]!.push({
-                    id: showtime.id,
-                    startTime: showtime.startTime,
-                    availableSeats: showtime.availableSeats,
-                    price: Number(showtime.price),
-                });
-            }
-
-            const groupedShowtimes = Object.entries(groups).map(
-                ([date, dayShowtimes]) => ({
-                    date,
-                    showtimes: dayShowtimes,
-                })
-            );
+            const showtimes = movie.showtimes.map((showtime) => ({
+                id: showtime.id,
+                startTime: showtime.startTime,
+                price: Number(showtime.price),
+            }));
 
             return {
                 movie: {
                     id: movie.id,
                     title: movie.title,
-                    posterUrl: movie.posterUrl ?? "/posters/placeholder.png",
+                    posterUrl: movie.posterUrl,
                 },
-                groupedShowtimes,
+                showtimes,
             };
         }),
 });

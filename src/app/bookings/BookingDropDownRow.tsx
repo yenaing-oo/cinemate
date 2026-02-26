@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Card, CardContent } from "~/components/ui/card";
-import { formatShowtime } from "~/lib/utils";
+import { formatShowtimeTime, formatShowtimeDate } from "~/lib/utils";
 import { formatSeatFromCode } from "~/lib/utils";
 
 interface BookingDropdownRowProps {
@@ -16,7 +16,8 @@ export function BookingDropDownRow({
     showtime,
     seats,
 }: BookingDropdownRowProps) {
-    const formattedTime = formatShowtime(showtime);
+    const formattedTime = formatShowtimeTime(showtime);
+    const formattedDate = formatShowtimeDate(showtime);
 
     const formattedSeats = seats
         .map((s) => formatSeatFromCode(s.row, s.number))
@@ -44,7 +45,7 @@ export function BookingDropDownRow({
                                     {movieTitle}
                                 </p>
                                 <p className="text-muted-foreground text-sm">
-                                    {formattedTime}
+                                    {formattedDate} @ {formattedTime}
                                 </p>
                             </div>
 

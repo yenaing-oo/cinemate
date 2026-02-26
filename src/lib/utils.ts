@@ -1,5 +1,31 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { env } from "~/env.mjs";
+
+const dateFormatter = new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: env.NEXT_PUBLIC_CINEMA_TIMEZONE,
+});
+
+const showtimeDateLabelFormatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: env.NEXT_PUBLIC_CINEMA_TIMEZONE,
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+});
+
+const showtimeTimeLabelFormatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: env.NEXT_PUBLIC_CINEMA_TIMEZONE,
+    hour: "numeric",
+    minute: "2-digit",
+});
+
+const cadFormatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "CAD",
+});
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -19,60 +45,24 @@ export const formatRating = (rating: number | null) => {
     return `${rating.toFixed(1)} / 10`;
 };
 
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    timeZone: "America/Chicago",
-});
-
-const showtimeDateLabelFormatter = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "America/Chicago",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-});
-
-const showtimeTimeLabelFormatter = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Chicago",
-    hour: "numeric",
-    minute: "2-digit",
-});
-
-const usdFormatter = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-});
-
 export const formatDate = (date: string | Date) =>
     dateFormatter.format(new Date(date));
 
-export const formatShowtimeDateLabel = (date: string | Date) =>
+export const formatShowtimeDate = (date: string | Date) =>
     showtimeDateLabelFormatter.format(new Date(date));
 
-export const formatShowtimeTimeLabel = (date: string | Date) =>
+export const formatShowtimeTime = (date: string | Date) =>
     showtimeTimeLabelFormatter.format(new Date(date));
 
-export const formatUsd = (amount: number) => usdFormatter.format(amount);
+export const formatCad = (amount: number) => cadFormatter.format(amount);
 
-export const splitList = (value: string | null) =>
+export const formatList = (value: string | null) =>
     value
         ? value
               .split(",")
               .map((item) => item.trim())
               .filter(Boolean)
         : [];
-
-export function formatShowtime(d: Date) {
-    return new Intl.DateTimeFormat("en-US", {
-        month: "short",
-        day: "2-digit",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-    }).format(d);
-}
 
 export function formatSeatFromCode(row: number, seat: number): string {
     if (
@@ -85,4 +75,16 @@ export function formatSeatFromCode(row: number, seat: number): string {
     }
     const rowLetter = String.fromCharCode(64 + row);
     return `${rowLetter}${seat}`;
+}
+
+/**
+ * Formats a duration in milliseconds as M:SS.
+ * @param ms Duration in milliseconds
+ * @returns Formatted time string
+ */
+export function formatTime(ms: number) {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
