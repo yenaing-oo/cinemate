@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Card, CardContent } from "~/components/ui/card";
-import { formatRuntime, splitList } from "~/lib/utils";
+import { formatRuntime, formatList } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
 export default function NowPlaying() {
@@ -44,7 +44,7 @@ export default function NowPlaying() {
             ) : (
                 <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
                     {filteredMovies.map((movie) => {
-                        const genres = splitList(movie.genres);
+                        const genres = formatList(movie.genres);
                         const genre =
                             genres.length > 0
                                 ? genres.slice(0, 2).join(" · ")

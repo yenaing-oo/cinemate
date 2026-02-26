@@ -1,13 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent } from "~/components/ui/card";
-import { formatRuntime, splitList } from "~/lib/utils";
+import { formatRuntime, formatList } from "~/lib/utils";
 import { api, HydrateClient } from "~/trpc/server";
 
 export default async function Home() {
     const nowPlayingRaw = await api.movies.nowPlaying({ limit: 4 });
     const nowPlaying = nowPlayingRaw.map((movie) => {
-        const genres = splitList(movie.genres);
+        const genres = formatList(movie.genres);
         return {
             id: movie.id,
             title: movie.title,
