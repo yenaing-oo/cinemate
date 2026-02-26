@@ -141,6 +141,7 @@ const SeatMap = ({ props }: SeatMapProps) => {
             }
             props.setSelectedSeats(new Map(selected));
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const toggleSeat = (seatId: string, seatNum: string) => {
@@ -227,7 +228,7 @@ const SeatMap = ({ props }: SeatMapProps) => {
                             : `${seat.row}-${seat.col}`;
                         const isSelected = props.selectedSeats.has(seatId);
                         // const isBooked =
-                        //     seatStatus === $Enums.SeatStatus.BOOKED;
+                        //     seatStatus === $Enums.SeatStatus.BOOKED;     // TODO: this should work now after fixing pre-selection. If doesnt, then remove seatStatus!
                         const isBooked = bookedSeats.has(seatId);
 
                         const seatNumberFontSize = seat.size * 0.3;
