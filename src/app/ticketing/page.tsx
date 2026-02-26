@@ -47,7 +47,8 @@ export default function TicketingPage() {
                         Movie: {session.showtime.movie.title}
                     </p>
                     <p className="text-sm text-gray-500">
-                        Showtime: {formatShowtimeTime(session.showtime.startTime)}
+                        Showtime:{" "}
+                        {formatShowtimeTime(session.showtime.startTime)}
                     </p>
                 </div>
             ) : (
