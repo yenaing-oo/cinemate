@@ -6,13 +6,16 @@ export interface ScreenPosition {
     y: number;
 }
 
-export const calculateScreenLayout = (stageWidth: number): ScreenPosition[] => {
+export const calculateScreenLayout = (
+    stageWidth: number,
+    stageHeight: number
+): ScreenPosition[] => {
     const totalWidth =
         stageWidth * layoutConfig.screenUI.horizontalSpreadPercent; // 60% of canvas width
     const totalHeight =
         stageWidth * layoutConfig.screenUI.verticalSpreadPercent; // flat vertical thickness
     const x = stageWidth / 2;
-    const y = layoutConfig.screenUI.distanceFromTop; // distance from top
+    const y = stageHeight * layoutConfig.screenUI.distanceFromTopPercent; // distance from top
 
     const leftX = x - totalWidth / 2;
 
@@ -61,7 +64,10 @@ export const calculateSeatLayout = (
 
     // Calculate max available height for seats
     const availableHeight =
-        stageHeight - section.paddingTop - section.paddingBottom;
+        stageHeight -
+        stageHeight * screenUI.distanceFromTopPercent -
+        stageHeight * section.paddingTopPercent -
+        section.paddingBottom;
     const maxSeatSizeHeight =
         (availableHeight - (rows - 1) * seats.rowGap) / rows;
 
@@ -80,11 +86,12 @@ export const calculateSeatLayout = (
         const rowStartX = (stageWidth - rowWidth) / 2;
 
         for (let c = 1; c <= seatsPerRow; c++) {
+            const rowHeight = (r - 1) * (dynamicSeatSize + seats.rowGap);
             let x = rowStartX + (c - 1) * (dynamicSeatSize + seats.gap);
             let y =
-                screenUI.distanceFromTop +
-                section.paddingTop +
-                r * (dynamicSeatSize + seats.rowGap);
+                stageHeight * screenUI.distanceFromTopPercent +
+                stageHeight * section.paddingTopPercent +
+                rowHeight;
 
             // Apply curvature if enabled
             if (curvature.enabled) {

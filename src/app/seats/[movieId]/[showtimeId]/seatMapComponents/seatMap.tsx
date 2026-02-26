@@ -1,7 +1,7 @@
 "use client";
 
 import { Stage, Layer, Rect, Text, Line, Group } from "react-konva";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { layoutConfig } from "./seatmapLayoutConfig";
 import {
     calculateScreenLayout,
@@ -35,30 +35,24 @@ const SeatMap = ({ props }: SeatMapProps) => {
             .map((s) => s.seatId)
     );
 
-    bookedSeats.add("cmm1kp11w0008ttywcz84v3wx"); //1-9
-    bookedSeats.add("cmm1kp11w000bttywnlc7kct8"); //1-13
-    // reservedSeats.add("1-0");
-    // reservedSeats.add("2-0");
-    // reservedSeats.add("3-0");
-    // reservedSeats.add("4-0");
-    // reservedSeats.add("1-2");
-    // reservedSeats.add("2-5");
-    // reservedSeats.add("3-1");
-    // reservedSeats.add("4-5");
+    bookedSeats.add("cmm30s3ub0008tt8kg3sk1w81"); //1-9
+    bookedSeats.add("cmm30s3ub000ctt8kjgu6bvik"); //1-13
 
     const containerRef = useRef<HTMLDivElement>(null);
     const [stageSize, setStageSize] = useState({
-        width: window.outerWidth,
-        height: window.outerHeight,
+        width: 0,
+        height: 0,
     });
 
-    const seats = calculateSeatLayout(
-        stageSize.width,
-        stageSize.height,
-        props.totalSeatRows,
-        props.seatPerRow,
-        props.seatInfo
-    );
+    const seats = useMemo(() => {
+        return calculateSeatLayout(
+            stageSize.width,
+            stageSize.height,
+            props.totalSeatRows,
+            props.seatPerRow,
+            props.seatInfo
+        );
+    }, [stageSize, props.totalSeatRows, props.seatPerRow, props.seatInfo]);
 
     // Preselect seats on mount or when selectedTicketCount changes
     useEffect(() => {
@@ -162,7 +156,7 @@ const SeatMap = ({ props }: SeatMapProps) => {
             if (containerRef.current) {
                 setStageSize({
                     width: containerRef.current.offsetWidth,
-                    height: window.outerHeight, // Keep height proportional or fixed
+                    height: containerRef.current.offsetHeight,
                 });
             }
         };
@@ -172,10 +166,7 @@ const SeatMap = ({ props }: SeatMapProps) => {
     }, []);
 
     return (
-        <div
-            ref={containerRef}
-            className="max-h-[80vh] overflow-hidden md:max-h-screen"
-        >
+        <div ref={containerRef} className="h-screen w-full overflow-hidden">
             <Stage
                 width={stageSize.width}
                 height={stageSize.height}
@@ -187,6 +178,7 @@ const SeatMap = ({ props }: SeatMapProps) => {
                         width={stageSize.width}
                         height={stageSize.height}
                         fill={"#03051a"}
+                        preventDefault={false}
                     />
                     <Text
                         text="Screen"
@@ -198,21 +190,25 @@ const SeatMap = ({ props }: SeatMapProps) => {
                             layoutConfig.screenText.width / 2
                         }
                         y={
-                            layoutConfig.screenUI.distanceFromTop -
+                            stageSize.height *
+                                layoutConfig.screenUI.distanceFromTopPercent -
                             stageSize.width *
                                 layoutConfig.screenUI.verticalSpreadPercent -
                             layoutConfig.screenText.verticalDistanceFromScreenUI
                         }
                         fill="white"
+                        preventDefault={false}
                     />
                     <Line
-                        points={calculateScreenLayout(stageSize.width).flatMap(
-                            (p) => [p.x, p.y]
-                        )}
+                        points={calculateScreenLayout(
+                            stageSize.width,
+                            stageSize.height
+                        ).flatMap((p) => [p.x, p.y])}
                         stroke="white"
                         strokeWidth={10}
                         tension={0.5} // makes it smooth
                         closed={false} // open arc
+                        preventDefault={false}
                     />
                     {/* Seats */}
                     {seats.map((seat) => {
@@ -227,9 +223,9 @@ const SeatMap = ({ props }: SeatMapProps) => {
                             ? seatData.seatId
                             : `${seat.row}-${seat.col}`;
                         const isSelected = props.selectedSeats.has(seatId);
-                        // const isBooked =
-                        //     seatStatus === $Enums.SeatStatus.BOOKED;     // TODO: this should work now after fixing pre-selection. If doesnt, then remove seatStatus!
-                        const isBooked = bookedSeats.has(seatId);
+                        const isBooked =
+                            seatStatus === $Enums.SeatStatus.BOOKED; // TODO: this should work now after fixing pre-selection. If doesnt, then remove seatStatus!
+                        // const isBooked = bookedSeats.has(seatId);
 
                         const seatNumberFontSize = seat.size * 0.3;
 
@@ -240,6 +236,9 @@ const SeatMap = ({ props }: SeatMapProps) => {
                                 onClick={() =>
                                     !isBooked && toggleSeat(seatId, seatLable)
                                 }
+                                onTouchEnd={() => {
+                                    !isBooked && toggleSeat(seatId, seatLable);
+                                }}
                             >
                                 <Rect
                                     key={`${seatId}-seat`}

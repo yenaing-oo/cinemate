@@ -2,7 +2,7 @@ export const layoutConfig = {
     screenUI: {
         horizontalSpreadPercent: 0.6, // 60% of stage width
         verticalSpreadPercent: 0.05, // 5% of stage width
-        distanceFromTop: 150,
+        distanceFromTopPercent: 0.2,
     },
     screenText: {
         fontsize: 20,
@@ -11,7 +11,7 @@ export const layoutConfig = {
     },
     section: {
         paddingXPercent: 0.3, // left & right spacing
-        paddingTop: 110, // seats start Y
+        paddingTopPercent: 0.1, // seats start Y
         paddingBottom: 110,
     },
     seats: {
