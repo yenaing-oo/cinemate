@@ -165,8 +165,12 @@ export const bookingSessionRouter = createTRPCRouter({
                 await completeBooking(ctx.db, session);
                 return;
             } else {
-                // No valid transition
-                return;
+                throw new Error(
+                    "Invalid step transition. Cannot go from " +
+                        session.step +
+                        " to " +
+                        input.goToStep
+                );
             }
         }),
 });
