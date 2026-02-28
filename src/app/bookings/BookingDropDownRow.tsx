@@ -7,26 +7,33 @@ import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { ConfirmDialog } from "~/components/ui/confirm-dialog";
 import { Toast } from "~/components/ui/toast";
+import { BookingStatus } from "@prisma/client";
 
 interface BookingDropdownRowProps {
-    posterUrl?: string;
-    movieTitle: string;
-    showtime: Date;
-    seats: { row: number; number: number }[];
-    canCancel?: boolean;
+    booking: Booking;
     onCancel?: () => Promise<void>;
-    cancelled?: boolean;
 }
 
-export function BookingDropDownRow({
-    posterUrl,
-    movieTitle,
-    showtime,
-    seats,
-    canCancel = false,
-    onCancel,
-    cancelled = false,
-}: BookingDropdownRowProps) {
+interface Booking {
+    id: string;
+    status: BookingStatus;
+    showtime: {
+        startTime: Date;
+        movie: { posterUrl?: string | null; title: string };
+    };
+    tickets: { showtimeSeat: { seat: { row: number; number: number } } }[];
+}
+
+function isBookingCancellable(booking: Booking): boolean {
+    const now = new Date();
+    const showtimeDate = new Date(booking.showtime.startTime);
+    const timeDiff = showtimeDate.getTime() - now.getTime();
+    return (
+        booking.status === BookingStatus.CONFIRMED && timeDiff > 60 * 60 * 1000
+    );
+}
+
+export function BookingDropDownRow(props: BookingDropdownRowProps) {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [toast, setToast] = useState<{
@@ -34,21 +41,24 @@ export function BookingDropDownRow({
         type: "success" | "error";
     } | null>(null);
 
-    const formattedTime = formatShowtimeTime(showtime);
-    const formattedDate = formatShowtimeDate(showtime);
+    const formattedTime = formatShowtimeTime(props.booking.showtime.startTime);
+    const formattedDate = formatShowtimeDate(props.booking.showtime.startTime);
+    const seats = props.booking.tickets.map((t) => t.showtimeSeat.seat);
     const formattedSeats = seats
         .map((s) => formatSeatFromCode(s.row, s.number))
         .join(", ");
 
+    const canCancel = isBookingCancellable(props.booking);
+
     const handleCancel = async () => {
         setLoading(true);
         try {
-            if (onCancel) await onCancel();
+            if (props.onCancel) await props.onCancel();
             setToast({
                 message: "Booking cancelled successfully.",
                 type: "success",
             });
-        } catch (e) {
+        } catch {
             setToast({ message: "Failed to cancel booking.", type: "error" });
         } finally {
             setLoading(false);
@@ -65,16 +75,18 @@ export function BookingDropDownRow({
                             <div className="relative h-16 w-12 shrink-0 overflow-hidden rounded-md">
                                 <Image
                                     src={
-                                        posterUrl ?? "/posters/placeholder.png"
+                                        props.booking.showtime.movie
+                                            .posterUrl ??
+                                        "/posters/placeholder.png"
                                     }
-                                    alt={movieTitle}
+                                    alt={props.booking.showtime.movie.title}
                                     fill
                                     className="object-cover"
                                 />
                             </div>
                             <div className="min-w-0 flex-1">
                                 <p className="truncate font-medium">
-                                    {movieTitle}
+                                    {props.booking.showtime.movie.title}
                                 </p>
                                 <p className="text-muted-foreground text-sm">
                                     {formattedDate} @ {formattedTime}
@@ -92,7 +104,7 @@ export function BookingDropDownRow({
                                     Movie
                                 </span>
                                 <span className="font-medium">
-                                    {movieTitle}
+                                    {props.booking.showtime.movie.title}
                                 </span>
                             </div>
                             <div className="flex justify-between">
@@ -111,8 +123,13 @@ export function BookingDropDownRow({
                                     {formattedSeats || "—"}
                                 </span>
                             </div>
-                            {canCancel && !cancelled && (
-                                <div className="flex justify-end pt-4">
+                            <div className="flex justify-end pt-4">
+                                {props.booking.status ===
+                                BookingStatus.CANCELLED ? (
+                                    <span className="text-destructive font-semibold">
+                                        Cancelled
+                                    </span>
+                                ) : canCancel ? (
                                     <Button
                                         variant="destructive"
                                         size="sm"
@@ -121,15 +138,8 @@ export function BookingDropDownRow({
                                     >
                                         Cancel Booking
                                     </Button>
-                                </div>
-                            )}
-                            {cancelled && (
-                                <div className="flex justify-end pt-4">
-                                    <span className="text-destructive font-semibold">
-                                        Cancelled
-                                    </span>
-                                </div>
-                            )}
+                                ) : null}
+                            </div>
                         </div>
                     </div>
                 </details>

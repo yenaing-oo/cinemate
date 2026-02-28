@@ -2,26 +2,6 @@
 
 import { api } from "~/trpc/react";
 import { BookingDropDownRow } from "~/app/bookings/BookingDropDownRow";
-import { BookingStatus } from "@prisma/client";
-
-interface Booking {
-    id: string;
-    status: BookingStatus;
-    showtime: {
-        startTime: Date;
-        movie: { posterUrl?: string | null; title: string };
-    };
-    tickets: { showtimeSeat: { seat: { row: number; number: number } } }[];
-}
-
-function isBookingCancellable(booking: Booking): boolean {
-    const now = new Date();
-    const showtimeDate = new Date(booking.showtime.startTime);
-    const timeDiff = showtimeDate.getTime() - now.getTime();
-    return (
-        booking.status === BookingStatus.CONFIRMED && timeDiff > 60 * 60 * 1000
-    );
-}
 
 export default function OrderHistoryPage() {
     const bookingsQuery = api.bookings.list.useQuery();
@@ -48,24 +28,11 @@ export default function OrderHistoryPage() {
                 ) : (
                     <div className="space-y-4">
                         {bookings.map((b) => {
-                            const seats = b.tickets.map(
-                                (t) => t.showtimeSeat.seat
-                            );
-                            const canCancel = isBookingCancellable(b);
                             return (
                                 <BookingDropDownRow
                                     key={b.id}
-                                    posterUrl={
-                                        b.showtime.movie.posterUrl ?? undefined
-                                    }
-                                    movieTitle={b.showtime.movie.title}
-                                    showtime={new Date(b.showtime.startTime)}
-                                    seats={seats}
-                                    canCancel={canCancel}
+                                    booking={b}
                                     onCancel={() => handleCancel(b.id)}
-                                    cancelled={
-                                        b.status === BookingStatus.CANCELLED
-                                    }
                                 />
                             );
                         })}
