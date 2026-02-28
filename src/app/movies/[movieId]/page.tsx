@@ -208,23 +208,6 @@ export default async function MovieDetailsPage({
                                 </div>
                             </CardContent>
                         </Card>
-
-                        <Card className="glass-panel rounded-2xl">
-                            <CardContent className="space-y-6 p-6">
-                                <div>
-                                    <p className="text-muted-foreground/80 mb-3 text-xs font-semibold tracking-[0.2em] uppercase">
-                                        Showtime
-                                    </p>
-                                    <Link
-                                        key={showtimeID}
-                                        href={`/movies/${movieId}/${showtimeID}`}
-                                        className="focus-visible:ring-ring ring-offset-background bg-primary text-background before:animate-shimmer-slide relative inline-flex h-10 items-center justify-center gap-2 overflow-hidden rounded-md px-4 py-2 text-sm font-medium whitespace-nowrap shadow transition-colors before:absolute before:inset-0 before:z-0 before:opacity-50 before:[background:linear-gradient(-75deg,hsl(var(--primary))_0%,hsl(var(--primary)/0.4)_50%,hsl(var(--primary))_100%)] hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
-                                    >
-                                        8:00 PM
-                                    </Link>
-                                </div>
-                            </CardContent>
-                        </Card>
                     </div>
                 </div>
             </div>
