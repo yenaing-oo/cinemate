@@ -208,11 +208,13 @@ async function main() {
             },
         });
 
-        const ticketsToCreate = showtimeSeatsForBooking2.map((showtimeSeat) => ({
-            bookingId: booking.id,
-            showtimeSeatId: showtimeSeat.id,
-            price: showtimeForBooking2.price,
-        }));
+        const ticketsToCreate = showtimeSeatsForBooking2.map(
+            (showtimeSeat) => ({
+                bookingId: booking.id,
+                showtimeSeatId: showtimeSeat.id,
+                price: showtimeForBooking2.price,
+            })
+        );
 
         await tx.ticket.createMany({
             data: ticketsToCreate,

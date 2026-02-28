@@ -17,7 +17,9 @@ export default async function OrderHistoryPage() {
                     ) : (
                         <div className="space-y-4">
                             {bookings.map((b) => {
-                                const seats = b.tickets.map((t) => t.showtimeSeat.seat);
+                                const seats = b.tickets.map(
+                                    (t) => t.showtimeSeat.seat
+                                );
 
                                 return (
                                     <BookingDropDownRow

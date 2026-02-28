@@ -69,9 +69,9 @@ export const bookingsRouter = createTRPCRouter({
                     where: { id: { in: showtimeSeatIds } },
                     data: {
                         isBooked: false,
-                        heldBy: null,
+                        heldByUserId: null,
                         heldTill: null,
-                        bookingSession: null,
+                        bookingSessionId: null,
                     },
                 });
             });
