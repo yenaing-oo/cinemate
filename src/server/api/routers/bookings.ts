@@ -13,7 +13,11 @@ export const bookingsRouter = createTRPCRouter({
                 },
                 tickets: {
                     include: {
-                        seat: true,
+                        showtimeSeat: {
+                            include: {
+                                seat: true,
+                            },
+                        },
                     },
                 },
             },
