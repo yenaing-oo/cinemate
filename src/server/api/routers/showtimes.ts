@@ -45,4 +45,15 @@ export const showtimesRouter = createTRPCRouter({
                 showtimes,
             };
         }),
+    getShowtimeAvailableSeats: publicProcedure
+        .input(z.object({ showtimeId: z.string() }))
+        .query(async ({ input }) => {
+            const showtime = await db.showtimeSeat.count({
+                where: {
+                    showtimeId: input.showtimeId,
+                    isBooked: false,
+                },
+            });
+            return showtime;
+        }),
 });

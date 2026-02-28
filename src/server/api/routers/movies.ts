@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, publicProcedure } from "../trpc";
 import { db } from "~/server/db";
 
 export const moviesRouter = createTRPCRouter({
@@ -37,6 +37,7 @@ export const moviesRouter = createTRPCRouter({
                 genres: movie.genres,
                 runtime: movie.runtime,
                 posterUrl: movie.posterUrl,
+                backdropUrl: movie.backdropUrl,
                 languages: movie.languages,
                 releaseDate: movie.releaseDate,
             };

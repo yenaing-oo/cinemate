@@ -45,6 +45,8 @@ export const bookingSessionRouter = createTRPCRouter({
                                     id: true,
                                     title: true,
                                     posterUrl: true,
+                                    backdropUrl: true,
+                                    languages: true,
                                 },
                             },
                         },
@@ -70,6 +72,8 @@ export const bookingSessionRouter = createTRPCRouter({
                                 id: true,
                                 title: true,
                                 posterUrl: true,
+                                backdropUrl: true,
+                                languages: true,
                             },
                         },
                     },
@@ -152,6 +156,7 @@ export const bookingSessionRouter = createTRPCRouter({
                 }
                 await reserveSeats(
                     ctx.db,
+                    session.showtimeId,
                     input.selectedShowtimeSeatIds,
                     ctx.user.id,
                     session.id,
@@ -222,6 +227,7 @@ async function setTicketCount(
 
 async function reserveSeats(
     db: PrismaClient,
+    showtimeId: string,
     showtimeSeatIds: string[],
     userId: string,
     bookingSessionId: string,
@@ -230,7 +236,8 @@ async function reserveSeats(
     await db.$transaction(async (tx) => {
         const count = await tx.showtimeSeat.updateMany({
             where: {
-                id: { in: showtimeSeatIds },
+                showtimeId: showtimeId,
+                seatId: { in: showtimeSeatIds },
                 isBooked: false,
                 OR: [
                     { heldTill: null },
@@ -243,17 +250,28 @@ async function reserveSeats(
                 heldTill: new Date(now.getTime() + SEAT_HOLD_DURATION_MS),
             },
         });
+        console.log("actual space count as per DB: ", count.count);
+        console.log("actual space DATA as per DB: ", count);
+
         if (count.count !== showtimeSeatIds.length) {
             throw new Error(
                 "Some selected seats are no longer available. Please choose different seats."
             );
         }
+        const showtimeIds = await tx.showtimeSeat.findMany({
+            where: {
+                showtimeId,
+                seatId: { in: showtimeSeatIds },
+            },
+            select: { id: true },
+        });
+
         await tx.bookingSession.update({
             where: { id: bookingSessionId },
             data: {
                 step: BookingStep.CHECKOUT,
                 selectedSeats: {
-                    connect: showtimeSeatIds.map((id) => ({ id })),
+                    connect: showtimeIds.map((s) => ({ id: s.id })),
                 },
             },
         });
@@ -265,7 +283,8 @@ async function completeBooking(db: PrismaClient, session: any) {
         // 1. Mark seats as booked
         const count = await tx.showtimeSeat.updateMany({
             where: {
-                id: { in: session.selectedSeats.map((s: any) => s.id) },
+                showtimeId: session.showtimeId,
+                seatId: { in: session.selectedSeats.map((s: any) => s.id) },
                 isBooked: false,
                 heldByUserId: session.userId,
             },

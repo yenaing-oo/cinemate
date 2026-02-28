@@ -8,7 +8,6 @@ import {
     calculateSeatLayout,
     type SeatPosition,
 } from "./layoutUtils";
-import { $Enums } from "@prisma/client";
 
 interface SeatMapProps {
     props: {
@@ -19,24 +18,19 @@ interface SeatMapProps {
         selectedTicketCount: number;
         totalSeatRows: number;
         seatPerRow: number;
-        seatInfo: {
+        seatInfo?: {
             seatId: string;
             row: number;
             number: number;
-            status: $Enums.SeatStatus;
+            isBooked: Boolean;
         }[];
     };
 }
 
 const SeatMap = ({ props }: SeatMapProps) => {
     const bookedSeats = new Set<string>(
-        props.seatInfo
-            .filter((s) => s.status === $Enums.SeatStatus.BOOKED)
-            .map((s) => s.seatId)
+        props.seatInfo?.filter((s) => s.isBooked).map((s) => s.seatId)
     );
-
-    bookedSeats.add("cmm30s3ub0008tt8kg3sk1w81"); //1-9
-    bookedSeats.add("cmm30s3ub000ctt8kjgu6bvik"); //1-13
 
     const containerRef = useRef<HTMLDivElement>(null);
     const [stageSize, setStageSize] = useState({
@@ -145,6 +139,7 @@ const SeatMap = ({ props }: SeatMapProps) => {
             if (newMap.has(seatId)) {
                 newMap.delete(seatId);
             } else {
+                if (newMap.size === props.selectedTicketCount) return newMap;
                 newMap.set(seatId, seatNum);
             }
             return newMap;
@@ -212,20 +207,15 @@ const SeatMap = ({ props }: SeatMapProps) => {
                     />
                     {/* Seats */}
                     {seats.map((seat) => {
-                        const seatData = props.seatInfo.find(
+                        const seatData = props.seatInfo?.find(
                             (s) => s.seatId === seat.seatId
                         );
                         const seatLable = seat.seatLable;
-                        const seatStatus = seatData
-                            ? seatData.status
-                            : $Enums.SeatStatus.AVAILABLE;
                         const seatId = seatData
                             ? seatData.seatId
                             : `${seat.row}-${seat.col}`;
                         const isSelected = props.selectedSeats.has(seatId);
-                        const isBooked =
-                            seatStatus === $Enums.SeatStatus.BOOKED; // TODO: this should work now after fixing pre-selection. If doesnt, then remove seatStatus!
-                        // const isBooked = bookedSeats.has(seatId);
+                        const isBooked = !!seatData?.isBooked;
 
                         const seatNumberFontSize = seat.size * 0.3;
 

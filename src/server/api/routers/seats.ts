@@ -14,7 +14,7 @@ export const seatsRouter = createTRPCRouter({
                 seatId: s.seatId,
                 row: s.seat.row,
                 number: s.seat.number,
-                status: s.status,
+                isBooked: s.isBooked,
             }));
         }),
 });

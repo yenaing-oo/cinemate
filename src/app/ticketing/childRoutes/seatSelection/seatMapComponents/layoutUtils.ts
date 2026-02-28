@@ -1,5 +1,6 @@
 import type { $Enums } from "@prisma/client";
 import { layoutConfig } from "./seatmapLayoutConfig";
+import { formatSeatFromCode } from "~/lib/utils";
 
 export interface ScreenPosition {
     x: number;
@@ -47,15 +48,14 @@ export const calculateSeatLayout = (
     stageHeight: number,
     rows: number,
     seatsPerRow: number,
-    seatInfo: {
+    seatInfo?: {
         seatId: string;
         row: number;
         number: number;
-        status: $Enums.SeatStatus;
+        isBooked: Boolean;
     }[]
 ): SeatPosition[] => {
     const { screenUI, seats, section, curvature } = layoutConfig;
-    const rowID: String[] = ["A", "B", "C", "D", "E", "F", "G", "H", "I"];
 
     // Calculate max available width for seats
     const availableWidth = stageWidth * (2 * section.paddingXPercent);
@@ -100,7 +100,7 @@ export const calculateSeatLayout = (
                 y += curveOffset;
             }
 
-            const seatDetail = seatInfo.find(
+            const seatDetail = seatInfo?.find(
                 (s) => s.row === r && s.number === c
             );
 
@@ -111,7 +111,7 @@ export const calculateSeatLayout = (
                 col: c,
                 seatId: seatDetail ? seatDetail.seatId : `${r}-${c}`,
                 size: dynamicSeatSize,
-                seatLable: `${rowID[r - 1]}${c}`,
+                seatLable: formatSeatFromCode(r, c),
             });
         }
     }
