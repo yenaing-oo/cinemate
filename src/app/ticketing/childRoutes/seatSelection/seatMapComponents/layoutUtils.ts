@@ -1,4 +1,3 @@
-import type { $Enums } from "@prisma/client";
 import { layoutConfig } from "./seatmapLayoutConfig";
 import { formatSeatFromCode } from "~/lib/utils";
 
