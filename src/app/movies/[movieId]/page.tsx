@@ -53,7 +53,6 @@ export default async function MovieDetailsPage({
     params,
 }: MovieDetailsPageProps) {
     const { movieId } = await params;
-    const showtimeID = 1;
     const movie = await db.movie.findUnique({
         where: { id: movieId },
     });
