@@ -11,7 +11,7 @@ import { formatSeatFromCode } from "~/lib/utils";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { ConfirmDialog } from "~/components/ui/confirm-dialog";
-import { Toast } from "~/components/ui/toast";
+import { toast } from "sonner";
 import { BookingStatus } from "@prisma/client";
 import { Spinner } from "~/components/ui/spinner";
 
@@ -45,10 +45,6 @@ export function BookingDropDownRow(props: BookingDropdownRowProps) {
     console.log("BookingDropDownRow rendered with booking:", props.booking);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [toast, setToast] = useState<{
-        message: string;
-        type: "success" | "error";
-    } | null>(null);
 
     const formattedTime = formatShowtimeTime(props.booking.showtime.startTime);
     const formattedDate = formatShowtimeDate(props.booking.showtime.startTime);
@@ -66,12 +62,9 @@ export function BookingDropDownRow(props: BookingDropdownRowProps) {
         setLoading(true);
         try {
             if (props.onCancel) await props.onCancel();
-            setToast({
-                message: "Booking cancelled successfully.",
-                type: "success",
-            });
+            toast.success("Booking cancelled successfully.");
         } catch {
-            setToast({ message: "Failed to cancel booking.", type: "error" });
+            toast.error("Failed to cancel booking.");
         } finally {
             setLoading(false);
             setDialogOpen(false);
@@ -166,7 +159,6 @@ export function BookingDropDownRow(props: BookingDropdownRowProps) {
                     onConfirm={handleCancel}
                     onCancel={() => setDialogOpen(false)}
                 />
-                {toast && <Toast message={toast.message} type={toast.type} />}
             </CardContent>
         </Card>
     );
