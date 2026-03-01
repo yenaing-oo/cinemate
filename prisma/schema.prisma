@@ -92,15 +92,16 @@ model Showtime {
 // ==================== BOOKINGS & TICKETS ====================
 
 model Booking {
-    id          String        @id @default(cuid())
-    userId      String        @db.Uuid
-    user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-    showtimeId  String
-    showtime    Showtime      @relation(fields: [showtimeId], references: [id])
-    totalAmount Decimal       @db.Decimal(10, 2)
-    status      BookingStatus @default(CONFIRMED)
-    createdAt   DateTime      @default(now())
-    updatedAt   DateTime      @updatedAt
+    id            String        @id @default(cuid())
+    bookingNumber Int           @unique @default(autoincrement())
+    userId        String        @db.Uuid
+    user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+    showtimeId    String
+    showtime      Showtime      @relation(fields: [showtimeId], references: [id])
+    totalAmount   Decimal       @db.Decimal(10, 2)
+    status        BookingStatus @default(CONFIRMED)
+    createdAt     DateTime      @default(now())
+    updatedAt     DateTime      @updatedAt
 
     tickets Ticket[]
 
