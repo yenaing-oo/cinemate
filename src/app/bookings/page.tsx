@@ -32,7 +32,10 @@ export default function OrderHistoryPage() {
                             return (
                                 <BookingDropDownRow
                                     key={b.id}
-                                    booking={b}
+                                    booking={{
+                                        ...b,
+                                        totalAmount: Number(b.totalAmount),
+                                    }}
                                     onCancel={() => handleCancel(b.id)}
                                 />
                             );
