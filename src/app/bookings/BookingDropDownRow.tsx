@@ -13,6 +13,7 @@ import { Button } from "~/components/ui/button";
 import { ConfirmDialog } from "~/components/ui/confirm-dialog";
 import { Toast } from "~/components/ui/toast";
 import { BookingStatus } from "@prisma/client";
+import { Spinner } from "~/components/ui/spinner";
 
 interface BookingDropdownRowProps {
     booking: Booking;
@@ -114,6 +115,23 @@ export function BookingDropDownRow(props: BookingDropdownRowProps) {
                                 <span className="text-md font-semibold">
                                     Booking {formattedBookingNumber}
                                 </span>
+                                <div className="ml-auto">
+                                    {props.booking.status ===
+                                    BookingStatus.CANCELLED ? (
+                                        <span className="text-destructive font-semibold">
+                                            Cancelled
+                                        </span>
+                                    ) : canCancel ? (
+                                        <Button
+                                            variant="link"
+                                            size="sm"
+                                            disabled={loading}
+                                            onClick={() => setDialogOpen(true)}
+                                        >
+                                            Cancel Booking
+                                        </Button>
+                                    ) : null}
+                                </div>
                             </div>
                             <div className="mb-2 flex justify-between">
                                 <span className="text-muted-foreground">
@@ -131,23 +149,6 @@ export function BookingDropDownRow(props: BookingDropdownRowProps) {
                                     {formattedAmount}
                                 </span>
                             </div>
-                            <div className="flex justify-end pt-4">
-                                {props.booking.status ===
-                                BookingStatus.CANCELLED ? (
-                                    <span className="text-destructive font-semibold">
-                                        Cancelled
-                                    </span>
-                                ) : canCancel ? (
-                                    <Button
-                                        variant="destructive"
-                                        size="sm"
-                                        disabled={loading}
-                                        onClick={() => setDialogOpen(true)}
-                                    >
-                                        Cancel Booking
-                                    </Button>
-                                ) : null}
-                            </div>
                         </div>
                     </div>
                 </details>
@@ -155,8 +156,13 @@ export function BookingDropDownRow(props: BookingDropdownRowProps) {
                     open={dialogOpen}
                     title="Cancel Booking"
                     description="Are you sure you want to cancel this booking? This action cannot be undone."
-                    confirmText="Yes, Cancel"
-                    cancelText="Keep Booking"
+                    confirmText={
+                        <span className="flex items-center gap-2">
+                            Yes, Cancel
+                            {loading && <Spinner className="ml-1" />}
+                        </span>
+                    }
+                    cancelText="Back"
                     onConfirm={handleCancel}
                     onCancel={() => setDialogOpen(false)}
                 />

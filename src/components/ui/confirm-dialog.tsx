@@ -1,12 +1,14 @@
 import * as React from "react";
 import { Button } from "~/components/ui/button";
 
+import { type ReactNode } from "react";
+
 interface ConfirmDialogProps {
   open: boolean;
   title?: string;
   description?: string;
-  confirmText?: string;
-  cancelText?: string;
+  confirmText?: ReactNode;
+  cancelText?: ReactNode;
   onConfirm: () => void;
   onCancel: () => void;
 }
