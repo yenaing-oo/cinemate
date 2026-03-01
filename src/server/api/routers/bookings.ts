@@ -1,9 +1,11 @@
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { z } from "zod";
 import { BookingStatus, TicketStatus } from "@prisma/client";
+import { env } from "~/env.mjs";
 
-const MINUTES_BEFORE_SHOWTIME_TO_CANCEL = 60;
 const MILLISECONDS_IN_MINUTE = 60 * 1000;
+const CANCELLATION_WINDOW =
+    env.BOOKING_CANCEL_WINDOW_MINUTES * MILLISECONDS_IN_MINUTE;
 
 export const bookingsRouter = createTRPCRouter({
     list: protectedProcedure.query(async ({ ctx }) => {
@@ -44,12 +46,9 @@ export const bookingsRouter = createTRPCRouter({
             const now = new Date();
             const timeDifference =
                 booking.showtime.startTime.getTime() - now.getTime();
-            if (
-                timeDifference <
-                MINUTES_BEFORE_SHOWTIME_TO_CANCEL * MILLISECONDS_IN_MINUTE
-            ) {
+            if (timeDifference < CANCELLATION_WINDOW) {
                 throw new Error(
-                    `Cannot cancel booking less than ${MINUTES_BEFORE_SHOWTIME_TO_CANCEL} minutes before showtime or after showtime has started`
+                    `Cannot cancel booking less than ${env.BOOKING_CANCEL_WINDOW_MINUTES} minutes before showtime or after showtime has started`
                 );
             }
 

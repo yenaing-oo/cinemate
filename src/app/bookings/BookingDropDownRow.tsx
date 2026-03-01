@@ -7,6 +7,7 @@ import {
     formatCad,
 } from "~/lib/utils";
 import { formatSeatFromCode } from "~/lib/utils";
+import { env } from "~/env.mjs";
 
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
@@ -36,8 +37,10 @@ function isBookingCancellable(booking: Booking): boolean {
     const now = new Date();
     const showtimeDate = new Date(booking.showtime.startTime);
     const timeDiff = showtimeDate.getTime() - now.getTime();
+    const cancelWindowMs =
+        env.NEXT_PUBLIC_BOOKING_CANCEL_WINDOW_MINUTES * 60 * 1000;
     return (
-        booking.status === BookingStatus.CONFIRMED && timeDiff > 60 * 60 * 1000
+        booking.status === BookingStatus.CONFIRMED && timeDiff > cancelWindowMs
     );
 }
 
