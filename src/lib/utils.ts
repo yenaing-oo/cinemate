@@ -88,3 +88,7 @@ export function formatTime(ms: number) {
     const seconds = totalSeconds % 60;
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
+
+export function formatBookingNumber(bookingNumber: number) {
+    return `#${bookingNumber.toString().padStart(6, "0")}`;
+}

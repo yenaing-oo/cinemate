@@ -1,6 +1,11 @@
 import Image from "next/image";
 import { Card, CardContent } from "~/components/ui/card";
-import { formatShowtimeTime, formatShowtimeDate } from "~/lib/utils";
+import {
+    formatShowtimeTime,
+    formatShowtimeDate,
+    formatBookingNumber,
+    formatCad,
+} from "~/lib/utils";
 import { formatSeatFromCode } from "~/lib/utils";
 
 import { useState } from "react";
@@ -16,12 +21,14 @@ interface BookingDropdownRowProps {
 
 interface Booking {
     id: string;
+    bookingNumber: number;
     status: BookingStatus;
     showtime: {
         startTime: Date;
         movie: { posterUrl?: string | null; title: string };
     };
     tickets: { showtimeSeat: { seat: { row: number; number: number } } }[];
+    totalAmount: number;
 }
 
 function isBookingCancellable(booking: Booking): boolean {
@@ -34,6 +41,7 @@ function isBookingCancellable(booking: Booking): boolean {
 }
 
 export function BookingDropDownRow(props: BookingDropdownRowProps) {
+    console.log("BookingDropDownRow rendered with booking:", props.booking);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [toast, setToast] = useState<{
@@ -43,10 +51,13 @@ export function BookingDropDownRow(props: BookingDropdownRowProps) {
 
     const formattedTime = formatShowtimeTime(props.booking.showtime.startTime);
     const formattedDate = formatShowtimeDate(props.booking.showtime.startTime);
+    const formattedBookingNumber = formatBookingNumber(
+        props.booking.bookingNumber
+    );
+    const formattedAmount = formatCad(props.booking.totalAmount);
     const seats = props.booking.tickets.map((t) => t.showtimeSeat.seat);
-    const formattedSeats = seats
-        .map((s) => formatSeatFromCode(s.row, s.number))
-        .join(", ");
+    const formattedSeats =
+        seats.map((s) => formatSeatFromCode(s.row, s.number)).join(", ") || "-";
 
     const canCancel = isBookingCancellable(props.booking);
 
@@ -99,28 +110,25 @@ export function BookingDropDownRow(props: BookingDropdownRowProps) {
                     </summary>
                     <div className="px-4 pb-4">
                         <div className="border-border/60 bg-card/40 mt-2 space-y-2 rounded-lg border p-5 text-sm">
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">
-                                    Movie
-                                </span>
-                                <span className="font-medium">
-                                    {props.booking.showtime.movie.title}
+                            <div className="mb-4 flex items-center border-b pb-2">
+                                <span className="text-md font-semibold">
+                                    Booking {formattedBookingNumber}
                                 </span>
                             </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">
-                                    Showtime
-                                </span>
-                                <span className="font-medium">
-                                    {formattedTime}
-                                </span>
-                            </div>
-                            <div className="flex justify-between">
+                            <div className="mb-2 flex justify-between">
                                 <span className="text-muted-foreground">
                                     Seats
                                 </span>
                                 <span className="font-medium">
-                                    {formattedSeats || "—"}
+                                    {formattedSeats}
+                                </span>
+                            </div>
+                            <div className="mb-2 flex justify-between">
+                                <span className="text-muted-foreground">
+                                    Total
+                                </span>
+                                <span className="font-medium">
+                                    {formattedAmount}
                                 </span>
                             </div>
                             <div className="flex justify-end pt-4">
