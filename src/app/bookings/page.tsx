@@ -12,7 +12,6 @@ export default function OrderHistoryPage() {
     });
 
     const bookings = bookingsQuery.data ?? [];
-    console.log("Bookings fetched:", bookings);
 
     const handleCancel = async (bookingId: string) => {
         await cancelMutation.mutateAsync({ bookingId });

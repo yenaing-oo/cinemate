@@ -45,7 +45,6 @@ function isBookingCancellable(booking: Booking): boolean {
 }
 
 export function BookingDropDownRow(props: BookingDropdownRowProps) {
-    console.log("BookingDropDownRow rendered with booking:", props.booking);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [loading, setLoading] = useState(false);
 
