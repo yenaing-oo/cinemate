@@ -3,6 +3,7 @@ import Link from "next/link";
 import "~/styles/globals.css";
 import { TRPCReactProvider } from "~/trpc/react";
 import { AuthButton } from "~/app/components/AuthButton";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function RootLayout({
     children,
@@ -72,6 +73,7 @@ export default function RootLayout({
                     <main className="mx-auto w-full max-w-7xl px-6 pt-24 pb-12">
                         {children}
                     </main>
+                    <Toaster />
 
                     {/* GLOBAL FOOTER */}
                     <footer className="text-muted-foreground mx-auto w-full max-w-7xl px-6 py-6 text-center text-sm">
