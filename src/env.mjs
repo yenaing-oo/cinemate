@@ -49,14 +49,13 @@ export const env = createEnv({
         RESEND_EMAIL_API_KEY: process.env.RESEND_EMAIL_API_KEY,
         CINEMA_TIMEZONE: process.env.CINEMA_TIMEZONE,
         NODE_ENV: process.env.NODE_ENV,
-        BOOKING_CANCEL_WINDOW_MINUTES:
-            process.env.BOOKING_CANCEL_WINDOW_MINUTES,
+        BOOKING_CANCEL_WINDOW_MINUTES: Number(process.env.BOOKING_CANCEL_WINDOW_MINUTES),
         NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
         NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
             process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
         NEXT_PUBLIC_CINEMA_TIMEZONE: process.env.NEXT_PUBLIC_CINEMA_TIMEZONE,
         NEXT_PUBLIC_BOOKING_CANCEL_WINDOW_MINUTES:
-            process.env.NEXT_PUBLIC_BOOKING_CANCEL_WINDOW_MINUTES,
+            Number(process.env.NEXT_PUBLIC_BOOKING_CANCEL_WINDOW_MINUTES),
     },
     /**
      * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
