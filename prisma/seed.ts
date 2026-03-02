@@ -149,11 +149,11 @@ async function main() {
     ];
 
     // --- Booking 1: Single Ticket ---
-    const seatForBooking1 = await prisma.showtimeSeat.findFirst({
+    const showtimeSeatForBooking1 = await prisma.showtimeSeat.findFirst({
         where: { showtimeId: showtimeForBooking1.id },
     });
 
-    if (!seatForBooking1) {
+    if (!showtimeSeatForBooking1) {
         console.error(
             `Could not find an available seat for showtime ${showtimeForBooking1.id} to create the first booking.`
         );
@@ -172,25 +172,24 @@ async function main() {
         await tx.ticket.create({
             data: {
                 bookingId: booking.id,
-                seatId: seatForBooking1.seatId,
-                showtimeId: showtimeForBooking1.id,
+                showtimeSeatId: showtimeSeatForBooking1.id,
                 price: showtimeForBooking1.price,
             },
         });
         await tx.showtimeSeat.update({
-            where: { id: seatForBooking1.id },
+            where: { id: showtimeSeatForBooking1.id },
             data: { isBooked: true },
         });
         console.log(`- Booking ${booking.id} created with 1 ticket.`);
     });
 
     // --- Booking 2: Multiple Tickets ---
-    const seatsForBooking2 = await prisma.showtimeSeat.findMany({
+    const showtimeSeatsForBooking2 = await prisma.showtimeSeat.findMany({
         where: { showtimeId: showtimeForBooking2.id, isBooked: false },
         take: 3,
     });
 
-    if (seatsForBooking2.length !== 3) {
+    if (showtimeSeatsForBooking2.length !== 3) {
         console.error(
             `Could not find 3 available seats for showtime ${showtimeForBooking2.id} to create the second booking.`
         );
@@ -204,23 +203,24 @@ async function main() {
                 userId: user.id,
                 showtimeId: showtimeForBooking2.id,
                 totalAmount: showtimeForBooking2.price.mul(
-                    seatsForBooking2.length
+                    showtimeSeatsForBooking2.length
                 ),
             },
         });
 
-        const ticketsToCreate = seatsForBooking2.map((seat) => ({
-            bookingId: booking.id,
-            seatId: seat.seatId,
-            showtimeId: showtimeForBooking2.id,
-            price: showtimeForBooking2.price,
-        }));
+        const ticketsToCreate = showtimeSeatsForBooking2.map(
+            (showtimeSeat) => ({
+                bookingId: booking.id,
+                showtimeSeatId: showtimeSeat.id,
+                price: showtimeForBooking2.price,
+            })
+        );
 
         await tx.ticket.createMany({
             data: ticketsToCreate,
         });
 
-        const seatIdsToUpdate = seatsForBooking2.map((seat) => seat.id);
+        const seatIdsToUpdate = showtimeSeatsForBooking2.map((seat) => seat.id);
 
         await tx.showtimeSeat.updateMany({
             where: { id: { in: seatIdsToUpdate } },
@@ -228,7 +228,7 @@ async function main() {
         });
 
         console.log(
-            `- Booking ${booking.id} created with ${seatsForBooking2.length} tickets.`
+            `- Booking ${booking.id} created with ${showtimeSeatsForBooking2.length} tickets.`
         );
     });
 }

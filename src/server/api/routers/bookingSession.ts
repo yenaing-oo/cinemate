@@ -316,12 +316,11 @@ async function completeBooking(db: PrismaClient, session: any) {
 
         // 4. Create tickets
         await Promise.all(
-            session.selectedSeats.map((seat: any) =>
+            session.selectedSeats.map((showtimeSeat: any) =>
                 tx.ticket.create({
                     data: {
                         bookingId: booking.id,
-                        seatId: seat.seatId,
-                        showtimeId: session.showtimeId,
+                        showtimeSeatId: showtimeSeat.id,
                         price: showtime.price,
                         status: TicketStatus.VALID,
                     },

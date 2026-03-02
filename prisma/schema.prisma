@@ -62,7 +62,6 @@ model Seat {
     row    Int // Row number (1=A, 2=B, etc.)
     number Int // Seat number within row
 
-    tickets       Ticket[]
     showtimeSeats ShowtimeSeat[]
 
     @@unique([row, number])
@@ -80,7 +79,6 @@ model Showtime {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    tickets         Ticket[]
     showtimeSeats   ShowtimeSeat[]
     bookings        Booking[]
     bookingSessions BookingSession[]
@@ -94,15 +92,16 @@ model Showtime {
 // ==================== BOOKINGS & TICKETS ====================
 
 model Booking {
-    id          String        @id @default(cuid())
-    userId      String        @db.Uuid
-    user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-    showtimeId  String
-    showtime    Showtime      @relation(fields: [showtimeId], references: [id])
-    totalAmount Decimal       @db.Decimal(10, 2)
-    status      BookingStatus @default(CONFIRMED)
-    createdAt   DateTime      @default(now())
-    updatedAt   DateTime      @updatedAt
+    id            String        @id @default(cuid())
+    bookingNumber Int           @unique @default(autoincrement())
+    userId        String        @db.Uuid
+    user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+    showtimeId    String
+    showtime      Showtime      @relation(fields: [showtimeId], references: [id])
+    totalAmount   Decimal       @db.Decimal(10, 2)
+    status        BookingStatus @default(CONFIRMED)
+    createdAt     DateTime      @default(now())
+    updatedAt     DateTime      @updatedAt
 
     tickets Ticket[]
 
@@ -117,20 +116,18 @@ enum BookingStatus {
 }
 
 model Ticket {
-    id         String       @id @default(cuid())
-    bookingId  String
-    booking    Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-    seatId     String
-    seat       Seat         @relation(fields: [seatId], references: [id])
-    showtimeId String
-    showtime   Showtime     @relation(fields: [showtimeId], references: [id])
-    price      Decimal      @db.Decimal(10, 2)
-    status     TicketStatus @default(VALID)
-    createdAt  DateTime     @default(now())
-    updatedAt  DateTime     @updatedAt
+    id             String       @id @default(cuid())
+    bookingId      String
+    booking        Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+    showtimeSeatId String
+    showtimeSeat   ShowtimeSeat @relation(fields: [showtimeSeatId], references: [id], onDelete: Cascade)
+    price          Decimal      @db.Decimal(10, 2)
+    status         TicketStatus @default(VALID)
+    createdAt      DateTime     @default(now())
+    updatedAt      DateTime     @updatedAt
 
     @@index([bookingId])
-    @@index([seatId, showtimeId])
+    @@index([showtimeSeatId])
 }
 
 enum TicketStatus {
@@ -156,6 +153,8 @@ model ShowtimeSeat {
     updatedAt        DateTime        @updatedAt
     bookingSession   BookingSession? @relation(fields: [bookingSessionId], references: [id])
     bookingSessionId String?
+
+    tickets Ticket[]
 
     @@unique([showtimeId, seatId])
     @@index([heldByUserId, heldTill])
