@@ -228,7 +228,7 @@ async function setTicketCount(
 async function reserveSeats(
     db: PrismaClient,
     showtimeId: string,
-    showtimeSeatIds: string[],
+    seatIds: string[],
     userId: string,
     bookingSessionId: string,
     now: Date
@@ -237,7 +237,7 @@ async function reserveSeats(
         const count = await tx.showtimeSeat.updateMany({
             where: {
                 showtimeId: showtimeId,
-                seatId: { in: showtimeSeatIds },
+                seatId: { in: seatIds },
                 isBooked: false,
                 OR: [
                     { heldTill: null },
@@ -250,18 +250,16 @@ async function reserveSeats(
                 heldTill: new Date(now.getTime() + SEAT_HOLD_DURATION_MS),
             },
         });
-        console.log("actual space count as per DB: ", count.count);
-        console.log("actual space DATA as per DB: ", count);
 
-        if (count.count !== showtimeSeatIds.length) {
+        if (count.count !== seatIds.length) {
             throw new Error(
                 "Some selected seats are no longer available. Please choose different seats."
             );
         }
-        const showtimeIds = await tx.showtimeSeat.findMany({
+        const showtimeSeatIds = await tx.showtimeSeat.findMany({
             where: {
                 showtimeId,
-                seatId: { in: showtimeSeatIds },
+                seatId: { in: seatIds },
             },
             select: { id: true },
         });
@@ -271,7 +269,7 @@ async function reserveSeats(
             data: {
                 step: BookingStep.CHECKOUT,
                 selectedSeats: {
-                    connect: showtimeIds.map((s) => ({ id: s.id })),
+                    connect: showtimeSeatIds.map((s) => ({ id: s.id })),
                 },
             },
         });
@@ -283,8 +281,7 @@ async function completeBooking(db: PrismaClient, session: any) {
         // 1. Mark seats as booked
         const count = await tx.showtimeSeat.updateMany({
             where: {
-                showtimeId: session.showtimeId,
-                seatId: { in: session.selectedSeats.map((s: any) => s.id) },
+                id: { in: session.selectedSeats.map((s: any) => s.id) },
                 isBooked: false,
                 heldByUserId: session.userId,
             },

@@ -19,17 +19,17 @@ interface SeatMapProps {
         totalSeatRows: number;
         seatPerRow: number;
         seatInfo?: {
-            seatId: string;
+            id: string;
             row: number;
             number: number;
-            isBooked: Boolean;
+            isBooked: boolean;
         }[];
     };
 }
 
 const SeatMap = ({ props }: SeatMapProps) => {
     const bookedSeats = new Set<string>(
-        props.seatInfo?.filter((s) => s.isBooked).map((s) => s.seatId)
+        props.seatInfo?.filter((s) => s.isBooked).map((s) => s.id)
     );
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -208,11 +208,11 @@ const SeatMap = ({ props }: SeatMapProps) => {
                     {/* Seats */}
                     {seats.map((seat) => {
                         const seatData = props.seatInfo?.find(
-                            (s) => s.seatId === seat.seatId
+                            (s) => s.id === seat.seatId
                         );
                         const seatLable = seat.seatLable;
                         const seatId = seatData
-                            ? seatData.seatId
+                            ? seatData.id
                             : `${seat.row}-${seat.col}`;
                         const isSelected = props.selectedSeats.has(seatId);
                         const isBooked = !!seatData?.isBooked;

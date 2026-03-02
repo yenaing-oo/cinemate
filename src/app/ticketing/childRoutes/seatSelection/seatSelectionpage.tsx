@@ -74,7 +74,7 @@ export default function SeatSelectionPage({
     handleUpdateSession,
 }: SeatSelectionPageProps) {
     const { data: seatInfo, isLoading } =
-        api.seats.getSeatsForShowtime.useQuery({
+        api.showtimeSeats.getByShowtime.useQuery({
             showtimeId: bookingSession.showtimeId,
         });
 

@@ -24,22 +24,4 @@ export const moviesRouter = createTRPCRouter({
                 ...(typeof limit === "number" ? { take: limit } : {}),
             });
         }),
-    getById: publicProcedure
-        .input(z.object({ id: z.string() }))
-        .query(async ({ input }) => {
-            const movie = await db.movie.findUnique({
-                where: { id: input.id },
-            });
-            if (!movie) return null;
-            return {
-                id: movie.id,
-                title: movie.title,
-                genres: movie.genres,
-                runtime: movie.runtime,
-                posterUrl: movie.posterUrl,
-                backdropUrl: movie.backdropUrl,
-                languages: movie.languages,
-                releaseDate: movie.releaseDate,
-            };
-        }),
 });

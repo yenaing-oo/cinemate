@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import {
+    createTRPCRouter,
+    protectedProcedure,
+    publicProcedure,
+} from "~/server/api/trpc";
 import { db } from "~/server/db";
 
 export const showtimesRouter = createTRPCRouter({
@@ -45,15 +49,15 @@ export const showtimesRouter = createTRPCRouter({
                 showtimes,
             };
         }),
-    getShowtimeAvailableSeats: publicProcedure
+    getAvailableSeatCount: protectedProcedure
         .input(z.object({ showtimeId: z.string() }))
         .query(async ({ input }) => {
-            const showtime = await db.showtimeSeat.count({
+            const count = await db.showtimeSeat.count({
                 where: {
                     showtimeId: input.showtimeId,
                     isBooked: false,
                 },
             });
-            return showtime;
+            return count;
         }),
 });

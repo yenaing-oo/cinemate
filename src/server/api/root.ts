@@ -5,7 +5,7 @@ import { showtimesRouter } from "~/server/api/routers/showtimes";
 import { bookingsRouter } from "~/server/api/routers/bookings";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 import { bookingSessionRouter } from "~/server/api/routers/bookingSession";
-import { seatsRouter } from "./routers/seats";
+import { showtimeSeatsRouter } from "./routers/showtimeSeats";
 
 /**
  * This is the primary router for your server.
@@ -19,7 +19,7 @@ export const appRouter = createTRPCRouter({
     showtimes: showtimesRouter,
     bookings: bookingsRouter,
     bookingSession: bookingSessionRouter,
-    seats: seatsRouter,
+    showtimeSeats: showtimeSeatsRouter,
 });
 
 // export type definition of API

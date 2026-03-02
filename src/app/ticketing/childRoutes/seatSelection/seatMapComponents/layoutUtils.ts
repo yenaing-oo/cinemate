@@ -48,10 +48,10 @@ export const calculateSeatLayout = (
     rows: number,
     seatsPerRow: number,
     seatInfo?: {
-        seatId: string;
+        id: string;
         row: number;
         number: number;
-        isBooked: Boolean;
+        isBooked: boolean;
     }[]
 ): SeatPosition[] => {
     const { screenUI, seats, section, curvature } = layoutConfig;
@@ -108,7 +108,7 @@ export const calculateSeatLayout = (
                 y,
                 row: r,
                 col: c,
-                seatId: seatDetail ? seatDetail.seatId : `${r}-${c}`,
+                seatId: seatDetail ? seatDetail.id : `${r}-${c}`,
                 size: dynamicSeatSize,
                 seatLable: formatSeatFromCode(r, c),
             });

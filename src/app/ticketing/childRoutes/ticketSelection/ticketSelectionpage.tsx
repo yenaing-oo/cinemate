@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { notFound } from "next/navigation";
 import {
     formatList,
     formatShowtimeDate,
@@ -73,7 +72,6 @@ export default function TicketSelectionPage({
     bookingSession,
     handleUpdateSession,
 }: TicketSelectionPageProps) {
-    const movieId = bookingSession.showtime.movieId;
     const movieTitle = bookingSession.showtime.movie.title;
     const moviePosterUrl = bookingSession.showtime.movie.posterUrl || "";
     const movieBackdropUrl = bookingSession.showtime.movie.backdropUrl || "";
@@ -81,17 +79,11 @@ export default function TicketSelectionPage({
     const showtimeDate = bookingSession.showtime.startTime;
     const showtimeId = bookingSession.showtime.id;
 
-    const movie = api.movies.getById.useQuery({ id: movieId });
-
-    if (!movie) {
-        notFound();
-    }
-
     const [ticketCount, setTicketCount] = useState(0);
     const MAX_TICKETS_LIMIT = 10;
-    const SEAT_PRICE = 15;
+    const SEAT_PRICE = bookingSession.showtime.price;
 
-    const { data } = api.showtimes.getShowtimeAvailableSeats.useQuery({
+    const { data } = api.showtimes.getAvailableSeatCount.useQuery({
         showtimeId: showtimeId,
     });
 
@@ -147,7 +139,9 @@ export default function TicketSelectionPage({
                                                 Tickets (Including Tax):
                                             </p>
                                             <p className="text-muted-foreground max-w-2xl text-base leading-relaxed">
-                                                ${ticketCount * SEAT_PRICE}
+                                                $
+                                                {ticketCount *
+                                                    Number(SEAT_PRICE)}
                                             </p>
                                         </div>
                                         <div className="flex flex-row items-stretch justify-center">
