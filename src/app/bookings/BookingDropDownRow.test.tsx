@@ -6,7 +6,7 @@ import type { BookingStatus } from "@prisma/client";
 import type { Booking as ComponentBooking } from "./BookingDropDownRow";
 
 (globalThis as any).env = (globalThis as any).env || {};
-(globalThis as any).env.NEXT_PUBLIC_BOOKING_CANCEL_WINDOW_MINUTES = 60; 
+(globalThis as any).env.NEXT_PUBLIC_BOOKING_CANCEL_WINDOW_MINUTES = 60;
 
 //Mocking Next.js components and utilities
 vi.mock("next/image", () => ({
