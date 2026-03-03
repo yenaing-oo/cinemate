@@ -1,6 +1,14 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeAll } from "vitest";
+
+vi.mock('~/env.mjs', () => ({
+  env: {
+    NEXT_PUBLIC_BOOKING_CANCEL_WINDOW_MINUTES: 60,
+    
+  }
+}));
+
 import { BookingDropDownRow, isBookingCancellable } from "./BookingDropDownRow";
 import type { BookingStatus } from "@prisma/client";
 import type { Booking as ComponentBooking } from "./BookingDropDownRow";
@@ -45,6 +53,8 @@ vi.mock("~/components/ui/button", () => ({
         </button>
     ),
 }));
+
+
 
 //Test cases for BookingDropDownRow component
 describe("BookingDropDownRow render tests", () => {
