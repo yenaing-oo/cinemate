@@ -5,7 +5,6 @@ import { BookingDropDownRow, isBookingCancellable } from "./BookingDropDownRow";
 import type { BookingStatus } from "@prisma/client";
 import type { Booking as ComponentBooking } from "./BookingDropDownRow";
 
-
 //Mocking Next.js components and utilities
 vi.mock("next/image", () => ({
     __esModule: true,
@@ -36,12 +35,12 @@ vi.mock("~/lib/utils", () => {
 });
 
 vi.mock("~/components/ui/button", () => ({
-  __esModule: true,
-  Button: ({ children, ...props }: any) => (
-    <button type="button" {...props}>
-      {children}
-    </button>
-  ),
+    __esModule: true,
+    Button: ({ children, ...props }: any) => (
+        <button type="button" {...props}>
+            {children}
+        </button>
+    ),
 }));
 
 //Test cases for BookingDropDownRow component
@@ -79,7 +78,9 @@ describe("BookingDropDownRow render tests", () => {
         const img = screen.getByRole("img", { name: "Interstellar" });
         expect(img).toHaveAttribute("data-src", "/posters/test.png");
         expect(screen.getAllByText("Interstellar")).toHaveLength(1);
-        expect(screen.getByText("26 March, 2026 @ 2:30 PM")).toBeInTheDocument();
+        expect(
+            screen.getByText("26 March, 2026 @ 2:30 PM")
+        ).toBeInTheDocument();
     });
 
     //  Test that the component renders the correct booking number, amount and seats
@@ -140,7 +141,7 @@ describe("BookingDropDownRow render tests", () => {
         expect(
             screen.queryByRole("button", { name: /Cancel Booking/i })
         ).not.toBeInTheDocument();
-    }); 
+    });
 });
 
 //Test cases for isBookingCancellable function
@@ -158,7 +159,7 @@ describe("isBookingCancellable", () => {
             },
             tickets: [],
             totalAmount: 0 as any,
-        };  
+        };
         expect(isBookingCancellable(booking)).toBe(true);
     });
 
@@ -167,9 +168,9 @@ describe("isBookingCancellable", () => {
         const futureDate = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
         const booking: ComponentBooking = {
             id: "2",
-            bookingNumber: 12346,   
+            bookingNumber: 12346,
             status: "CONFIRMED",
-            showtime: { 
+            showtime: {
                 startTime: futureDate,
                 movie: { title: "Test Movie" },
             },
@@ -178,4 +179,4 @@ describe("isBookingCancellable", () => {
         };
         expect(isBookingCancellable(booking)).toBe(false);
     });
-}); 
+});

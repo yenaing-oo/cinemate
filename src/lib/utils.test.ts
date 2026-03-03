@@ -1,4 +1,9 @@
-import { formatRuntime, formatRating, formatShowtimeDate, formatShowtimeTime } from "./utils";
+import {
+    formatRuntime,
+    formatRating,
+    formatShowtimeDate,
+    formatShowtimeTime,
+} from "./utils";
 import { describe, it, expect } from "vitest";
 
 describe("formatRuntime", () => {
@@ -27,7 +32,7 @@ describe("formatShowtimeTime", () => {
     it("formats showtime to 'h:mm A' format in America/Chicago timezone", () => {
         const date = new Date("2024-06-01T20:30:00Z"); // 3:30 PM in Chicago
         expect(formatShowtimeTime(date)).toBe("3:30 PM");
-    });  
+    });
 });
 
 describe("formatShowtimeDate", () => {
