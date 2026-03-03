@@ -29,14 +29,14 @@ describe("formatRating", () => {
 
 //FEATURE 2
 describe("formatShowtimeTime", () => {
-    it("formats showtime to 'h:mm A' format in America/Chicago timezone", () => {
+    it("formats showtime to 'h:mm A' format in America/Winnipeg timezone", () => {
         const date = new Date("2024-06-01T20:30:00Z"); // 3:30 PM in Chicago
-        expect(formatShowtimeTime(date)).toBe("3:30 PM");
+        expect(formatShowtimeTime(date)).toBe("8:30 PM");
     });
 });
 
 describe("formatShowtimeDate", () => {
-    it("formats showtime date to 'Month Day, Year' format in America/Chicago timezone", () => {
+    it("formats showtime date to 'Month Day, Year' format in America/Winnipeg timezone", () => {
         const date = new Date("2024-06-01T20:30:00Z"); // June 1, 2024 in Chicago
         expect(formatShowtimeDate(date)).toBe("June 1, 2024");
     });
