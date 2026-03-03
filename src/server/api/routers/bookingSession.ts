@@ -178,7 +178,7 @@ export const bookingSessionRouter = createTRPCRouter({
         }),
 });
 
-function validateSession(session: any, userId: string, now: Date) {
+export function validateSession(session: any, userId: string, now: Date) {
     if (!session) {
         throw new Error("Session not found");
     }
@@ -223,7 +223,7 @@ async function setTicketCount(
     });
 }
 
-async function reserveSeats(
+export async function reserveSeats(
     db: PrismaClient,
     showtimeId: string,
     seatIds: string[],
