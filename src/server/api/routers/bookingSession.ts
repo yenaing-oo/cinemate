@@ -45,6 +45,8 @@ export const bookingSessionRouter = createTRPCRouter({
                                     id: true,
                                     title: true,
                                     posterUrl: true,
+                                    backdropUrl: true,
+                                    languages: true,
                                 },
                             },
                         },
@@ -70,6 +72,8 @@ export const bookingSessionRouter = createTRPCRouter({
                                 id: true,
                                 title: true,
                                 posterUrl: true,
+                                backdropUrl: true,
+                                languages: true,
                             },
                         },
                     },
@@ -104,7 +108,7 @@ export const bookingSessionRouter = createTRPCRouter({
                     )
                     .optional(),
                 ticketCount: z.number().int().positive().optional(),
-                selectedShowtimeSeatIds: z.array(z.string()).optional(),
+                selectedSeatIds: z.array(z.string()).optional(),
             })
         )
         .mutation(async ({ ctx, input }) => {
@@ -138,21 +142,20 @@ export const bookingSessionRouter = createTRPCRouter({
                 session.step === BookingStep.SEAT_SELECTION &&
                 input.goToStep === BookingStep.CHECKOUT
             ) {
-                if (!input.selectedShowtimeSeatIds) {
+                if (!input.selectedSeatIds) {
                     throw new Error(
                         "Selected seat IDs are required for checkout"
                     );
                 }
-                if (
-                    input.selectedShowtimeSeatIds.length !== session.ticketCount
-                ) {
+                if (input.selectedSeatIds.length !== session.ticketCount) {
                     throw new Error(
                         "Selected seat count does not match ticket count"
                     );
                 }
                 await reserveSeats(
                     ctx.db,
-                    input.selectedShowtimeSeatIds,
+                    session.showtimeId,
+                    input.selectedSeatIds,
                     ctx.user.id,
                     session.id,
                     now
@@ -222,7 +225,8 @@ async function setTicketCount(
 
 async function reserveSeats(
     db: PrismaClient,
-    showtimeSeatIds: string[],
+    showtimeId: string,
+    seatIds: string[],
     userId: string,
     bookingSessionId: string,
     now: Date
@@ -230,7 +234,8 @@ async function reserveSeats(
     await db.$transaction(async (tx) => {
         const count = await tx.showtimeSeat.updateMany({
             where: {
-                id: { in: showtimeSeatIds },
+                showtimeId: showtimeId,
+                seatId: { in: seatIds },
                 isBooked: false,
                 OR: [
                     { heldTill: null },
@@ -243,17 +248,26 @@ async function reserveSeats(
                 heldTill: new Date(now.getTime() + SEAT_HOLD_DURATION_MS),
             },
         });
-        if (count.count !== showtimeSeatIds.length) {
+
+        if (count.count !== seatIds.length) {
             throw new Error(
                 "Some selected seats are no longer available. Please choose different seats."
             );
         }
+        const showtimeSeatIds = await tx.showtimeSeat.findMany({
+            where: {
+                showtimeId,
+                seatId: { in: seatIds },
+            },
+            select: { id: true },
+        });
+
         await tx.bookingSession.update({
             where: { id: bookingSessionId },
             data: {
                 step: BookingStep.CHECKOUT,
                 selectedSeats: {
-                    connect: showtimeSeatIds.map((id) => ({ id })),
+                    connect: showtimeSeatIds.map((s) => ({ id: s.id })),
                 },
             },
         });

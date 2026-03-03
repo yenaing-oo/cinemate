@@ -110,7 +110,7 @@ export default async function MovieDetailsPage({
             <div className="from-background/90 via-background/40 absolute inset-0 bg-gradient-to-t to-transparent" />
 
             <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col justify-center px-6 pt-28 pb-20">
-                <div className="grid items-end gap-10 lg:grid-cols-[360px_1fr]">
+                <div className="grid gap-10 lg:grid-cols-[360px_1fr]">
                     <div className="relative">
                         <div className="from-primary/20 via-secondary/10 to-accent/20 absolute -inset-4 rounded-[28px] bg-gradient-to-br blur-2xl" />
                         <Card className="border-border/60 bg-muted/20 relative overflow-hidden rounded-[28px] border shadow-[0_30px_80px_rgba(5,12,24,0.55)]">
