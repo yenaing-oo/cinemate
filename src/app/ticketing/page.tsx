@@ -3,16 +3,28 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
-import { formatShowtimeTime, formatTime } from "~/lib/utils";
+import { formatTime } from "~/lib/utils";
+import { $Enums } from "@prisma/client";
+
+import TicketSelectionPage from "./childRoutes/ticketSelection/ticketSelectionpage";
+import SeatSelectionPage from "./childRoutes/seatSelection/seatSelectionpage";
 
 export default function TicketingPage() {
     const router = useRouter();
+    const utils = api.useUtils();
     const { data: session, isLoading } = api.bookingSession.get.useQuery(
         undefined,
         {
             staleTime: 0,
         }
     );
+
+    const updateBookingSession = api.bookingSession.update.useMutation({
+        onSuccess: async () => {
+            await utils.bookingSession.get.invalidate();
+        },
+    });
+
     const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
     useEffect(() => {
@@ -32,25 +44,48 @@ export default function TicketingPage() {
         return () => clearInterval(interval);
     }, [session?.expiresAt]);
 
+    const handleUpdateSession = async (
+        sessionId: string,
+        goToStep: $Enums.BookingStep,
+        ticketCount?: number,
+        selectedShowtimeSeatIds?: string[]
+    ) => {
+        await updateBookingSession.mutateAsync({
+            sessionId,
+            goToStep,
+            ticketCount,
+            selectedSeatIds: selectedShowtimeSeatIds,
+        });
+    };
+
     return (
-        <section className="mx-auto max-w-7xl px-6 py-20">
-            <h1 className="mb-10 text-4xl font-bold">Book Your Tickets</h1>
+        <section>
             {isLoading ? (
                 <p className="text-lg text-gray-600">Loading session…</p>
             ) : session ? (
-                <div className="mb-6">
-                    <span className="font-semibold">Time left:</span>{" "}
-                    <span className="font-mono text-red-600">
-                        {timeLeft !== null ? formatTime(timeLeft) : "00:00"}
-                    </span>
-                    <p className="text-sm text-gray-500">
-                        Movie: {session.showtime.movie.title}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                        Showtime:{" "}
-                        {formatShowtimeTime(session.showtime.startTime)}
-                    </p>
-                </div>
+                <>
+                    <div className="sticky top-20 z-5 float-right">
+                        <span className="font-semibold">Time left:</span>{" "}
+                        <span className="font-mono font-semibold text-red-500">
+                            {timeLeft !== null ? formatTime(timeLeft) : "00:00"}
+                        </span>
+                    </div>
+                    {session.step === $Enums.BookingStep.TICKET_QUANTITY && (
+                        <TicketSelectionPage
+                            bookingSession={session}
+                            handleUpdateSession={handleUpdateSession}
+                        />
+                    )}
+                    {session.step === $Enums.BookingStep.SEAT_SELECTION && (
+                        <SeatSelectionPage
+                            bookingSession={session}
+                            handleUpdateSession={handleUpdateSession}
+                        />
+                    )}
+                    {session.step === $Enums.BookingStep.CHECKOUT && (
+                        <p>Payment Page</p>
+                    )}
+                </>
             ) : (
                 <p className="text-lg text-gray-600">
                     Select a movie and showtime to start your booking.

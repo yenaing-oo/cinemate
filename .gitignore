@@ -44,3 +44,7 @@ yarn-error.log*
 
 # idea files
 .idea
+
+# supabase
+supabase/.branches/*
+supabase/.temp/*
