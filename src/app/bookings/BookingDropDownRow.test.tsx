@@ -5,6 +5,9 @@ import { BookingDropDownRow, isBookingCancellable } from "./BookingDropDownRow";
 import type { BookingStatus } from "@prisma/client";
 import type { Booking as ComponentBooking } from "./BookingDropDownRow";
 
+(globalThis as any).env = (globalThis as any).env || {};
+(globalThis as any).env.NEXT_PUBLIC_BOOKING_CANCEL_WINDOW_MINUTES = 60; 
+
 //Mocking Next.js components and utilities
 vi.mock("next/image", () => ({
     __esModule: true,
@@ -148,7 +151,7 @@ describe("BookingDropDownRow render tests", () => {
 describe("isBookingCancellable", () => {
     //  Test that a booking is cancellable if it is confirmed and the showtime is more than the cancel window away
     it("returns true for a confirmed booking with showtime more than cancel window away", () => {
-        const futureDate = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours from now
+        const futureDate = new Date(Date.now() + 3 * 60 * 60 * 1000); // 3 hours from now
         const booking: ComponentBooking = {
             id: "1",
             bookingNumber: 12345,
