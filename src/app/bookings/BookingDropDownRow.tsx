@@ -33,7 +33,7 @@ interface Booking {
     totalAmount: number;
 }
 
-function isBookingCancellable(booking: Booking): boolean {
+export function isBookingCancellable(booking: Booking): boolean {
     const now = new Date();
     const showtimeDate = new Date(booking.showtime.startTime);
     const timeDiff = showtimeDate.getTime() - now.getTime();
