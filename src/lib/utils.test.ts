@@ -30,8 +30,8 @@ describe("formatRating", () => {
 //FEATURE 2
 describe("formatShowtimeTime", () => {
     it("formats showtime to 'h:mm A' format in America/Winnipeg timezone", () => {
-        const date = new Date("2024-06-01T20:30:00Z"); // 3:30 PM in Chicago
-        expect(formatShowtimeTime(date)).toBe("8:30 PM");
+        const date = new Date("2024-06-01T20:30:00Z"); // 3:30 PM in Winnipeg
+        expect(formatShowtimeTime(date)).toBe("3:30 PM");
     });
 });
 
