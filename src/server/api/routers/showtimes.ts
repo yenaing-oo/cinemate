@@ -51,13 +51,19 @@ export const showtimesRouter = createTRPCRouter({
         }),
     getAvailableSeatCount: protectedProcedure
         .input(z.object({ showtimeId: z.string() }))
-        .query(async ({ input }) => {
-            const count = await db.showtimeSeat.count({
+        .query(async ({ input, ctx }) => {
+            const now = new Date();
+            const availableSeatsCount = await db.showtimeSeat.count({
                 where: {
                     showtimeId: input.showtimeId,
                     isBooked: false,
+                    OR: [
+                        { heldTill: null },
+                        { heldTill: { lt: now } },
+                        { heldByUserId: ctx.user.id },
+                    ],
                 },
             });
-            return count;
+            return availableSeatsCount;
         }),
 });

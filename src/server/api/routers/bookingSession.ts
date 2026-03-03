@@ -108,7 +108,7 @@ export const bookingSessionRouter = createTRPCRouter({
                     )
                     .optional(),
                 ticketCount: z.number().int().positive().optional(),
-                selectedShowtimeSeatIds: z.array(z.string()).optional(),
+                selectedSeatIds: z.array(z.string()).optional(),
             })
         )
         .mutation(async ({ ctx, input }) => {
@@ -142,14 +142,12 @@ export const bookingSessionRouter = createTRPCRouter({
                 session.step === BookingStep.SEAT_SELECTION &&
                 input.goToStep === BookingStep.CHECKOUT
             ) {
-                if (!input.selectedShowtimeSeatIds) {
+                if (!input.selectedSeatIds) {
                     throw new Error(
                         "Selected seat IDs are required for checkout"
                     );
                 }
-                if (
-                    input.selectedShowtimeSeatIds.length !== session.ticketCount
-                ) {
+                if (input.selectedSeatIds.length !== session.ticketCount) {
                     throw new Error(
                         "Selected seat count does not match ticket count"
                     );
@@ -157,7 +155,7 @@ export const bookingSessionRouter = createTRPCRouter({
                 await reserveSeats(
                     ctx.db,
                     session.showtimeId,
-                    input.selectedShowtimeSeatIds,
+                    input.selectedSeatIds,
                     ctx.user.id,
                     session.id,
                     now

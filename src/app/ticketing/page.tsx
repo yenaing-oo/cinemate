@@ -21,11 +21,7 @@ export default function TicketingPage() {
 
     const updateBookingSession = api.bookingSession.update.useMutation({
         onSuccess: async () => {
-            console.log("Booking session updated");
             await utils.bookingSession.get.invalidate();
-        },
-        onError: (error) => {
-            console.error("Update failed:", error);
         },
     });
 
@@ -58,7 +54,7 @@ export default function TicketingPage() {
             sessionId,
             goToStep,
             ticketCount,
-            selectedShowtimeSeatIds: selectedShowtimeSeatIds,
+            selectedSeatIds: selectedShowtimeSeatIds,
         });
     };
 
