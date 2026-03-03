@@ -4,7 +4,14 @@ import {
     formatShowtimeDate,
     formatShowtimeTime,
 } from "./utils";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+
+vi.mock("~/env.mjs", () => ({
+    env: {
+        NODE_ENV: "test",
+        NEXT_PUBLIC_CINEMA_TIMEZONE: "America/Winnipeg",
+    },
+}));
 
 describe("formatRuntime", () => {
     it("formats runtime in hours and minutes", () => {

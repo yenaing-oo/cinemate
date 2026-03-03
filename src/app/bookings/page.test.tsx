@@ -7,7 +7,6 @@ vi.mock("~/env.mjs", () => ({
     env: {
         NODE_ENV: "test",
         NEXT_PUBLIC_BOOKING_CANCEL_WINDOW_MINUTES: "60",
-        // add any other values your code reads
     },
 }));
 
