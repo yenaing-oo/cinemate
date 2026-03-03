@@ -3,6 +3,8 @@ import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { BookingDropDownRow, isBookingCancellable } from "./BookingDropDownRow";
 import type { BookingStatus } from "@prisma/client";
+import type { Booking as ComponentBooking } from "./BookingDropDownRow";
+
 
 //Mocking Next.js components and utilities
 vi.mock("next/image", () => ({
@@ -146,7 +148,7 @@ describe("isBookingCancellable", () => {
     //  Test that a booking is cancellable if it is confirmed and the showtime is more than the cancel window away
     it("returns true for a confirmed booking with showtime more than cancel window away", () => {
         const futureDate = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours from now
-        const booking: Booking = {
+        const booking: ComponentBooking = {
             id: "1",
             bookingNumber: 12345,
             status: "CONFIRMED",
@@ -155,7 +157,7 @@ describe("isBookingCancellable", () => {
                 movie: { title: "Test Movie" },
             },
             tickets: [],
-            totalAmount: 0,
+            totalAmount: 0 as any,
         };  
         expect(isBookingCancellable(booking)).toBe(true);
     });
@@ -163,7 +165,7 @@ describe("isBookingCancellable", () => {
     //  Test that a booking is not cancellable if the showtime is within the cancel window
     it("returns false for a confirmed booking with showtime within cancel window", () => {
         const futureDate = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
-        const booking: Booking = {
+        const booking: ComponentBooking = {
             id: "2",
             bookingNumber: 12346,   
             status: "CONFIRMED",
@@ -172,7 +174,7 @@ describe("isBookingCancellable", () => {
                 movie: { title: "Test Movie" },
             },
             tickets: [],
-            totalAmount: 0,
+            totalAmount: 0 as any,
         };
         expect(isBookingCancellable(booking)).toBe(false);
     });

@@ -21,7 +21,7 @@ interface BookingDropdownRowProps {
     onCancel?: () => Promise<void>;
 }
 
-interface Booking {
+export interface Booking {
     id: string;
     bookingNumber: number;
     status: BookingStatus;
