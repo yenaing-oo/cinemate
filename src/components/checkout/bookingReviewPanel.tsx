@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -167,15 +166,6 @@ export function BookingReviewPanel({
                                     {isSubmitting
                                         ? "Confirming reservation..."
                                         : "Confirm reservation"}
-                                </Button>
-                                <Button
-                                    asChild
-                                    variant="outline"
-                                    className="text-foreground hover:text-foreground relative w-full overflow-hidden rounded-xl border-white/18 bg-white/0 shadow-[0_0_0_1px_rgba(255,255,255,0.05)_inset] before:pointer-events-none before:absolute before:top-0 before:right-4 before:left-4 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/55 before:to-transparent hover:border-white/30 hover:bg-black hover:shadow-[0_0_0_1px_rgba(255,255,255,0.16)_inset,0_8px_22px_rgba(20,63,110,0.3)]"
-                                >
-                                    <Link href="/movies">
-                                        Continue browsing
-                                    </Link>
                                 </Button>
                             </div>
                         </CardContent>
