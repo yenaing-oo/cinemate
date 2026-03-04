@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { showtimeSeatsRouter} from "./showtimeSeats";
+import { showtimeSeatsRouter } from "./showtimeSeats";
 
 vi.mock("~/server/db", () => {
     return {
-        db: {   
+        db: {
             showtimeSeat: {
                 findMany: vi.fn(),
             },
@@ -13,11 +13,13 @@ vi.mock("~/server/db", () => {
 
 import { db } from "~/server/db";
 
+//Tests for showtimeSeatsRouter, specifically the getByShowtime procedure and its use of isShowtimeSeatAvailable
 describe("showtimeSeatsRouter", () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
 
+    // Test case: getByShowtime returns showtime seats with correct availability status based on isShowtimeSeatAvailable logic
     it("returns showtime seats with correct availability status", async () => {
         // Arrange
         const showtimeId = "showtime123";
@@ -40,16 +42,18 @@ describe("showtimeSeatsRouter", () => {
             },
             {
                 seatId: "seat3",
-                seat: { row: 1, number: 3 },    
+                seat: { row: 1, number: 3 },
                 isBooked: false,
                 heldTill: new Date(now.getTime() + 60 * 1000), // held for 1 more minute
                 heldByUserId: userId,
             },
-        ]); 
+        ]);
 
-        expect(await showtimeSeatsRouter
-            .createCaller({ user: { id: userId } } as any)
-            .getByShowtime({ showtimeId })).toEqual([
+        expect(
+            await showtimeSeatsRouter
+                .createCaller({ user: { id: userId } } as any)
+                .getByShowtime({ showtimeId })
+        ).toEqual([
             {
                 id: "seat1",
                 row: 1,
