@@ -21,7 +21,7 @@ interface BookingDropdownRowProps {
     onCancel?: () => Promise<void>;
 }
 
-interface Booking {
+export interface Booking {
     id: string;
     bookingNumber: number;
     status: BookingStatus;
@@ -33,7 +33,7 @@ interface Booking {
     totalAmount: number;
 }
 
-function isBookingCancellable(booking: Booking): boolean {
+export function isBookingCancellable(booking: Booking): boolean {
     const now = new Date();
     const showtimeDate = new Date(booking.showtime.startTime);
     const timeDiff = showtimeDate.getTime() - now.getTime();
