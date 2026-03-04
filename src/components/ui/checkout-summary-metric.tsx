@@ -1,16 +1,16 @@
 import { cn } from "~/lib/utils";
 
-interface CheckoutMetricCardProps {
+interface CheckoutSummaryMetricProps {
     label: string;
     value: string;
     className?: string;
 }
 
-export function CheckoutMetricCard({
+export function CheckoutSummaryMetric({
     label,
     value,
     className,
-}: CheckoutMetricCardProps) {
+}: CheckoutSummaryMetricProps) {
     return (
         <div
             className={cn(

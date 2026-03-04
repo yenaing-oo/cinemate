@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { $Enums } from "@prisma/client";
 import type { Decimal } from "@prisma/client/runtime/library";
+import { toast } from "sonner";
 import {
     formatCad,
     formatSeatFromCode,
@@ -106,12 +107,25 @@ export default function CheckoutReviewPage({
             priceEach={priceEach}
             total={total}
             isSubmitting={isSubmitting}
-            onConfirm={async () => {
-                await handleUpdateSession(
-                    bookingSession.id,
-                    $Enums.BookingStep.COMPLETED
-                );
-                router.push("/bookings");
+            onConfirm={async (_paymentDetails) => {
+                try {
+                    await handleUpdateSession(
+                        bookingSession.id,
+                        $Enums.BookingStep.COMPLETED
+                    );
+                    router.push("/bookings");
+                } catch (error) {
+                    const message =
+                        error instanceof Error
+                            ? error.message
+                            : "Unable to confirm your reservation.";
+                    toast.error(message, {
+                        description:
+                            "Your session may have expired or seats changed. Please select your seats again.",
+                    });
+                    router.replace("/ticketing");
+                    router.refresh();
+                }
             }}
         />
     );

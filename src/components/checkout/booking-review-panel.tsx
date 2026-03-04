@@ -2,10 +2,15 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
-import { CheckoutMetricCard } from "~/components/ui/checkout-metric-card";
+import { CheckoutSummaryMetric } from "~/components/ui/checkout-summary-metric";
+import {
+    PaymentDetailsForm,
+    type ConfirmablePaymentDetails,
+} from "~/components/checkout/payment-details-form";
 
 interface BookingReviewPanelProps {
     movieTitle: string;
@@ -16,7 +21,7 @@ interface BookingReviewPanelProps {
     priceEach: string;
     total: string;
     isSubmitting: boolean;
-    onConfirm: () => Promise<void>;
+    onConfirm: (paymentDetails: ConfirmablePaymentDetails) => Promise<void>;
 }
 
 export function BookingReviewPanel({
@@ -31,6 +36,8 @@ export function BookingReviewPanel({
     onConfirm,
 }: BookingReviewPanelProps) {
     const hasSeats = seatLabels.length > 0;
+    const [paymentDetails, setPaymentDetails] =
+        useState<ConfirmablePaymentDetails | null>(null);
 
     return (
         <section className="full-bleed relative -mt-24 min-h-screen overflow-hidden">
@@ -110,11 +117,11 @@ export function BookingReviewPanel({
                             </div>
 
                             <div className="grid gap-4 sm:grid-cols-2">
-                                <CheckoutMetricCard
+                                <CheckoutSummaryMetric
                                     label="Tickets"
                                     value={`${ticketCount} total`}
                                 />
-                                <CheckoutMetricCard
+                                <CheckoutSummaryMetric
                                     label="Price Each"
                                     value={priceEach}
                                 />
@@ -153,15 +160,23 @@ export function BookingReviewPanel({
                             </div>
 
                             <p className="text-muted-foreground text-sm">
-                                No payment details required yet.
+                                Enter payment details to complete your booking.
                             </p>
+                            <PaymentDetailsForm
+                                onValidPaymentChange={setPaymentDetails}
+                            />
 
                             <div className="space-y-3">
                                 <Button
                                     className="relative w-full overflow-hidden rounded-xl border border-[#78dfff]/30 bg-gradient-to-r from-[#54d4ff] via-[#3cb8ff] to-[#66a4ff] text-[#04111f] shadow-[0_0_0_1px_rgba(255,255,255,0.15)_inset,0_12px_24px_rgba(47,157,255,0.25)] before:pointer-events-none before:absolute before:inset-y-0 before:-left-1/2 before:w-1/2 before:skew-x-[-25deg] before:bg-gradient-to-r before:from-transparent before:via-white/45 before:to-transparent hover:shadow-[0_0_0_1px_rgba(255,255,255,0.28)_inset,0_16px_30px_rgba(58,177,255,0.32)]"
-                                    disabled={!hasSeats || isSubmitting}
+                                    disabled={
+                                        !hasSeats ||
+                                        isSubmitting ||
+                                        paymentDetails === null
+                                    }
                                     onClick={() => {
-                                        void onConfirm();
+                                        if (!paymentDetails) return;
+                                        void onConfirm(paymentDetails);
                                     }}
                                 >
                                     {isSubmitting
