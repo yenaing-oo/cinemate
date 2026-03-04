@@ -53,9 +53,6 @@ importers:
       date-fns-tz:
         specifier: ^3.2.0
         version: 3.2.0(date-fns@4.1.0)
-      konva:
-        specifier: ^10.2.0
-        version: 10.2.0
       lucide-react:
         specifier: ^0.563.0
         version: 0.563.0(react@19.2.3)

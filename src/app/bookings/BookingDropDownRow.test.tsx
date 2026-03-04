@@ -9,7 +9,7 @@ vi.mock("~/env.mjs", () => ({
 }));
 
 import { BookingDropDownRow, isBookingCancellable } from "./BookingDropDownRow";
-import type { BookingStatus } from "@prisma/client";
+import { BookingStatus } from "@prisma/client";
 import type { Booking as ComponentBooking } from "./BookingDropDownRow";
 
 (globalThis as any).env = (globalThis as any).env || {};
@@ -61,7 +61,7 @@ describe("BookingDropDownRow render tests", () => {
                 booking={{
                     id: "1",
                     bookingNumber: 12345,
-                    status: "CONFIRMED" as BookingStatus,
+                    status: BookingStatus.CONFIRMED,
                     showtime: {
                         startTime: new Date("2026-03-26T19:30:00"),
                         movie: {
@@ -123,7 +123,7 @@ describe("BookingDropDownRow render tests", () => {
                 booking={{
                     id: "2",
                     bookingNumber: 12346,
-                    status: "COMPLETED" as BookingStatus,
+                    status: BookingStatus.CANCELLED,
                     showtime: {
                         startTime: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours from now
                         movie: {
@@ -162,13 +162,13 @@ describe("isBookingCancellable", () => {
         const booking: ComponentBooking = {
             id: "1",
             bookingNumber: 12345,
-            status: "CONFIRMED",
+            status: BookingStatus.CONFIRMED,
             showtime: {
                 startTime: futureDate,
                 movie: { title: "Test Movie" },
             },
             tickets: [],
-            totalAmount: 0 as any,
+            totalAmount: 0,
         };
         expect(isBookingCancellable(booking)).toBe(true);
     });
@@ -179,13 +179,13 @@ describe("isBookingCancellable", () => {
         const booking: ComponentBooking = {
             id: "2",
             bookingNumber: 12346,
-            status: "CONFIRMED",
+            status: BookingStatus.CONFIRMED,
             showtime: {
                 startTime: futureDate,
                 movie: { title: "Test Movie" },
             },
             tickets: [],
-            totalAmount: 0 as any,
+            totalAmount: 0,
         };
         expect(isBookingCancellable(booking)).toBe(false);
     });
