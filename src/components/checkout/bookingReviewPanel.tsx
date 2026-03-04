@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
-import { CheckoutMetricCard } from "~/components/ui/checkout-metric-card";
+import { CheckoutSummaryMetric } from "~/components/ui/checkoutSummaryCard";
 
 interface BookingReviewPanelProps {
     movieTitle: string;
@@ -71,7 +71,7 @@ export function BookingReviewPanel({
                                         <p className="text-muted-foreground text-xs font-semibold tracking-[0.25em] uppercase">
                                             Movie
                                         </p>
-                                        <p className="mt-2 text-5xl leading-tight font-semibold">
+                                        <p className="mt-2 text-2xl leading-tight font-semibold md:text-3xl">
                                             {movieTitle}
                                         </p>
                                     </div>
@@ -79,7 +79,7 @@ export function BookingReviewPanel({
                                         <p className="text-muted-foreground text-xs font-semibold tracking-[0.25em] uppercase">
                                             Showtime
                                         </p>
-                                        <p className="mt-1 text-4xl font-medium">
+                                        <p className="mt-1 text-xl font-medium md:text-2xl">
                                             {showtimeLabel}
                                         </p>
                                     </div>
@@ -110,11 +110,11 @@ export function BookingReviewPanel({
                             </div>
 
                             <div className="grid gap-4 sm:grid-cols-2">
-                                <CheckoutMetricCard
+                                <CheckoutSummaryMetric
                                     label="Tickets"
                                     value={`${ticketCount} total`}
                                 />
-                                <CheckoutMetricCard
+                                <CheckoutSummaryMetric
                                     label="Price Each"
                                     value={priceEach}
                                 />
@@ -128,7 +128,7 @@ export function BookingReviewPanel({
                                 <p className="text-muted-foreground text-xs font-semibold tracking-[0.25em] uppercase">
                                     Total
                                 </p>
-                                <p className="mt-2 text-[3.2rem] font-bold tracking-tight">
+                                <p className="mt-2 text-[1.85rem] font-bold tracking-tight md:text-[2.05rem]">
                                     {total}
                                 </p>
                             </div>
