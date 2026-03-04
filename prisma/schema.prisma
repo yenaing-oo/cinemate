@@ -24,9 +24,9 @@ model User {
     hasPaymentMethod Boolean @default(false)
 
     // Cinemate relations
-    bookings        Booking[]
-    heldSeats       ShowtimeSeat[]
-    bookingSessions BookingSession[]
+    bookings       Booking[]
+    heldSeats      ShowtimeSeat[]
+    bookingSession BookingSession?
 }
 
 // ==================== MOVIES ====================
@@ -62,7 +62,6 @@ model Seat {
     row    Int // Row number (1=A, 2=B, etc.)
     number Int // Seat number within row
 
-    tickets       Ticket[]
     showtimeSeats ShowtimeSeat[]
 
     @@unique([row, number])
@@ -71,19 +70,17 @@ model Seat {
 // ==================== SHOWTIMES ====================
 
 model Showtime {
-    id             String   @id @default(cuid())
-    movieId        String
-    movie          Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
-    startTime      DateTime
-    endTime        DateTime
-    price          Decimal  @db.Decimal(10, 2)
-    availableSeats Int // Cached count for quick filtering
-    createdAt      DateTime @default(now())
-    updatedAt      DateTime @updatedAt
+    id        String   @id @default(cuid())
+    movieId   String
+    movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+    startTime DateTime
+    endTime   DateTime
+    price     Decimal  @db.Decimal(10, 2)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
-    tickets       Ticket[]
-    showtimeSeats ShowtimeSeat[]
-    bookings      Booking[]
+    showtimeSeats   ShowtimeSeat[]
+    bookings        Booking[]
     bookingSessions BookingSession[]
 
     @@unique([movieId, startTime])
@@ -95,16 +92,16 @@ model Showtime {
 // ==================== BOOKINGS & TICKETS ====================
 
 model Booking {
-    id          String        @id @default(cuid())
-    userId      String        @db.Uuid
-    user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-    showtimeId  String
-    showtime    Showtime      @relation(fields: [showtimeId], references: [id])
-    ticketCount Int
-    totalAmount Decimal       @db.Decimal(10, 2)
-    status      BookingStatus @default(CONFIRMED)
-    createdAt   DateTime      @default(now())
-    updatedAt   DateTime      @updatedAt
+    id            String        @id @default(cuid())
+    bookingNumber Int           @unique @default(autoincrement())
+    userId        String        @db.Uuid
+    user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+    showtimeId    String
+    showtime      Showtime      @relation(fields: [showtimeId], references: [id])
+    totalAmount   Decimal       @db.Decimal(10, 2)
+    status        BookingStatus @default(CONFIRMED)
+    createdAt     DateTime      @default(now())
+    updatedAt     DateTime      @updatedAt
 
     tickets Ticket[]
 
@@ -119,20 +116,18 @@ enum BookingStatus {
 }
 
 model Ticket {
-    id         String       @id @default(cuid())
-    bookingId  String
-    booking    Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-    seatId     String
-    seat       Seat         @relation(fields: [seatId], references: [id])
-    showtimeId String
-    showtime   Showtime     @relation(fields: [showtimeId], references: [id])
-    price      Decimal      @db.Decimal(10, 2)
-    status     TicketStatus @default(VALID)
-    createdAt  DateTime     @default(now())
-    updatedAt  DateTime     @updatedAt
+    id             String       @id @default(cuid())
+    bookingId      String
+    booking        Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+    showtimeSeatId String
+    showtimeSeat   ShowtimeSeat @relation(fields: [showtimeSeatId], references: [id], onDelete: Cascade)
+    price          Decimal      @db.Decimal(10, 2)
+    status         TicketStatus @default(VALID)
+    createdAt      DateTime     @default(now())
+    updatedAt      DateTime     @updatedAt
 
     @@index([bookingId])
-    @@index([seatId, showtimeId])
+    @@index([showtimeSeatId])
 }
 
 enum TicketStatus {
@@ -145,31 +140,52 @@ enum TicketStatus {
 // Denormalized table for efficient seat availability queries
 // One row entry per seat per showtime - created when showtime is created
 model ShowtimeSeat {
-    id           String     @id @default(cuid())
-    showtimeId   String
-    showtime     Showtime   @relation(fields: [showtimeId], references: [id], onDelete: Cascade)
-    seatId       String
-    seat         Seat       @relation(fields: [seatId], references: [id], onDelete: Cascade)
-    status       SeatStatus @default(AVAILABLE)
-    // Reservation info (when status = RESERVED)
-    heldByUserId String?    @db.Uuid
-    heldBy       User?      @relation(fields: [heldByUserId], references: [id], onDelete: SetNull)
-    heldBySessionToken String?
-    heldAt       DateTime?
-    expiresAt    DateTime? // Auto-release after 10 minutes
-    updatedAt    DateTime   @updatedAt
+    id               String          @id @default(cuid())
+    showtimeId       String
+    showtime         Showtime        @relation(fields: [showtimeId], references: [id], onDelete: Cascade)
+    seatId           String
+    seat             Seat            @relation(fields: [seatId], references: [id], onDelete: Cascade)
+    isBooked         Boolean         @default(false)
+    // Temporary hold fields for seat selection process
+    heldByUserId     String?         @db.Uuid
+    heldBy           User?           @relation(fields: [heldByUserId], references: [id], onDelete: SetNull)
+    heldTill         DateTime?
+    updatedAt        DateTime        @updatedAt
+    bookingSession   BookingSession? @relation(fields: [bookingSessionId], references: [id])
+    bookingSessionId String?
+
+    tickets Ticket[]
 
     @@unique([showtimeId, seatId])
-    @@index([showtimeId, status])
-    @@index([expiresAt])
-    @@index([heldByUserId])
-    @@index([heldBySessionToken])
+    @@index([heldByUserId, heldTill])
+    @@index([heldTill])
 }
 
-enum SeatStatus {
-    AVAILABLE
-    RESERVED // Temporarily held during checkout
-    BOOKED // Ticket purchased
+// ==================== BOOKING SESSION ====================
+
+model BookingSession {
+    id            String         @id @default(cuid())
+    userId        String?        @unique @db.Uuid
+    user          User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+    showtimeId    String
+    showtime      Showtime       @relation(fields: [showtimeId], references: [id], onDelete: Cascade)
+    step          BookingStep
+    ticketCount   Int?
+    selectedSeats ShowtimeSeat[]
+    startedAt     DateTime       @default(now())
+    expiresAt     DateTime
+    lastUpdatedAt DateTime       @updatedAt
+
+    @@index([userId])
+    @@index([showtimeId])
+    @@index([expiresAt])
+}
+
+enum BookingStep {
+    TICKET_QUANTITY
+    SEAT_SELECTION
+    CHECKOUT
+    COMPLETED
 }
 
 // ==================== BOOKING SESSIONS ====================

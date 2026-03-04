@@ -1,178 +1,335 @@
-import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-
-const SESSION_TTL_MS = 5 * 60 * 1000;
-
-const stepSchema = z.enum(["QUANTITY", "SEATS", "CHECKOUT"]);
-
-const sessionIdentitySchema = z.object({
-    sessionToken: z.string().min(1).optional(),
-});
-
-const upsertSchema = sessionIdentitySchema.extend({
-    showtimeId: z.string().min(1).optional(),
-    ticketQuantity: z.number().int().positive().optional(),
-    selectedSeatIds: z.array(z.string().min(1)).optional(),
-    currentStep: stepSchema.optional(),
-});
-
-const buildIdentity = (userId?: string | null, sessionToken?: string) => {
-    if (!userId && !sessionToken) {
-        throw new TRPCError({
-            code: "UNAUTHORIZED",
-            message: "Missing booking session token.",
-        });
-    }
-    return {
-        userId: userId ?? null,
-        sessionToken: sessionToken ?? null,
-    };
-};
-
-const sessionWhere = (identity: {
-    userId: string | null;
-    sessionToken: string | null;
-}) => {
-    const clauses = [];
-    if (identity.userId) {
-        clauses.push({ userId: identity.userId });
-    }
-    if (identity.sessionToken) {
-        clauses.push({ sessionToken: identity.sessionToken });
-    }
-    if (clauses.length === 0) {
-        return { id: "__never__" };
-    }
-    return { OR: clauses };
-};
+import { createTRPCRouter, protectedProcedure } from "../trpc";
+import {
+    BOOKING_SESSION_DURATION_MS,
+    SEAT_HOLD_DURATION_MS,
+} from "../../config";
+import {
+    BookingStatus,
+    BookingStep,
+    TicketStatus,
+    type PrismaClient,
+} from "@prisma/client";
 
 export const bookingSessionRouter = createTRPCRouter({
-    upsert: publicProcedure
-        .input(upsertSchema)
+    create: protectedProcedure
+        .input(
+            z.object({
+                showtimeId: z.string(),
+            })
+        )
         .mutation(async ({ ctx, input }) => {
-            const identity = buildIdentity(
-                ctx.user?.id ?? null,
-                input.sessionToken
-            );
             const now = new Date();
-
-            let session = await ctx.db.bookingSession.findFirst({
+            const expiresAt = new Date(
+                now.getTime() + BOOKING_SESSION_DURATION_MS
+            );
+            // Delete any existing sessions for this user
+            await ctx.db.bookingSession.deleteMany({
                 where: {
-                    status: "ACTIVE",
-                    ...sessionWhere(identity),
+                    userId: ctx.user.id,
                 },
-                orderBy: { updatedAt: "desc" },
             });
-
-            if (session && session.expiresAt <= now) {
-                await ctx.db.bookingSession.update({
-                    where: { id: session.id },
-                    data: { status: "EXPIRED" },
-                });
-                session = null;
-            }
-
-            const selectedSeatIds = input.selectedSeatIds
-                ? Array.from(new Set(input.selectedSeatIds))
-                : undefined;
-
-            if (!session) {
-                const created = await ctx.db.bookingSession.create({
-                    data: {
-                        userId: identity.userId,
-                        sessionToken: identity.sessionToken,
-                        showtimeId: input.showtimeId,
-                        ticketQuantity: input.ticketQuantity,
-                        selectedSeatIds: selectedSeatIds ?? [],
-                        currentStep: input.currentStep ?? "QUANTITY",
-                        status: "ACTIVE",
-                        startedAt: now,
-                        expiresAt: new Date(now.getTime() + SESSION_TTL_MS),
-                    },
-                });
-                return created;
-            }
-
-            const updated = await ctx.db.bookingSession.update({
-                where: { id: session.id },
+            return ctx.db.bookingSession.create({
                 data: {
-                    showtimeId: input.showtimeId ?? session.showtimeId,
-                    ticketQuantity:
-                        input.ticketQuantity ?? session.ticketQuantity,
-                    selectedSeatIds: selectedSeatIds ?? session.selectedSeatIds,
-                    currentStep: input.currentStep ?? session.currentStep,
+                    userId: ctx.user.id,
+                    showtimeId: input.showtimeId,
+                    step: BookingStep.TICKET_QUANTITY,
+                    startedAt: now,
+                    expiresAt,
+                },
+                include: {
+                    showtime: {
+                        include: {
+                            movie: {
+                                select: {
+                                    id: true,
+                                    title: true,
+                                    posterUrl: true,
+                                    backdropUrl: true,
+                                    languages: true,
+                                },
+                            },
+                        },
+                    },
                 },
             });
-
-            return updated;
         }),
-    getActive: publicProcedure
-        .input(sessionIdentitySchema)
-        .query(async ({ ctx, input }) => {
-            if (!ctx.user && !input.sessionToken) {
-                return { state: "none" as const };
-            }
 
-            const identity = buildIdentity(
-                ctx.user?.id ?? null,
-                input.sessionToken
-            );
-            const now = new Date();
-
-            const session = await ctx.db.bookingSession.findFirst({
-                where: {
-                    status: "ACTIVE",
-                    ...sessionWhere(identity),
+    get: protectedProcedure.query(async ({ ctx }) => {
+        const now = new Date();
+        const session = await ctx.db.bookingSession.findFirst({
+            where: {
+                userId: ctx.user.id,
+                expiresAt: { gt: now },
+                step: { not: BookingStep.COMPLETED },
+            },
+            orderBy: { startedAt: "desc" },
+            include: {
+                showtime: {
+                    include: {
+                        movie: {
+                            select: {
+                                id: true,
+                                title: true,
+                                posterUrl: true,
+                                backdropUrl: true,
+                                languages: true,
+                            },
+                        },
+                    },
                 },
-                orderBy: { updatedAt: "desc" },
-            });
+                selectedSeats: {
+                    include: {
+                        seat: {
+                            select: {
+                                id: true,
+                                row: true,
+                                number: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
 
-            if (!session) {
-                return { state: "none" as const };
-            }
+        return session;
+    }),
 
-            if (session.expiresAt <= now) {
-                await ctx.db.bookingSession.update({
-                    where: { id: session.id },
-                    data: { status: "EXPIRED" },
-                });
-                return { state: "expired" as const };
-            }
-
-            return { state: "active" as const, session };
-        }),
-    expire: publicProcedure
-        .input(sessionIdentitySchema)
+    update: protectedProcedure
+        .input(
+            z.object({
+                sessionId: z.string(),
+                goToStep: z
+                    .enum(
+                        Object.values(BookingStep) as [
+                            BookingStep,
+                            ...BookingStep[],
+                        ]
+                    )
+                    .optional(),
+                ticketCount: z.number().int().positive().optional(),
+                selectedSeatIds: z.array(z.string()).optional(),
+            })
+        )
         .mutation(async ({ ctx, input }) => {
-            if (!ctx.user && !input.sessionToken) {
-                return { state: "none" as const };
-            }
-
-            const identity = buildIdentity(
-                ctx.user?.id ?? null,
-                input.sessionToken
-            );
-            const session = await ctx.db.bookingSession.findFirst({
-                where: {
-                    status: "ACTIVE",
-                    ...sessionWhere(identity),
-                },
-                orderBy: { updatedAt: "desc" },
+            const now = new Date();
+            const session = await ctx.db.bookingSession.findUniqueOrThrow({
+                where: { id: input.sessionId },
+                include: { selectedSeats: true },
             });
 
-            if (!session) {
-                return { state: "none" as const };
+            validateSession(session, ctx.user.id, now);
+
+            if (
+                session.step === BookingStep.TICKET_QUANTITY &&
+                input.goToStep === BookingStep.SEAT_SELECTION
+            ) {
+                if (!input.ticketCount) {
+                    throw new Error(
+                        "Ticket count is required for seat selection"
+                    );
+                }
+                await setTicketCount(
+                    ctx.db,
+                    input.ticketCount,
+                    session.showtimeId,
+                    ctx.user.id,
+                    session.id,
+                    now
+                );
+                return;
+            } else if (
+                session.step === BookingStep.SEAT_SELECTION &&
+                input.goToStep === BookingStep.CHECKOUT
+            ) {
+                if (!input.selectedSeatIds) {
+                    throw new Error(
+                        "Selected seat IDs are required for checkout"
+                    );
+                }
+                if (input.selectedSeatIds.length !== session.ticketCount) {
+                    throw new Error(
+                        "Selected seat count does not match ticket count"
+                    );
+                }
+                await reserveSeats(
+                    ctx.db,
+                    session.showtimeId,
+                    input.selectedSeatIds,
+                    ctx.user.id,
+                    session.id,
+                    now
+                );
+                return;
+            } else if (
+                session.step === BookingStep.CHECKOUT &&
+                input.goToStep === BookingStep.COMPLETED
+            ) {
+                await completeBooking(ctx.db, session);
+                return;
+            } else {
+                throw new Error(
+                    "Invalid step transition. Cannot go from " +
+                        session.step +
+                        " to " +
+                        input.goToStep
+                );
             }
-
-            await ctx.db.$transaction(async (tx) => {
-                await tx.bookingSession.update({
-                    where: { id: session.id },
-                    data: { status: "EXPIRED" },
-                });
-            });
-
-            return { state: "expired" as const };
         }),
 });
+
+function validateSession(session: any, userId: string, now: Date) {
+    if (!session) {
+        throw new Error("Session not found");
+    }
+    if (session.userId !== userId) {
+        throw new Error("Unauthorized");
+    }
+    if (session.expiresAt < now || session.step === BookingStep.COMPLETED) {
+        throw new Error("Session has expired");
+    }
+}
+
+async function setTicketCount(
+    db: PrismaClient,
+    ticketCount: number,
+    showtimeId: string,
+    userId: string,
+    bookingSessionId: string,
+    now: Date
+) {
+    const availableSeatsCount = await db.showtimeSeat.count({
+        where: {
+            showtimeId,
+            isBooked: false,
+            OR: [
+                { heldTill: null },
+                { heldTill: { lt: now } },
+                { heldByUserId: userId },
+            ],
+        },
+    });
+    if (availableSeatsCount < ticketCount) {
+        throw new Error(
+            "Not enough seats available for the requested ticket count"
+        );
+    }
+    await db.bookingSession.update({
+        where: { id: bookingSessionId },
+        data: {
+            step: BookingStep.SEAT_SELECTION,
+            ticketCount,
+        },
+    });
+}
+
+async function reserveSeats(
+    db: PrismaClient,
+    showtimeId: string,
+    seatIds: string[],
+    userId: string,
+    bookingSessionId: string,
+    now: Date
+) {
+    await db.$transaction(async (tx) => {
+        const count = await tx.showtimeSeat.updateMany({
+            where: {
+                showtimeId: showtimeId,
+                seatId: { in: seatIds },
+                isBooked: false,
+                OR: [
+                    { heldTill: null },
+                    { heldTill: { lt: now } },
+                    { heldByUserId: userId },
+                ],
+            },
+            data: {
+                heldByUserId: userId,
+                heldTill: new Date(now.getTime() + SEAT_HOLD_DURATION_MS),
+            },
+        });
+
+        if (count.count !== seatIds.length) {
+            throw new Error(
+                "Some selected seats are no longer available. Please choose different seats."
+            );
+        }
+        const showtimeSeatIds = await tx.showtimeSeat.findMany({
+            where: {
+                showtimeId,
+                seatId: { in: seatIds },
+            },
+            select: { id: true },
+        });
+
+        await tx.bookingSession.update({
+            where: { id: bookingSessionId },
+            data: {
+                step: BookingStep.CHECKOUT,
+                selectedSeats: {
+                    connect: showtimeSeatIds.map((s) => ({ id: s.id })),
+                },
+            },
+        });
+    });
+}
+
+async function completeBooking(db: PrismaClient, session: any) {
+    await db.$transaction(async (tx) => {
+        // 1. Mark seats as booked
+        const count = await tx.showtimeSeat.updateMany({
+            where: {
+                id: { in: session.selectedSeats.map((s: any) => s.id) },
+                isBooked: false,
+                heldByUserId: session.userId,
+            },
+            data: {
+                isBooked: true,
+                heldByUserId: null,
+                heldTill: null,
+            },
+        });
+        if (count.count !== session.selectedSeats.length) {
+            throw new Error(
+                "Some selected seats could not be booked. Please try again."
+            );
+        }
+
+        // 2. Calculate total amount (fetch price from showtime)
+        const showtime = await tx.showtime.findUniqueOrThrow({
+            where: { id: session.showtimeId },
+            select: { price: true },
+        });
+        const totalAmount = showtime.price.mul(session.selectedSeats.length);
+
+        // 3. Create booking
+        const booking = await tx.booking.create({
+            data: {
+                totalAmount,
+                status: BookingStatus.CONFIRMED,
+                userId: session.userId,
+                showtimeId: session.showtimeId,
+            },
+        });
+
+        // 4. Create tickets
+        await Promise.all(
+            session.selectedSeats.map((showtimeSeat: any) =>
+                tx.ticket.create({
+                    data: {
+                        bookingId: booking.id,
+                        showtimeSeatId: showtimeSeat.id,
+                        price: showtime.price,
+                        status: TicketStatus.VALID,
+                    },
+                })
+            )
+        );
+
+        // 5. Update booking session step
+        await tx.bookingSession.update({
+            where: { id: session.id },
+            data: { step: BookingStep.COMPLETED },
+        });
+    });
+}

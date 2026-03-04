@@ -1,123 +1,232 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import type {
-    JSXElementConstructor,
-    Key,
-    ReactElement,
-    ReactNode,
-    ReactPortal,
-} from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { use, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "~/components/ui/button";
+import { Card, CardContent } from "~/components/ui/card";
+import { formatShowtimeDate, formatShowtimeTime } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
-export default function ShowtimesPage() {
-    const searchParams = useSearchParams();
+interface ShowtimesPageProps {
+    params: Promise<{ movieId: string }>;
+}
 
-    const movieId = searchParams.get("movieId");
-    const date = searchParams.get("date");
+interface Showtime {
+    id: string;
+    startTime: Date;
+    price?: number;
+}
 
-    const { data: showtimes, isLoading } =
-        api.showtime.getShowtimesByMovieAndDate.useQuery(
-            {
-                movieId: movieId ?? "",
-                date: date ?? "",
-            },
-            {
-                enabled: !!movieId && !!date,
-            }
-        );
+function groupShowtimesByDate(showtimes: Showtime[]): Map<string, Showtime[]> {
+    return showtimes.reduce((map, showtime) => {
+        const key = formatShowtimeDate(showtime.startTime);
+        map.set(key, [...(map.get(key) ?? []), showtime]);
+        return map;
+    }, new Map<string, Showtime[]>());
+}
 
-    if (!movieId || !date) {
-        return (
-            <div className="mx-auto max-w-5xl px-6 py-12">
-                Please select a movie and date first.
+function MoviePoster({
+    title,
+    posterUrl,
+}: {
+    title: string;
+    posterUrl?: string | null;
+}) {
+    return (
+        <div className="space-y-4 lg:pt-10">
+            <div className="relative aspect-2/3 overflow-hidden rounded-2xl border border-white/10">
+                <Image
+                    src={posterUrl ?? "/posters/placeholder.png"}
+                    alt={`${title} poster`}
+                    fill
+                    className="object-cover"
+                    sizes="320px"
+                />
             </div>
-        );
+            <h1 className="ml-1 text-xl font-bold">{title}</h1>
+        </div>
+    );
+}
+
+function DateList({
+    availableDates,
+    showtimesByDate,
+    effectiveDate,
+    onSelectDate,
+}: {
+    availableDates: string[];
+    showtimesByDate: Map<string, Showtime[]>;
+    effectiveDate: string | null;
+    onSelectDate: (date: string) => void;
+}) {
+    return (
+        <div className="min-w-0 space-y-3 lg:pt-3">
+            <p className="text-foreground text-sm font-bold tracking-[0.2em] uppercase">
+                Dates
+            </p>
+            <div className="grid gap-3">
+                {availableDates.map((dateKey) => {
+                    const dayShowtimes = showtimesByDate.get(dateKey) ?? [];
+
+                    return (
+                        <Button
+                            key={dateKey}
+                            variant={
+                                dateKey === effectiveDate
+                                    ? "default"
+                                    : "outline"
+                            }
+                            className="h-auto w-full justify-start py-4 whitespace-normal"
+                            onClick={() => onSelectDate(dateKey)}
+                        >
+                            <span className="block w-full min-w-0">
+                                <span className="block text-left text-base font-semibold">
+                                    {formatShowtimeDate(dateKey)}
+                                </span>
+                                <span className="text-muted-foreground mt-1 block text-left text-sm">
+                                    {dayShowtimes.length} showings
+                                </span>
+                            </span>
+                        </Button>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+function ShowtimePicker({
+    showtimes,
+    selectedShowtimeId,
+    onSelect,
+}: {
+    showtimes: Showtime[];
+    selectedShowtimeId: string | null;
+    onSelect: (id: string) => void;
+}) {
+    return (
+        <div className="min-w-0 space-y-5 lg:pt-10">
+            <h2 className="text-2xl font-semibold md:text-3xl">
+                Choose a showtime
+            </h2>
+
+            {showtimes.length > 0 ? (
+                <>
+                    <div className="flex flex-wrap gap-3">
+                        {showtimes.map((showtime) => (
+                            <Button
+                                key={showtime.id}
+                                variant={
+                                    showtime.id === selectedShowtimeId
+                                        ? "default"
+                                        : "outline"
+                                }
+                                size="lg"
+                                className="min-w-28"
+                                onClick={() => onSelect(showtime.id)}
+                            >
+                                {formatShowtimeTime(showtime.startTime)}
+                            </Button>
+                        ))}
+                    </div>
+                </>
+            ) : (
+                <p className="text-muted-foreground text-sm">
+                    No upcoming showtimes are available yet.
+                </p>
+            )}
+        </div>
+    );
+}
+
+export default function MovieShowtimesPage({ params }: ShowtimesPageProps) {
+    const { movieId } = use(params);
+
+    const { data: payload, isLoading } = api.showtimes.getByMovie.useQuery({
+        movieId,
+    });
+
+    const [selectedDate, setSelectedDate] = useState<string | null>(null);
+    const [selectedShowtimeId, setSelectedShowtimeId] = useState<string | null>(
+        null
+    );
+    const router = useRouter();
+
+    const createBookingSession = api.bookingSession.create.useMutation({
+        onSuccess: () => {
+            router.push("/ticketing");
+        },
+    });
+
+    const showtimesByDate = useMemo(() => {
+        const showtimes = payload?.showtimes ?? [];
+        return groupShowtimesByDate(showtimes);
+    }, [payload?.showtimes]);
+    const availableDates = Array.from(showtimesByDate.keys());
+    const effectiveDate = selectedDate ?? availableDates[0] ?? null;
+    const selectedDayShowtimes = effectiveDate
+        ? (showtimesByDate.get(effectiveDate) ?? [])
+        : [];
+
+    if (!isLoading && !payload) notFound();
+
+    function handleSelectDate(date: string) {
+        setSelectedDate(date);
+        setSelectedShowtimeId(null);
     }
 
-    if (isLoading) {
-        return (
-            <div className="mx-auto max-w-5xl px-6 py-12">
-                Loading showtimes...
-            </div>
-        );
-    }
-
-    if (!showtimes || showtimes.length === 0) {
-        return (
-            <div className="mx-auto max-w-5xl px-6 py-12">
-                No showtimes found.
-            </div>
-        );
+    function handleSelectShowtime(showtimeId: string) {
+        setSelectedShowtimeId(showtimeId);
+        createBookingSession.mutate({ showtimeId });
     }
 
     return (
-        <div className="mx-auto max-w-5xl px-6 py-12">
-            <h2 className="mb-6 text-3xl font-bold">Showtimes</h2>
-
-            <p className="text-muted-foreground mb-8">
-                {new Date(date).toDateString()}
-            </p>
-
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-                {showtimes.map(
-                    (showtime: {
-                        startTime: string | number | Date;
-                        id: Key | null | undefined;
-                        movie: {
-                            title:
-                                | string
-                                | number
-                                | bigint
-                                | boolean
-                                | ReactElement<
-                                      unknown,
-                                      string | JSXElementConstructor<any>
-                                  >
-                                | Iterable<ReactNode>
-                                | ReactPortal
-                                | Promise<
-                                      | string
-                                      | number
-                                      | bigint
-                                      | boolean
-                                      | ReactPortal
-                                      | ReactElement<
-                                            unknown,
-                                            string | JSXElementConstructor<any>
-                                        >
-                                      | Iterable<ReactNode>
-                                      | null
-                                      | undefined
-                                  >
-                                | null
-                                | undefined;
-                        };
-                    }) => {
-                        const time = new Date(
-                            showtime.startTime
-                        ).toLocaleTimeString("en-US", {
-                            hour: "numeric",
-                            minute: "2-digit",
-                        });
-
-                        return (
-                            <div
-                                key={showtime.id}
-                                className="border-border/60 bg-card/60 hover:bg-card/80 cursor-pointer rounded-xl border p-4 transition"
-                            >
-                                <div className="font-semibold">
-                                    {showtime.movie.title}
-                                </div>
-
-                                <div className="text-muted-foreground mt-1 text-sm">
-                                    {time}
-                                </div>
-                            </div>
-                        );
-                    }
-                )}
+        <section className="mx-auto w-full max-w-7xl px-6">
+            <div className="mb-8">
+                <Link
+                    href={`/movies/${movieId}`}
+                    className="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 text-sm transition"
+                >
+                    <span aria-hidden="true">←</span>
+                    Back to details
+                </Link>
             </div>
-        </div>
+
+            <Card className="glass-panel overflow-hidden rounded-3xl border">
+                <CardContent className="grid gap-8 p-6 lg:grid-cols-[320px_1fr_300px] lg:p-8">
+                    {payload?.movie && <MoviePoster {...payload.movie} />}
+
+                    {isLoading ? (
+                        <p className="text-muted-foreground text-sm">
+                            Loading showtimes…
+                        </p>
+                    ) : (
+                        <ShowtimePicker
+                            showtimes={selectedDayShowtimes}
+                            selectedShowtimeId={selectedShowtimeId}
+                            onSelect={handleSelectShowtime}
+                        />
+                    )}
+
+                    {isLoading ? (
+                        <></>
+                    ) : availableDates.length > 0 ? (
+                        <DateList
+                            availableDates={availableDates}
+                            showtimesByDate={showtimesByDate}
+                            effectiveDate={effectiveDate}
+                            onSelectDate={handleSelectDate}
+                        />
+                    ) : (
+                        <p className="text-muted-foreground text-sm">
+                            No upcoming showtimes available yet.
+                        </p>
+                    )}
+                </CardContent>
+            </Card>
+        </section>
     );
 }

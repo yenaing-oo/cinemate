@@ -1,5 +1,31 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { env } from "~/env.mjs";
+
+const dateFormatter = new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: env.NEXT_PUBLIC_CINEMA_TIMEZONE,
+});
+
+const showtimeDateLabelFormatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: env.NEXT_PUBLIC_CINEMA_TIMEZONE,
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+});
+
+const showtimeTimeLabelFormatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: env.NEXT_PUBLIC_CINEMA_TIMEZONE,
+    hour: "numeric",
+    minute: "2-digit",
+});
+
+const cadFormatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "CAD",
+});
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -19,20 +45,50 @@ export const formatRating = (rating: number | null) => {
     return `${rating.toFixed(1)} / 10`;
 };
 
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    timeZone: "America/Chicago",
-});
-
 export const formatDate = (date: string | Date) =>
     dateFormatter.format(new Date(date));
 
-export const splitList = (value: string | null) =>
+export const formatShowtimeDate = (date: string | Date) =>
+    showtimeDateLabelFormatter.format(new Date(date));
+
+export const formatShowtimeTime = (date: string | Date) =>
+    showtimeTimeLabelFormatter.format(new Date(date));
+
+export const formatCad = (amount: number) => cadFormatter.format(amount);
+
+export const formatList = (value: string | null) =>
     value
         ? value
               .split(",")
               .map((item) => item.trim())
               .filter(Boolean)
         : [];
+
+export function formatSeatFromCode(row: number, seat: number): string {
+    if (
+        !Number.isInteger(row) ||
+        row <= 0 ||
+        !Number.isInteger(seat) ||
+        seat <= 0
+    ) {
+        throw new Error("Invalid seat: row and seat must be positive integers");
+    }
+    const rowLetter = String.fromCharCode(64 + row);
+    return `${rowLetter}${seat}`;
+}
+
+/**
+ * Formats a duration in milliseconds as M:SS.
+ * @param ms Duration in milliseconds
+ * @returns Formatted time string
+ */
+export function formatTime(ms: number) {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
+export function formatBookingNumber(bookingNumber: number) {
+    return `#${bookingNumber.toString().padStart(6, "0")}`;
+}
