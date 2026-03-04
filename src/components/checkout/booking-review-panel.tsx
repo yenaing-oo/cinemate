@@ -56,7 +56,10 @@ export function BookingReviewPanel({
                             <div className="grid gap-5 sm:grid-cols-[120px_1fr]">
                                 <div className="relative h-44 w-30 overflow-hidden rounded-xl border border-white/12 bg-[#0b233f]">
                                     <Image
-                                        src={posterUrl ?? "/posters/placeholder.png"}
+                                        src={
+                                            posterUrl ??
+                                            "/posters/placeholder.png"
+                                        }
                                         alt={`${movieTitle} poster`}
                                         fill
                                         sizes="120px"
@@ -168,9 +171,11 @@ export function BookingReviewPanel({
                                 <Button
                                     asChild
                                     variant="outline"
-                                    className="text-foreground relative w-full overflow-hidden rounded-xl border-white/18 bg-white/0 shadow-[0_0_0_1px_rgba(255,255,255,0.05)_inset] before:pointer-events-none before:absolute before:top-0 before:right-4 before:left-4 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/55 before:to-transparent hover:text-foreground hover:border-white/30 hover:bg-black hover:shadow-[0_0_0_1px_rgba(255,255,255,0.16)_inset,0_8px_22px_rgba(20,63,110,0.3)]"
+                                    className="text-foreground hover:text-foreground relative w-full overflow-hidden rounded-xl border-white/18 bg-white/0 shadow-[0_0_0_1px_rgba(255,255,255,0.05)_inset] before:pointer-events-none before:absolute before:top-0 before:right-4 before:left-4 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/55 before:to-transparent hover:border-white/30 hover:bg-black hover:shadow-[0_0_0_1px_rgba(255,255,255,0.16)_inset,0_8px_22px_rgba(20,63,110,0.3)]"
                                 >
-                                    <Link href="/movies">Continue browsing</Link>
+                                    <Link href="/movies">
+                                        Continue browsing
+                                    </Link>
                                 </Button>
                             </div>
                         </CardContent>
