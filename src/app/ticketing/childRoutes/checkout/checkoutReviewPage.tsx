@@ -1,0 +1,118 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { $Enums } from "@prisma/client";
+import type { Decimal } from "@prisma/client/runtime/library";
+import {
+    formatCad,
+    formatSeatFromCode,
+    formatShowtimeDate,
+    formatShowtimeTime,
+} from "~/lib/utils";
+import { BookingReviewPanel } from "~/components/checkout/booking-review-panel";
+
+interface CheckoutReviewPageProps {
+    bookingSession: {
+        showtime: {
+            movie: {
+                title: string;
+                id: string;
+                posterUrl: string | null;
+                backdropUrl: string | null;
+                languages: string | null;
+            };
+        } & {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            movieId: string;
+            startTime: Date;
+            endTime: Date;
+            price: Decimal;
+        };
+        selectedSeats: ({
+            seat: {
+                number: number;
+                id: string;
+                row: number;
+            };
+        } & {
+            id: string;
+            showtimeId: string;
+            updatedAt: Date;
+            seatId: string;
+            isBooked: boolean;
+            heldByUserId: string | null;
+            heldTill: Date | null;
+            bookingSessionId: string | null;
+        })[];
+    } & {
+        id: string;
+        userId: string | null;
+        showtimeId: string;
+        ticketCount: number | null;
+        step: $Enums.BookingStep;
+        startedAt: Date;
+        expiresAt: Date;
+        lastUpdatedAt: Date;
+    };
+    handleUpdateSession: (
+        sessionId: string,
+        goToStep: $Enums.BookingStep,
+        ticketCount?: number,
+        selectedShowtimeSeatIds?: string[]
+    ) => Promise<void>;
+    isSubmitting: boolean;
+}
+
+export default function CheckoutReviewPage({
+    bookingSession,
+    handleUpdateSession,
+    isSubmitting,
+}: CheckoutReviewPageProps) {
+    const router = useRouter();
+
+    const movieTitle = bookingSession.showtime.movie.title;
+    const moviePosterUrl = bookingSession.showtime.movie.posterUrl;
+    const showtimeDate = bookingSession.showtime.startTime;
+    const ticketPrice = Number(bookingSession.showtime.price);
+    const seatCount = bookingSession.selectedSeats.length;
+
+    const selectedSeatLabels = bookingSession.selectedSeats
+        .map((selectedSeat) => {
+            return {
+                label: formatSeatFromCode(
+                    selectedSeat.seat.row,
+                    selectedSeat.seat.number
+                ),
+                row: selectedSeat.seat.row,
+                number: selectedSeat.seat.number,
+            };
+        })
+        .sort((a, b) => a.row - b.row || a.number - b.number)
+        .map((seat) => seat.label);
+
+    const priceEach = formatCad(ticketPrice);
+    const total = formatCad(ticketPrice * seatCount);
+    const showtimeLabel = `${formatShowtimeDate(showtimeDate)} | ${formatShowtimeTime(showtimeDate)}`;
+
+    return (
+        <BookingReviewPanel
+            movieTitle={movieTitle}
+            showtimeLabel={showtimeLabel}
+            posterUrl={moviePosterUrl}
+            seatLabels={selectedSeatLabels}
+            ticketCount={seatCount}
+            priceEach={priceEach}
+            total={total}
+            isSubmitting={isSubmitting}
+            onConfirm={async () => {
+                await handleUpdateSession(
+                    bookingSession.id,
+                    $Enums.BookingStep.COMPLETED
+                );
+                router.push("/bookings");
+            }}
+        />
+    );
+}

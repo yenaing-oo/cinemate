@@ -66,7 +66,7 @@ interface SeatSelectionPageProps {
         goToStep: $Enums.BookingStep,
         ticketCount: number | undefined,
         selectedShowtimeSeatIds: string[] | undefined
-    ) => void;
+    ) => Promise<void>;
 }
 
 export default function SeatSelectionPage({
