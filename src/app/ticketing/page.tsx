@@ -8,6 +8,7 @@ import { $Enums } from "@prisma/client";
 
 import TicketSelectionPage from "./childRoutes/ticketSelection/ticketSelectionpage";
 import SeatSelectionPage from "./childRoutes/seatSelection/seatSelectionpage";
+import CheckoutReviewPage from "./childRoutes/checkout/checkoutReviewPage";
 
 export default function TicketingPage() {
     const router = useRouter();
@@ -83,7 +84,11 @@ export default function TicketingPage() {
                         />
                     )}
                     {session.step === $Enums.BookingStep.CHECKOUT && (
-                        <p>Payment Page</p>
+                        <CheckoutReviewPage
+                            bookingSession={session}
+                            handleUpdateSession={handleUpdateSession}
+                            isSubmitting={updateBookingSession.isPending}
+                        />
                     )}
                 </>
             ) : (
