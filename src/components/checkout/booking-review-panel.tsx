@@ -1,16 +1,9 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { useState } from "react";
-import { Badge } from "~/components/ui/badge";
-import { Button } from "~/components/ui/button";
-import { Card, CardContent } from "~/components/ui/card";
-import { CheckoutSummaryMetric } from "~/components/ui/checkout-summary-metric";
-import {
-    PaymentDetailsForm,
-    type ConfirmablePaymentDetails,
-} from "~/components/checkout/payment-details-form";
+import { CheckoutBookingSummary } from "~/components/checkout/checkout-booking-summary";
+import { CheckoutPaymentSection } from "~/components/checkout/checkout-payment-section";
+import type { ConfirmablePaymentDetails } from "~/components/checkout/payment-details";
 
 interface BookingReviewPanelProps {
     movieTitle: string;
@@ -57,144 +50,25 @@ export function BookingReviewPanel({
                     </p>
                 </div>
 
-                <div className="relative z-10 grid gap-6 lg:grid-cols-[1.9fr_1fr]">
-                    <Card className="glass-panel relative overflow-hidden rounded-3xl border border-[#2b74c6]/45 bg-[#07192f]/58 py-0 shadow-xl shadow-slate-950/20">
-                        <CardContent className="relative z-10 space-y-7 p-6 md:p-8">
-                            <div className="grid gap-5 sm:grid-cols-[120px_1fr]">
-                                <div className="relative h-44 w-30 overflow-hidden rounded-xl border border-white/12 bg-[#0b233f]">
-                                    <Image
-                                        src={
-                                            posterUrl ??
-                                            "/posters/placeholder.png"
-                                        }
-                                        alt={`${movieTitle} poster`}
-                                        fill
-                                        sizes="120px"
-                                        className="object-cover"
-                                    />
-                                </div>
-                                <div className="space-y-3">
-                                    <div>
-                                        <p className="text-muted-foreground text-xs font-semibold tracking-[0.25em] uppercase">
-                                            Movie
-                                        </p>
-                                        <p className="mt-2 text-5xl leading-tight font-semibold">
-                                            {movieTitle}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-muted-foreground text-xs font-semibold tracking-[0.25em] uppercase">
-                                            Showtime
-                                        </p>
-                                        <p className="mt-1 text-4xl font-medium">
-                                            {showtimeLabel}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="border-border/70 border-t pt-6">
-                                <p className="text-muted-foreground mb-3 text-xs font-semibold tracking-[0.25em] uppercase">
-                                    Seats
-                                </p>
-                                {hasSeats ? (
-                                    <div className="flex flex-wrap gap-2">
-                                        {seatLabels.map((seatLabel) => (
-                                            <Badge
-                                                key={seatLabel}
-                                                variant="outline"
-                                                className="rounded-md border-white/12 bg-[#102844] px-3 py-1 text-sm"
-                                            >
-                                                {seatLabel}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="text-muted-foreground text-sm">
-                                        No seats selected.
-                                    </p>
-                                )}
-                            </div>
-
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <CheckoutSummaryMetric
-                                    label="Tickets"
-                                    value={`${ticketCount} total`}
-                                />
-                                <CheckoutSummaryMetric
-                                    label="Price Each"
-                                    value={priceEach}
-                                />
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="glass-panel relative overflow-hidden rounded-3xl border border-[#2b74c6]/52 bg-[#0a1e39]/62 py-0 shadow-xl shadow-slate-950/20 before:pointer-events-none before:absolute before:top-0 before:right-8 before:left-8 before:h-px before:bg-gradient-to-r before:from-transparent before:via-[#ffd58a]/85 before:to-transparent">
-                        <CardContent className="relative z-10 space-y-6 p-6">
-                            <div>
-                                <p className="text-muted-foreground text-xs font-semibold tracking-[0.25em] uppercase">
-                                    Total
-                                </p>
-                                <p className="mt-2 text-[3.2rem] font-bold tracking-tight">
-                                    {total}
-                                </p>
-                            </div>
-
-                            <div className="glass-card space-y-3 rounded-2xl border border-white/10 p-4 text-sm">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-muted-foreground">
-                                        Tickets
-                                    </span>
-                                    <span className="font-semibold">
-                                        {ticketCount}
-                                    </span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-muted-foreground">
-                                        Price each
-                                    </span>
-                                    <span className="font-semibold">
-                                        {priceEach}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <p className="text-muted-foreground text-sm">
-                                Enter payment details to complete your booking.
-                            </p>
-                            <PaymentDetailsForm
-                                onValidPaymentChange={setPaymentDetails}
-                            />
-
-                            <div className="space-y-3">
-                                <Button
-                                    className="relative w-full overflow-hidden rounded-xl border border-[#78dfff]/30 bg-gradient-to-r from-[#54d4ff] via-[#3cb8ff] to-[#66a4ff] text-[#04111f] shadow-[0_0_0_1px_rgba(255,255,255,0.15)_inset,0_12px_24px_rgba(47,157,255,0.25)] before:pointer-events-none before:absolute before:inset-y-0 before:-left-1/2 before:w-1/2 before:skew-x-[-25deg] before:bg-gradient-to-r before:from-transparent before:via-white/45 before:to-transparent hover:shadow-[0_0_0_1px_rgba(255,255,255,0.28)_inset,0_16px_30px_rgba(58,177,255,0.32)]"
-                                    disabled={
-                                        !hasSeats ||
-                                        isSubmitting ||
-                                        paymentDetails === null
-                                    }
-                                    onClick={() => {
-                                        if (!paymentDetails) return;
-                                        void onConfirm(paymentDetails);
-                                    }}
-                                >
-                                    {isSubmitting
-                                        ? "Confirming reservation..."
-                                        : "Confirm reservation"}
-                                </Button>
-                                <Button
-                                    asChild
-                                    variant="outline"
-                                    className="text-foreground hover:text-foreground relative w-full overflow-hidden rounded-xl border-white/18 bg-white/0 shadow-[0_0_0_1px_rgba(255,255,255,0.05)_inset] before:pointer-events-none before:absolute before:top-0 before:right-4 before:left-4 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/55 before:to-transparent hover:border-white/30 hover:bg-black hover:shadow-[0_0_0_1px_rgba(255,255,255,0.16)_inset,0_8px_22px_rgba(20,63,110,0.3)]"
-                                >
-                                    <Link href="/movies">
-                                        Continue browsing
-                                    </Link>
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
+                <div className="relative z-10 grid items-start gap-6 lg:grid-cols-[1.9fr_1fr]">
+                    <CheckoutBookingSummary
+                        movieTitle={movieTitle}
+                        showtimeLabel={showtimeLabel}
+                        posterUrl={posterUrl}
+                        seatLabels={seatLabels}
+                        ticketCount={ticketCount}
+                        priceEach={priceEach}
+                    />
+                    <CheckoutPaymentSection
+                        ticketCount={ticketCount}
+                        priceEach={priceEach}
+                        total={total}
+                        isSubmitting={isSubmitting}
+                        hasSeats={hasSeats}
+                        paymentDetails={paymentDetails}
+                        onPaymentDetailsChange={setPaymentDetails}
+                        onConfirm={onConfirm}
+                    />
                 </div>
             </div>
         </section>
