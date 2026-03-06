@@ -10,7 +10,7 @@ import {
     formatShowtimeDate,
     formatShowtimeTime,
 } from "~/lib/utils";
-import { BookingReviewPanel } from "~/components/checkout/booking-review-panel";
+import { BookingReviewPanel } from "~/components/checkout/bookingReviewPanel";
 
 interface CheckoutReviewPageProps {
     bookingSession: {
