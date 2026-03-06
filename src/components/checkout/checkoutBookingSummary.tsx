@@ -158,7 +158,8 @@ export function CheckoutBookingSummary({
                                         Your night at the movies is nearly set.
                                     </p>
                                     <p className="mt-2 max-w-2xl text-sm leading-6 text-white/75">
-                                        A few quick reminders before you finish payment.
+                                        A few quick reminders before you finish
+                                        payment.
                                     </p>
                                 </div>
                                 <span className="rounded-full border border-white/10 bg-white/8 p-3 shadow-[0_0_24px_rgba(91,214,255,0.12)]">
@@ -167,26 +168,27 @@ export function CheckoutBookingSummary({
                             </div>
 
                             <div className="mt-5 grid gap-3 md:grid-cols-3">
-                                {checkoutPerks.map(({ label, value, icon: Icon }) => (
-                                    <div
-                                        key={label}
-                                        className="rounded-2xl border border-white/8 bg-[#0b2340]/50 px-4 py-4 backdrop-blur-sm"
-                                    >
-                                        <span className="mb-3 inline-flex rounded-full border border-white/10 bg-white/6 p-2">
-                                            <Icon className="size-4 text-sky-200" />
-                                        </span>
-                                        <p className="text-muted-foreground text-[11px] font-semibold tracking-[0.2em] uppercase">
-                                            {label}
-                                        </p>
-                                        <p className="mt-2 text-sm font-semibold leading-6">
-                                            {value}
-                                        </p>
-                                    </div>
-                                ))}
+                                {checkoutPerks.map(
+                                    ({ label, value, icon: Icon }) => (
+                                        <div
+                                            key={label}
+                                            className="rounded-2xl border border-white/8 bg-[#0b2340]/50 px-4 py-4 backdrop-blur-sm"
+                                        >
+                                            <span className="mb-3 inline-flex rounded-full border border-white/10 bg-white/6 p-2">
+                                                <Icon className="size-4 text-sky-200" />
+                                            </span>
+                                            <p className="text-muted-foreground text-[11px] font-semibold tracking-[0.2em] uppercase">
+                                                {label}
+                                            </p>
+                                            <p className="mt-2 text-sm leading-6 font-semibold">
+                                                {value}
+                                            </p>
+                                        </div>
+                                    )
+                                )}
                             </div>
                         </div>
                     </div>
-
                 </div>
             </CardContent>
         </Card>
