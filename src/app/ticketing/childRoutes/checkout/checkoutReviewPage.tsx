@@ -107,7 +107,7 @@ export default function CheckoutReviewPage({
             priceEach={priceEach}
             total={total}
             isSubmitting={isSubmitting}
-            onConfirm={async () => {
+            onConfirm={async (_paymentDetails) => {
                 try {
                     await handleUpdateSession(
                         bookingSession.id,
@@ -119,12 +119,10 @@ export default function CheckoutReviewPage({
                         error instanceof Error
                             ? error.message
                             : "Unable to confirm your reservation.";
-
                     toast.error(message, {
                         description:
-                            "Your session may have expired or seats changed. Returning you to ticketing.",
+                            "Your session may have expired or seats changed. Please select your seats again.",
                     });
-
                     router.replace("/ticketing");
                     router.refresh();
                 }
