@@ -12,9 +12,9 @@ export function PaymentSecurityNote() {
             <div className="flex gap-3 rounded-xl border border-white/8 bg-white/5 p-3 text-sm">
                 <LockKeyhole className="mt-0.5 size-4 shrink-0 text-sky-200" />
                 <p className="text-muted-foreground">
-                    Card details stay in local form state for confirmation
-                    only. The current booking flow does not persist the full
-                    card number or CVV in the booking session.
+                    Card details stay in local form state for confirmation only.
+                    The current booking flow does not persist the full card
+                    number or CVV in the booking session.
                 </p>
             </div>
         </div>

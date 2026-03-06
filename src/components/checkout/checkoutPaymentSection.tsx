@@ -2,8 +2,8 @@
 
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
-import { PaymentDetailsForm } from "~/components/checkout/payment-details-form";
-import type { ConfirmablePaymentDetails } from "~/components/checkout/payment-details";
+import { PaymentDetailsForm } from "~/components/checkout/paymentDetailsForm";
+import type { ConfirmablePaymentDetails } from "~/components/checkout/paymentDetails";
 
 interface CheckoutPaymentSectionProps {
     ticketCount: number;
@@ -12,9 +12,7 @@ interface CheckoutPaymentSectionProps {
     isSubmitting: boolean;
     hasSeats: boolean;
     paymentDetails: ConfirmablePaymentDetails | null;
-    onPaymentDetailsChange: (
-        details: ConfirmablePaymentDetails | null
-    ) => void;
+    onPaymentDetailsChange: (details: ConfirmablePaymentDetails | null) => void;
     onConfirm: (paymentDetails: ConfirmablePaymentDetails) => Promise<void>;
 }
 
@@ -46,7 +44,9 @@ export function CheckoutPaymentSection({
                         <span className="font-semibold">{ticketCount}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Price each</span>
+                        <span className="text-muted-foreground">
+                            Price each
+                        </span>
                         <span className="font-semibold">{priceEach}</span>
                     </div>
                 </div>

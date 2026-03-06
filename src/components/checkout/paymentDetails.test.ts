@@ -5,9 +5,9 @@ import {
     getCardBrand,
     getPaymentDetailsErrors,
     parseExpiry,
-} from "~/components/checkout/payment-details";
+} from "~/components/checkout/paymentDetails";
 
-describe("payment-details helpers", () => {
+describe("paymentDetails helpers", () => {
     it("formats card number into 4 digit groups", () => {
         expect(formatCardNumber("4242424242424242")).toBe(
             "4242 4242 4242 4242"

@@ -19,9 +19,16 @@ export const ONLY_DIGITS = /\D/g;
 
 const CARD_BRAND_PATTERNS = [
     { brand: "Visa", pattern: /^4\d{0,18}$/ },
-    { brand: "Mastercard", pattern: /^(5[1-5]\d{0,14}|2(?:2[2-9]|[3-6]\d|7[01])\d{0,12}|2720\d{0,12})$/ },
+    {
+        brand: "Mastercard",
+        pattern:
+            /^(5[1-5]\d{0,14}|2(?:2[2-9]|[3-6]\d|7[01])\d{0,12}|2720\d{0,12})$/,
+    },
     { brand: "American Express", pattern: /^3[47]\d{0,13}$/ },
-    { brand: "Discover", pattern: /^(6011\d{0,12}|65\d{0,14}|64[4-9]\d{0,13})$/ },
+    {
+        brand: "Discover",
+        pattern: /^(6011\d{0,12}|65\d{0,14}|64[4-9]\d{0,13})$/,
+    },
 ];
 
 export function formatCardNumber(value: string) {

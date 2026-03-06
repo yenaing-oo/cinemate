@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { CheckoutBookingSummary } from "~/components/checkout/checkout-booking-summary";
-import { CheckoutPaymentSection } from "~/components/checkout/checkout-payment-section";
-import type { ConfirmablePaymentDetails } from "~/components/checkout/payment-details";
+import { CheckoutBookingSummary } from "~/components/checkout/checkoutBookingSummary";
+import { CheckoutPaymentSection } from "~/components/checkout/checkoutPaymentSection";
+import type { ConfirmablePaymentDetails } from "~/components/checkout/paymentDetails";
 
 interface BookingReviewPanelProps {
     movieTitle: string;
@@ -50,14 +50,14 @@ export function BookingReviewPanel({
                     </p>
                 </div>
 
-                <div className="relative z-10 grid items-start gap-6 lg:grid-cols-[1.9fr_1fr]">
+                <div className="relative z-10 grid gap-6 lg:grid-cols-[1.9fr_1fr]">
                     <CheckoutBookingSummary
                         movieTitle={movieTitle}
                         showtimeLabel={showtimeLabel}
                         posterUrl={posterUrl}
                         seatLabels={seatLabels}
                         ticketCount={ticketCount}
-                        priceEach={priceEach}
+                        total={total}
                     />
                     <CheckoutPaymentSection
                         ticketCount={ticketCount}
