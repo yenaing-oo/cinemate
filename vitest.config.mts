@@ -27,6 +27,14 @@ export default defineConfig({
                     ],
                 },
             },
+            {
+                plugins: [tsconfigPaths()],
+                test: {
+                    name: "integration",
+                    environment: "node",
+                    include: ["src/tests/integration/**/*.test.ts"],
+                },
+            }
         ],
     },
 });
