@@ -1,9 +1,8 @@
-import { beforeAll, afterAll, beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { createCaller } from "~/server/api/root";
-import {db} from "@/server/db";
+import { db } from "@/server/db";
 
 describe("Movies Integration Tests", () => {
-    
     beforeEach(async () => {
         // Clear the movies table before each test
         await db.booking.deleteMany();
@@ -15,18 +14,17 @@ describe("Movies Integration Tests", () => {
                 posterUrl: "https://example.com/poster1.jpg",
                 runtime: 120,
                 tmdbId: 12345,
-                releaseDate: new Date("2024-01-01")
-            }
+                releaseDate: new Date("2024-01-01"),
+            },
         });
     });
-
 
     it("should fetch now playing movies from the database through nowPlaying procedure", async () => {
         const caller = createCaller({
             headers: new Headers(),
             db,
             supabaseUser: null,
-            user: null
+            user: null,
         });
         const movies = await caller.movies.nowPlaying({});
         expect(movies).toHaveLength(1);
