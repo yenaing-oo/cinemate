@@ -23,6 +23,7 @@
         "test": "vitest",
         "test:frontend": "vitest --project frontend",
         "test:backend": "vitest --project backend",
+        "test:integration": "vitest --project integration",
         "typecheck": "tsc --noEmit",
         "sync:movies": "pnpm tsx scripts/syncMovies.ts"
     },
