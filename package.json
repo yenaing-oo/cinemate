@@ -23,6 +23,8 @@
         "test": "vitest",
         "test:frontend": "vitest --project frontend",
         "test:backend": "vitest --project backend",
+        "test:mutation": "stryker run",
+        "test:mutation:dry": "stryker run --dryRunOnly",
         "typecheck": "tsc --noEmit",
         "sync:movies": "pnpm tsx scripts/syncMovies.ts"
     },
