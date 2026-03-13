@@ -149,3 +149,4 @@ The application will be available at [http://localhost:3000](http://localhost:30
 - `pnpm test` - Run all tests
 - `pnpm test:frontend` - Run frontend tests only
 - `pnpm test:backend` - Run backend tests only
+- `pnpm test:integration` - Run integration tests only
