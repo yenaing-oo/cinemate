@@ -23,7 +23,7 @@
         "test": "vitest",
         "test:frontend": "vitest --project frontend",
         "test:backend": "vitest --project backend",
-        "test:integration": "dotenv -e .env.test -- vitest --project integration",
+        "test:integration": "pnpm db:test:prepare && vitest --project integration",
         "typecheck": "tsc --noEmit",
         "sync:movies": "pnpm tsx scripts/syncMovies.ts"
     },
