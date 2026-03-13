@@ -12,6 +12,7 @@
         "db:reset": "prisma migrate reset",
         "db:seed": "pnpm tsx prisma/seed.ts",
         "db:studio": "prisma studio",
+        "db:test:prepare": "dotenv -e .env.test -- prisma db push --force-reset --skip-generate",
         "dev": "next dev --turbo",
         "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
         "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
