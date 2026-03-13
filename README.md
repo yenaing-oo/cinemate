@@ -160,7 +160,6 @@ The application will be available at [http://localhost:3000](http://localhost:30
 - `pnpm test` - Run all Vitest tests.
 - `pnpm test:frontend` - Run frontend tests only.
 - `pnpm test:backend` - Run backend tests only.
-- `pnpm test:mutation:dry` - Run a Stryker dry run to verify the mutation-testing setup.
 - `pnpm test:mutation` - Run mutation testing with Stryker.
 
 ## Mutation Testing
@@ -169,7 +168,6 @@ Mutation testing is configured with StrykerJS using [`stryker.conf.js`](./stryke
 
 ### Commands
 
-- `pnpm test:mutation:dry` - Validate the Stryker configuration and test-runner wiring without running the full mutation pass.
 - `pnpm test:mutation` - Run the full mutation test suite.
 
 ### Reports
