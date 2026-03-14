@@ -19,6 +19,9 @@ export default function WatchPartyPage() {
     const partiesQuery = api.watchParty.listMine.useQuery(undefined, {
         retry: false,
     });
+    const [createPartyMessage, setCreatePartyMessage] = useState<string | null>(
+        null
+    );
 
     const showtimesQuery = api.showtimes.getByMovie.useQuery(
         { movieId: selectedMovieId },
@@ -28,7 +31,13 @@ export default function WatchPartyPage() {
     );
 
     const createParty = api.watchParty.create.useMutation({
-        onSuccess: async () => {
+        onSuccess: async (result) => {
+            setCreatePartyMessage(result.message);
+
+            if (!result.ok) {
+                return;
+            }
+
             setPartyName("");
             setSelectedShowtimeId("");
             await Promise.all([
@@ -45,6 +54,7 @@ export default function WatchPartyPage() {
         [selectedShowtimeId, showtimes]
     );
     const isUnauthorized = partiesQuery.error?.data?.code === "UNAUTHORIZED";
+    const parties = partiesQuery.data?.parties ?? [];
 
     useEffect(() => {
         if (!selectedMovieId && movies.length > 0) {
@@ -251,9 +261,9 @@ export default function WatchPartyPage() {
                                         </div>
                                     ) : null}
 
-                                    {createParty.error ? (
+                                    {createPartyMessage ? (
                                         <p className="text-sm text-red-300">
-                                            {createParty.error.message}
+                                            {createPartyMessage}
                                         </p>
                                     ) : null}
 
@@ -296,7 +306,7 @@ export default function WatchPartyPage() {
 
                 {isUnauthorized ? null : partiesQuery.isLoading ? (
                     <p className="text-muted-foreground">Loading parties...</p>
-                ) : (partiesQuery.data?.length ?? 0) === 0 ? (
+                ) : parties.length === 0 ? (
                     <div className="glass-card rounded-[1.5rem] border border-white/10 px-6 py-10 text-center">
                         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-300/12 text-cyan-100">
                             <Users className="h-6 w-6" />
@@ -311,7 +321,7 @@ export default function WatchPartyPage() {
                     </div>
                 ) : (
                     <div className="grid gap-4 lg:grid-cols-2">
-                        {partiesQuery.data?.map((party) => (
+                        {parties.map((party) => (
                             <Card
                                 key={party.id}
                                 className="glass-card rounded-[1.5rem] border-white/10 bg-transparent shadow-none"
