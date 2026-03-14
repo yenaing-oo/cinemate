@@ -1,7 +1,8 @@
 import { defineConfig } from "vitest/config";
 import tsconfigPaths from "vite-tsconfig-paths";
 import react from "@vitejs/plugin-react";
-import "dotenv/config";
+import { config } from "dotenv";
+config({ path: ".env.test" });
 
 export default defineConfig({
     test: {
@@ -27,6 +28,14 @@ export default defineConfig({
                     ],
                 },
             },
+            {
+                plugins: [tsconfigPaths()],
+                test: {
+                    name: "integration",
+                    environment: "node",
+                    include: ["src/tests/integration/**/*.test.ts"],
+                },
+            }
         ],
     },
 });

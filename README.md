@@ -136,16 +136,41 @@ The application will be available at [http://localhost:3000](http://localhost:30
 
 ## Useful Scripts
 
-- `pnpm dev` - Start development server
-- `pnpm check` - Run linting, type checking, and format check
-- `pnpm db:generate` - Use after you change `schema.prisma` or pulled schema changes from Git. Creates a migration file if schema has changed, or applies existing migrations if DB is behind, and regenerates Prisma Client.
-- `pnpm db:push` - Use when you want to force the database to match the schema (skips migrations). May ask to reset DB on destructive changes. Use with caution.
-- `pnpm prisma generate` - Does not touch the database, just regenerates Prisma Client based on the current schema.
-- `pnpm db:reset` - Resets the database (drops all data) and applies all migrations from scratch. Use with caution.
-- `pnpm db:seed` - Run the database seeding script to populate initial data.
-- `pnpm db:seed --dev` - Run the development seed script to populate the database with sample data (movies, users, bookings) for local development.
-- `pnpm db:studio` - Open Prisma Studio for database management
-- `pnpm sync:movies` - Sync movies from TMDB. Fetches the top 10 now-playing movie details and saves them to the database. Creates showtimes and seats for each movie. Useful for initial seeding and testing in local development.
-- `pnpm test` - Run all tests
-- `pnpm test:frontend` - Run frontend tests only
-- `pnpm test:backend` - Run backend tests only
+### Development
+
+- `pnpm dev` - Start the development server.
+- `pnpm check` - Run linting, type checking, and format checks.
+
+### Database
+
+- `pnpm db:generate` - Create or apply Prisma migrations and regenerate Prisma Client after schema changes.
+- `pnpm db:push` - Force the database schema to match `schema.prisma` without creating a migration. Use with caution.
+- `pnpm prisma generate` - Regenerate Prisma Client without changing the database.
+- `pnpm db:reset` - Drop all data and reapply all migrations from scratch. Use with caution.
+- `pnpm db:seed` - Seed the database with initial data.
+- `pnpm db:seed --dev` - Seed the database with local development sample data.
+- `pnpm db:studio` - Open Prisma Studio for database management.
+
+### Data Sync
+
+- `pnpm sync:movies` - Fetch now-playing movies from TMDB, save them, and create showtimes and seats for local testing.
+
+### Testing
+
+- `pnpm test` - Run all Vitest tests.
+- `pnpm test:frontend` - Run frontend tests only.
+- `pnpm test:backend` - Run backend tests only.
+- `pnpm test:integration` - Run integration tests only
+- `pnpm test:mutation` - Run mutation testing with Stryker.
+
+## Mutation Testing
+
+Mutation testing is configured with StrykerJS using [`stryker.conf.js`](./stryker.conf.js). The current mutation scope is limited to source files that already have active Vitest coverage.
+
+### Commands
+
+- `pnpm test:mutation` - Run the full mutation test suite.
+
+### Reports
+
+- Open `reports/mutation/mutation.html` in a browser to review the mutation score and surviving mutants after a test run.
