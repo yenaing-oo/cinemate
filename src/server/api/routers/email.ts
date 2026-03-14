@@ -1,45 +1,45 @@
 import { z } from "zod";
 
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { Resend } from "resend";
 import TicketConfirmation from "~/server/emailTemplates/TicketConfirmation";
 
 export const emailRouter = createTRPCRouter({
-    send: publicProcedure
-        .input(z.object({ recipientEmail: z.string().email() }))
-        .mutation(async ({ input }) => {
+    sendConfirmation: protectedProcedure
+        .input(
+            z.object({
+                userId: z.string(),
+                movieTitle: z.string(),
+                moviePosterUrl: z.string(),
+                showDate: z.string(),
+                showTime: z.string(),
+                seatLabelList: z.string().array(),
+                totalPrice: z.string(),
+                bookingId: z.string(),
+            })
+        )
+        .mutation(async ({ input, ctx }) => {
             const resend = new Resend(process.env.RESEND_EMAIL_API_KEY ?? "");
+
+            const user = await ctx.db.user.findUnique({
+                where: { id: input.userId },
+            });
+
+            if (!user || !user.email) return;
+
             const { data, error } = await resend.emails.send({
-                from: "Cinemate <onboarding@resend.dev>",
-                to: input.recipientEmail,
+                from: "Cinemate <onboarding@bookcinemate.me>",
+                to: user.email,
                 subject: "🎉 Booking Confirmed! - Cinemate",
                 react: TicketConfirmation({
-                    movieTitle:
-                        "Avatar: The way of water. And some really big text check!",
-                    posterUrl:
-                        "https://image.tmdb.org/t/p/original/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg",
-                    date: "8 Feb, 2025",
-                    time: "8:00 PM",
+                    movieTitle: input.movieTitle,
+                    posterUrl: input.moviePosterUrl,
+                    date: input.showDate,
+                    time: input.showTime,
                     screen: "#1",
-                    tickets: [
-                        {
-                            seatNumber: "A1",
-                            qrCodeUrl:
-                                "https://www.davidleonard.london/wp-content/uploads/2024/05/FI-QRcode-of-URL.png",
-                        },
-                        {
-                            seatNumber: "A2",
-                            qrCodeUrl:
-                                "https://www.davidleonard.london/wp-content/uploads/2024/05/FI-QRcode-of-URL.png",
-                        },
-                        {
-                            seatNumber: "A3",
-                            qrCodeUrl:
-                                "https://www.davidleonard.london/wp-content/uploads/2024/05/FI-QRcode-of-URL.png",
-                        },
-                    ],
-                    totalPrice: "$15.00",
-                    bookingId: "ABCD1234",
+                    seatLabelList: input.seatLabelList,
+                    totalPrice: input.totalPrice,
+                    bookingId: input.bookingId,
                 }),
             });
 
