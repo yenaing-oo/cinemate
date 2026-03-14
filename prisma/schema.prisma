@@ -27,6 +27,7 @@ model User {
     bookings       Booking[]
     heldSeats      ShowtimeSeat[]
     bookingSession BookingSession?
+    watchParties   WatchParty[]    @relation("WatchPartyLeader")
 }
 
 // ==================== MOVIES ====================
@@ -82,6 +83,7 @@ model Showtime {
     showtimeSeats   ShowtimeSeat[]
     bookings        Booking[]
     bookingSessions BookingSession[]
+    watchParties    WatchParty[]
 
     @@unique([movieId, startTime])
     @@index([movieId])
@@ -186,4 +188,25 @@ enum BookingStep {
     SEAT_SELECTION
     CHECKOUT
     COMPLETED
+}
+
+model WatchParty {
+    id         String           @id @default(cuid())
+    leaderId   String           @db.Uuid
+    leader     User             @relation("WatchPartyLeader", fields: [leaderId], references: [id], onDelete: Cascade)
+    showtimeId String
+    showtime   Showtime         @relation(fields: [showtimeId], references: [id], onDelete: Cascade)
+    name       String
+    inviteCode String           @unique
+    status     WatchPartyStatus @default(OPEN)
+    createdAt  DateTime         @default(now())
+    updatedAt  DateTime         @updatedAt
+
+    @@index([leaderId, createdAt])
+    @@index([showtimeId])
+}
+
+enum WatchPartyStatus {
+    OPEN
+    CLOSED
 }
