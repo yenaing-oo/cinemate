@@ -12,7 +12,7 @@ env:
 
 jobs:
     migrate-db:
-        name: Deploy Prisma Migrations
+        name: Deploy Database Migrations
         runs-on: ubuntu-latest
         steps:
             - name: Check out the repo
@@ -32,6 +32,12 @@ jobs:
 
             - name: Run Prisma migrations
               run: pnpm prisma migrate deploy
+
+            - name: Set up Supabase CLI
+              uses: supabase/setup-cli@v1
+
+            - name: Run Supabase migrations
+              run: supabase db push --db-url "$DIRECT_URL" --include-all
 
     publish-image:
         name: Publish Docker Image to Docker Hub
