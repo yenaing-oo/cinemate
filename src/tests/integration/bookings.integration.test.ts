@@ -1,7 +1,13 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BookingStep, BookingStatus, TicketStatus } from "@prisma/client";
 import { createCaller } from "~/server/api/root";
 import { db } from "~/server/db";
+
+vi.mock("~/env", () => ({
+    env: {
+        BOOKING_CANCEL_WINDOW_MINUTES: 60,
+    },
+}));
 
 describe("Booking Session Integration Tests", () => {
     beforeEach(async () => {
@@ -365,7 +371,6 @@ describe("Booking Session Integration Tests", () => {
             user,
         });
 
-        // Change this to your real cancellation procedure name/input
         await caller.bookings.cancel({
             bookingId: booking.id,
         });

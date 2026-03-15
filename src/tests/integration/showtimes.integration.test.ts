@@ -16,7 +16,7 @@ describe("Showtimes Integration Tests", () => {
                 posterUrl: "https://example.com/interstellar.jpg",
                 runtime: 169,
                 tmdbId: 157336,
-                releaseDate: new Date("2014-11-07"),
+                releaseDate: new Date("2025-11-07"),
             },
         });
 
@@ -26,7 +26,7 @@ describe("Showtimes Integration Tests", () => {
                 posterUrl: "https://example.com/inception.jpg",
                 runtime: 148,
                 tmdbId: 27205,
-                releaseDate: new Date("2010-07-16"),
+                releaseDate: new Date("2025-07-16"),
             },
         });
 
@@ -48,6 +48,12 @@ describe("Showtimes Integration Tests", () => {
                     price: "12.50",
                 },
                 {
+                    movieId: movie1Id,
+                    startTime: new Date("2025-01-01T18:00:00Z"), // past showtime
+                    endTime: new Date("2025-01-01T20:49:00Z"),
+                    price: "12.50",
+                },
+                {
                     movieId: movie2Id,
                     startTime: new Date("2026-04-01T19:00:00Z"),
                     endTime: new Date("2026-04-01T21:28:00Z"),
@@ -57,7 +63,7 @@ describe("Showtimes Integration Tests", () => {
         });
     });
 
-    it("should return only showtimes belonging to the selected movie", async () => {
+    it("should return only upcoming showtimes belonging to the selected movie", async () => {
         const caller = createCaller({
             headers: new Headers(),
             db,
@@ -85,10 +91,14 @@ describe("Showtimes Integration Tests", () => {
         expect(startTimes).toContain("2026-04-01T18:00:00.000Z");
         expect(startTimes).toContain("2026-04-01T21:00:00.000Z");
         expect(startTimes).not.toContain("2026-04-01T19:00:00.000Z");
+        expect(startTimes).not.toContain("2025-01-01T18:00:00.000Z");
 
         for (const showtime of result!.showtimes) {
             expect(showtime.id).toBeDefined();
             expect(showtime.price).toBe(12.5);
+            expect(new Date(showtime.startTime).getTime()).toBeGreaterThan(
+                Date.now()
+            );
         }
     });
 });
