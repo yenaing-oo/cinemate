@@ -1,9 +1,8 @@
 name: Publish and Deploy to Production
 
 on:
-    push:
-        branches:
-            - main
+    pull_request:
+        branches: [1-trigger-redeploy-on-render-after-pushing-latest-image]
 
 env:
     NODE_VERSION: 20
@@ -39,57 +38,57 @@ jobs:
             - name: Run Supabase migrations
               run: supabase db push --db-url "$DIRECT_URL" --include-all
 
-    publish-image:
-        name: Publish Docker Image to Docker Hub
-        runs-on: ubuntu-latest
-        needs: migrate-db
-        permissions:
-            packages: write
-            contents: read
-            attestations: write
-            id-token: write
-        steps:
-            - name: Check out the repo
-              uses: actions/checkout@v5
+    # publish-image:
+    #     name: Publish Docker Image to Docker Hub
+    #     runs-on: ubuntu-latest
+    #     needs: migrate-db
+    #     permissions:
+    #         packages: write
+    #         contents: read
+    #         attestations: write
+    #         id-token: write
+    #     steps:
+    #         - name: Check out the repo
+    #           uses: actions/checkout@v5
 
-            - name: Log in to Docker Hub
-              uses: docker/login-action@v3.6.0
-              with:
-                  username: ${{ secrets.DOCKER_USERNAME }}
-                  password: ${{ secrets.DOCKER_PASSWORD }}
+    #         - name: Log in to Docker Hub
+    #           uses: docker/login-action@v3.6.0
+    #           with:
+    #               username: ${{ secrets.DOCKER_USERNAME }}
+    #               password: ${{ secrets.DOCKER_PASSWORD }}
 
-            - name: Extract metadata (tags, labels) for Docker
-              id: meta
-              uses: docker/metadata-action@v5.10.0
-              with:
-                  images: matrixplus/cinemate
-                  tags: |
-                      type=raw,value=latest
-                      type=sha,prefix=
+    #         - name: Extract metadata (tags, labels) for Docker
+    #           id: meta
+    #           uses: docker/metadata-action@v5.10.0
+    #           with:
+    #               images: matrixplus/cinemate
+    #               tags: |
+    #                   type=raw,value=latest
+    #                   type=sha,prefix=
 
-            - name: Build and push Docker image
-              id: push
-              uses: docker/build-push-action@v6.18.0
-              with:
-                  context: .
-                  file: ./Dockerfile
-                  push: true
-                  tags: ${{ steps.meta.outputs.tags }}
-                  labels: ${{ steps.meta.outputs.labels }}
+    #         - name: Build and push Docker image
+    #           id: push
+    #           uses: docker/build-push-action@v6.18.0
+    #           with:
+    #               context: .
+    #               file: ./Dockerfile
+    #               push: true
+    #               tags: ${{ steps.meta.outputs.tags }}
+    #               labels: ${{ steps.meta.outputs.labels }}
 
-            - name: Generate artifact attestation
-              uses: actions/attest-build-provenance@v3
-              with:
-                  subject-name: index.docker.io/matrixplus/cinemate
-                  subject-digest: ${{ steps.push.outputs.digest }}
-                  push-to-registry: true
+    #         - name: Generate artifact attestation
+    #           uses: actions/attest-build-provenance@v3
+    #           with:
+    #               subject-name: index.docker.io/matrixplus/cinemate
+    #               subject-digest: ${{ steps.push.outputs.digest }}
+    #               push-to-registry: true
 
-    deploy-render:
-        name: Trigger Render Redeploy
-        runs-on: ubuntu-latest
-        needs: publish-image
-        steps:
-            - name: Deploy
-              env:
-                  deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
-              run: curl --fail --show-error --silent "$deploy_url"
+    # deploy-render:
+    #     name: Trigger Render Redeploy
+    #     runs-on: ubuntu-latest
+    #     needs: publish-image
+    #     steps:
+    #         - name: Deploy
+    #           env:
+    #               deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+    #           run: curl --fail --show-error --silent "$deploy_url"
