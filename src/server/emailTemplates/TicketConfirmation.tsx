@@ -12,18 +12,13 @@ import {
 
 import { styles } from "./TicketConfirmationStyle";
 
-type Ticket = {
-    seatNumber: string;
-    qrCodeUrl: string;
-};
-
 type Props = {
     movieTitle: string;
     posterUrl: string;
     date: string;
     time: string;
     screen: string;
-    tickets: Ticket[];
+    seatLabelList: string[];
     totalPrice: string;
     bookingId: string;
 };
@@ -34,10 +29,12 @@ export default function TicketConfirmation({
     date,
     time,
     screen,
-    tickets,
+    seatLabelList,
     totalPrice,
     bookingId,
 }: Props) {
+    const ticketQrCode =
+        "https://www.davidleonard.london/wp-content/uploads/2024/05/FI-QRcode-of-URL.png";
     return (
         <Html>
             <Head />
@@ -83,10 +80,10 @@ export default function TicketConfirmation({
                     {/* Tickets Section */}
                     <Section>
                         <Text style={styles.header}>
-                            🎟 Tickets ({tickets.length})
+                            🎟 Tickets ({seatLabelList.length})
                         </Text>
 
-                        {tickets.map((ticket, index) => (
+                        {seatLabelList.map((seatLabel, index) => (
                             <Section key={index} style={styles.ticketCard}>
                                 <Row>
                                     <Column style={styles.ticketCard_left}>
@@ -97,7 +94,7 @@ export default function TicketConfirmation({
                                             {date} • {time}
                                         </Text>
                                         <Text style={styles.seatText}>
-                                            Seat: {ticket.seatNumber}
+                                            Seat: {seatLabel}
                                         </Text>
                                     </Column>
 
@@ -117,7 +114,7 @@ export default function TicketConfirmation({
                                         style={styles.ticketCard_right}
                                     >
                                         <Img
-                                            src={ticket.qrCodeUrl}
+                                            src={ticketQrCode}
                                             width="110"
                                             style={styles.qr}
                                         />
@@ -152,7 +149,7 @@ export default function TicketConfirmation({
                             </Column>
                             <Column align="right">
                                 <Text style={styles.paymentValue}>
-                                    {tickets.length}
+                                    {seatLabelList.length}
                                 </Text>
                             </Column>
                         </Row>

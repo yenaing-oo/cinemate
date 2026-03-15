@@ -79,4 +79,11 @@ export const bookingsRouter = createTRPCRouter({
 
             return { success: true };
         }),
+    latestBookingDetails: protectedProcedure.mutation(async ({ ctx }) => {
+        const bookings = await ctx.db.booking.findFirst({
+            where: { userId: ctx.user.id },
+            orderBy: { createdAt: "desc" },
+        });
+        return bookings;
+    }),
 });

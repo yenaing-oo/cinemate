@@ -9,8 +9,11 @@ import {
     formatSeatFromCode,
     formatShowtimeDate,
     formatShowtimeTime,
+    formatBookingNumber,
 } from "~/lib/utils";
 import { BookingReviewPanel } from "~/components/checkout/bookingReviewPanel";
+import { useSendConfirmationEmail } from "~/lib/emailServices";
+import { api } from "~/trpc/react";
 
 interface CheckoutReviewPageProps {
     bookingSession: {
@@ -72,6 +75,9 @@ export default function CheckoutReviewPage({
     isSubmitting,
 }: CheckoutReviewPageProps) {
     const router = useRouter();
+    const latestBookingMutation =
+        api.bookings.latestBookingDetails.useMutation();
+    const sendConfirmationEmail = useSendConfirmationEmail();
 
     const movieTitle = bookingSession.showtime.movie.title;
     const moviePosterUrl = bookingSession.showtime.movie.posterUrl;
@@ -95,7 +101,31 @@ export default function CheckoutReviewPage({
 
     const priceEach = formatCad(ticketPrice);
     const total = formatCad(ticketPrice * seatCount);
-    const showtimeLabel = `${formatShowtimeDate(showtimeDate)} | ${formatShowtimeTime(showtimeDate)}`;
+    const showDate = formatShowtimeDate(showtimeDate);
+    const showTime = formatShowtimeTime(showtimeDate);
+    const showtimeLabel = `${showDate} | ${showTime}`;
+
+    async function processConfirmationEmail() {
+        const lastestBooking = await latestBookingMutation.mutateAsync();
+
+        if (!lastestBooking) return;
+
+        const formatedBookingNumber = formatBookingNumber(
+            lastestBooking.bookingNumber
+        );
+
+        await sendConfirmationEmail({
+            isConfirmation: true,
+            userId: bookingSession.userId,
+            movieTitle: movieTitle,
+            moviePosterUrl: moviePosterUrl,
+            showDate: showDate,
+            showTime: showTime,
+            seatLabelList: selectedSeatLabels,
+            totalPrice: total,
+            bookingId: formatedBookingNumber,
+        });
+    }
 
     return (
         <BookingReviewPanel
@@ -113,6 +143,7 @@ export default function CheckoutReviewPage({
                         bookingSession.id,
                         $Enums.BookingStep.COMPLETED
                     );
+                    await processConfirmationEmail();
                     router.push("/bookings");
                 } catch (error) {
                     const message =
