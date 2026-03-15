@@ -2,7 +2,7 @@ name: Publish and Deploy to Production
 
 on:
     pull_request:
-        branches: [1-trigger-redeploy-on-render-after-pushing-latest-image]
+        branches: [main]
 
 env:
     NODE_VERSION: 20
@@ -11,6 +11,7 @@ env:
 
 jobs:
     migrate-db:
+        if: github.head_ref == '1-trigger-redeploy-on-render-after-pushing-latest-image'
         name: Deploy Database Migrations
         runs-on: ubuntu-latest
         steps:
