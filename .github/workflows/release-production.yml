@@ -8,6 +8,10 @@ env:
     NODE_VERSION: 20
     DATABASE_URL: ${{ secrets.PROD_DB_URL }}
     DIRECT_URL: ${{ secrets.PROD_DIRECT_URL }}
+    NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.PROD_NEXT_PUBLIC_SUPABASE_URL }}
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.PROD_NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+    NEXT_PUBLIC_CINEMA_TIMEZONE: ${{ secrets.PROD_NEXT_PUBLIC_CINEMA_TIMEZONE }}
+    NEXT_PUBLIC_BOOKING_CANCEL_WINDOW_MINUTES: ${{ secrets.PROD_NEXT_PUBLIC_BOOKING_CANCEL_WINDOW_MINUTES }}
 
 jobs:
     migrate-db:
@@ -73,6 +77,11 @@ jobs:
                   context: .
                   file: ./Dockerfile
                   push: true
+                  build-args: |
+                      NEXT_PUBLIC_SUPABASE_URL=${{ env.NEXT_PUBLIC_SUPABASE_URL }}
+                      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${{ env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+                      NEXT_PUBLIC_CINEMA_TIMEZONE=${{ env.NEXT_PUBLIC_CINEMA_TIMEZONE }}
+                      NEXT_PUBLIC_BOOKING_CANCEL_WINDOW_MINUTES=${{ env.NEXT_PUBLIC_BOOKING_CANCEL_WINDOW_MINUTES }}
                   tags: ${{ steps.meta.outputs.tags }}
                   labels: ${{ steps.meta.outputs.labels }}
 
