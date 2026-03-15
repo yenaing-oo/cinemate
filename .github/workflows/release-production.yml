@@ -1,14 +1,42 @@
-name: Publish Docker image to Docker Hub
+name: Publish and Deploy to Production
 
 on:
     push:
         branches:
             - main
 
+env:
+    NODE_VERSION: 20
+    DATABASE_URL: ${{ secrets.PROD_DB_URL }}
+    DIRECT_URL: ${{ secrets.PROD_DIRECT_URL }}
+
 jobs:
-    push_to_registry:
-        name: Push Docker image to Docker Hub
+    migrate-db:
+        name: Deploy Prisma Migrations
         runs-on: ubuntu-latest
+        steps:
+            - name: Check out the repo
+              uses: actions/checkout@v5
+
+            - name: Set up pnpm
+              uses: pnpm/action-setup@v4
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Run Prisma migrations
+              run: pnpm prisma migrate deploy
+
+    publish-image:
+        name: Publish Docker Image to Docker Hub
+        runs-on: ubuntu-latest
+        needs: migrate-db
         permissions:
             packages: write
             contents: read
@@ -30,8 +58,8 @@ jobs:
               with:
                   images: matrixplus/cinemate
                   tags: |
-                        type=raw,value=latest
-                        type=sha,prefix=
+                      type=raw,value=latest
+                      type=sha,prefix=
 
             - name: Build and push Docker image
               id: push
@@ -49,3 +77,13 @@ jobs:
                   subject-name: index.docker.io/matrixplus/cinemate
                   subject-digest: ${{ steps.push.outputs.digest }}
                   push-to-registry: true
+
+    deploy-render:
+        name: Trigger Render Redeploy
+        runs-on: ubuntu-latest
+        needs: publish-image
+        steps:
+            - name: Deploy
+              env:
+                  deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+              run: curl --fail --show-error --silent "$deploy_url"
