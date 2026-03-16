@@ -5,8 +5,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { use, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { X } from "lucide-react";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent } from "~/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
 import { formatShowtimeDate, formatShowtimeTime } from "~/lib/utils";
 import { api } from "~/trpc/react";
@@ -192,50 +200,57 @@ function WatchPartyDialog({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-6">
-            <div
+            <Card
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="watch-party-dialog-title"
-                className="glass-panel relative w-full max-w-xl overflow-hidden rounded-[30px] border border-[rgba(122,206,255,0.22)] bg-[linear-gradient(180deg,rgba(10,20,36,0.96),rgba(10,20,36,0.88))] shadow-[0_24px_80px_rgba(0,0,0,0.35)]"
+                className="glass-panel relative w-full max-w-xl rounded-3xl border py-0"
             >
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(32,201,255,0.16),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(255,181,92,0.12),transparent_30%)]" />
-                <div className="relative space-y-6 p-6">
+                <CardHeader className="relative gap-2 px-6 pt-6 pb-0">
                     <Button
                         variant="ghost"
                         size="icon-sm"
-                        className="text-muted-foreground hover:text-foreground absolute top-4 right-4 rounded-full border border-white/10 bg-white/5"
+                        className="absolute top-5 right-5"
                         onClick={onCancel}
                         disabled={bookingPending}
                         aria-label="Close dialog"
                     >
-                        ×
+                        <X />
                     </Button>
 
-                    <div className="space-y-2 pr-12">
+                    <div className="pr-12">
                         <p className="text-primary text-xs font-semibold tracking-[0.28em] uppercase">
                             {step === "decision"
                                 ? "Watch Party"
                                 : "Invite Guests"}
                         </p>
-                        <h2
+                        <CardTitle
                             id="watch-party-dialog-title"
-                            className="text-2xl font-semibold text-white"
+                            className="mt-2 text-2xl"
                         >
                             {step === "decision"
                                 ? "Book this showtime or create a watch party?"
                                 : "Send invites for your watch party"}
-                        </h2>
+                        </CardTitle>
                         {step === "invite" ? (
-                            <p className="text-muted-foreground text-sm leading-6">
+                            <CardDescription className="mt-2 leading-6">
                                 Add the guest email addresses for this showtime.
                                 Invitation code delivery is handled outside this
                                 UI.
-                            </p>
+                            </CardDescription>
                         ) : null}
                     </div>
+                </CardHeader>
 
-                    <div className="space-y-2 rounded-[24px] border border-[rgba(122,206,255,0.18)] bg-[linear-gradient(135deg,rgba(32,201,255,0.12),rgba(78,125,255,0.08),rgba(255,181,92,0.08))] p-4">
-                        <p className="text-primary/90 text-xs font-semibold tracking-[0.2em] uppercase">
+                <CardContent
+                    className={
+                        step === "decision"
+                            ? "space-y-4 px-6 pt-5 pb-0"
+                            : "space-y-5 px-6 pt-5 pb-0"
+                    }
+                >
+                    <div className="glass-card space-y-2 rounded-2xl border border-white/10 p-4">
+                        <p className="text-muted-foreground text-xs font-semibold tracking-[0.2em] uppercase">
                             Selected showtime
                         </p>
                         <p className="text-base font-semibold">
@@ -246,35 +261,7 @@ function WatchPartyDialog({
                         </p>
                     </div>
 
-                    {step === "decision" ? (
-                        <div className="space-y-4">
-                            {bookingError ? (
-                                <p className="text-destructive text-sm">
-                                    {bookingError}
-                                </p>
-                            ) : null}
-
-                            <div className="grid gap-3 pt-2 sm:grid-cols-2">
-                                <Button
-                                    variant="outline"
-                                    className="border-white/15 bg-white/5 text-white hover:bg-white/10"
-                                    onClick={onChooseWatchParty}
-                                    disabled={bookingPending}
-                                >
-                                    Create watch party
-                                </Button>
-                                <Button
-                                    className="bg-[linear-gradient(90deg,#20c9ff,#4e7dff)] text-white shadow-[0_14px_32px_rgba(32,201,255,0.22)] hover:opacity-95"
-                                    onClick={onChooseRegularBooking}
-                                    disabled={bookingPending}
-                                >
-                                    {bookingPending
-                                        ? "Starting booking..."
-                                        : "Book without watch party"}
-                                </Button>
-                            </div>
-                        </div>
-                    ) : (
+                    {step === "invite" ? (
                         <div className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="watch-party-emails">
@@ -288,7 +275,7 @@ function WatchPartyDialog({
                                     }
                                     rows={6}
                                     placeholder="friend1@example.com, friend2@example.com"
-                                    className="border-input bg-background/80 placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 min-h-32 w-full rounded-2xl border border-white/12 px-4 py-3 text-sm outline-none focus-visible:ring-[3px]"
+                                    className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 bg-background min-h-32 w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-[3px]"
                                 />
                             </div>
 
@@ -297,34 +284,49 @@ function WatchPartyDialog({
                                     ? `${inviteCount} invite email${inviteCount === 1 ? "" : "s"} ready to send.`
                                     : "Enter at least one email address to continue."}
                             </p>
-
-                            <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:justify-end">
-                                <Button
-                                    variant="outline"
-                                    className="border-white/15 bg-white/5 text-white hover:bg-white/10"
-                                    onClick={onBack}
-                                >
-                                    Back
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    className="border-white/15 bg-white/5 text-white hover:bg-white/10"
-                                    onClick={onCancel}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    className="bg-[linear-gradient(90deg,#20c9ff,#4e7dff)] text-white shadow-[0_14px_32px_rgba(32,201,255,0.22)] hover:opacity-95"
-                                    onClick={onSendEmails}
-                                    disabled={inviteCount === 0}
-                                >
-                                    Send emails
-                                </Button>
-                            </div>
                         </div>
-                    )}
-                </div>
-            </div>
+                    ) : bookingError ? (
+                        <p className="text-destructive text-sm">
+                            {bookingError}
+                        </p>
+                    ) : null}
+                </CardContent>
+
+                {step === "decision" ? (
+                    <div className="grid gap-3 px-6 pt-5 pb-6 sm:grid-cols-2">
+                        <Button
+                            variant="outline"
+                            onClick={onChooseWatchParty}
+                            disabled={bookingPending}
+                        >
+                            Create watch party
+                        </Button>
+                        <Button
+                            onClick={onChooseRegularBooking}
+                            disabled={bookingPending}
+                        >
+                            {bookingPending
+                                ? "Starting booking..."
+                                : "Book without watch party"}
+                        </Button>
+                    </div>
+                ) : (
+                    <CardFooter className="flex-col gap-3 px-6 pt-5 pb-6 sm:flex-row sm:justify-end">
+                        <Button variant="outline" onClick={onBack}>
+                            Back
+                        </Button>
+                        <Button variant="outline" onClick={onCancel}>
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={onSendEmails}
+                            disabled={inviteCount === 0}
+                        >
+                            Send emails
+                        </Button>
+                    </CardFooter>
+                )}
+            </Card>
         </div>
     );
 }
