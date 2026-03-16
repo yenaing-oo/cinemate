@@ -1,14 +1,21 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createCaller } from "~/server/api/root";
 import { db } from "@/server/db";
 
 describe("Movies Integration Tests", () => {
+    const cleanupDb = async () => {
+        await db.ticket.deleteMany();
+        await db.booking.deleteMany();
+        await db.bookingSession.deleteMany();
+        await db.showtimeSeat.deleteMany();
+        await db.showtime.deleteMany();
+        await db.movie.deleteMany();
+    };
+
     beforeEach(async () => {
         console.log("DB:", process.env.DATABASE_URL);
 
-        // Clear the movies table before each test
-        await db.booking.deleteMany();
-        await db.movie.deleteMany();
+        await cleanupDb();
 
         await db.movie.create({
             data: {
@@ -19,6 +26,10 @@ describe("Movies Integration Tests", () => {
                 releaseDate: new Date("2024-01-01"),
             },
         });
+    });
+
+    afterEach(async () => {
+        await cleanupDb();
     });
 
     it("should fetch now playing movies from the database through nowPlaying procedure", async () => {
@@ -44,12 +55,7 @@ describe("Movies Integration Tests", () => {
             user: null,
         });
 
-        await db.ticket.deleteMany();
-        await db.booking.deleteMany();
-        await db.bookingSession.deleteMany();
-        await db.showtimeSeat.deleteMany();
-        await db.showtime.deleteMany();
-        await db.movie.deleteMany();
+        await cleanupDb();
 
         const movies = await caller.movies.nowPlaying({});
 
