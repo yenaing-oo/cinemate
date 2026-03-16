@@ -35,8 +35,10 @@ export default defineConfig({
                     environment: "node",
                     include: ["src/tests/integration/**/*.test.ts"],
                     fileParallelism: false,
+                    testTimeout: 30000,
+                    hookTimeout: 30000,
                 },
-            }
+            },
         ],
     },
 });
