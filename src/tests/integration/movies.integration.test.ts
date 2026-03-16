@@ -35,4 +35,25 @@ describe("Movies Integration Tests", () => {
         expect(movies[0]?.posterUrl).toBe("https://example.com/poster1.jpg");
         expect(movies[0]?.runtime).toBe(120);
     });
+
+    it("should return an empty array when no movies exist", async () => {
+        const caller = createCaller({
+            headers: new Headers(),
+            db,
+            supabaseUser: null,
+            user: null,
+        });
+
+        await db.ticket.deleteMany();
+        await db.booking.deleteMany();
+        await db.bookingSession.deleteMany();
+        await db.showtimeSeat.deleteMany();
+        await db.showtime.deleteMany();
+        await db.movie.deleteMany();
+
+        const movies = await caller.movies.nowPlaying({});
+
+        expect(movies).toEqual([]);
+        expect(movies).toHaveLength(0);
+    });
 });
