@@ -31,8 +31,7 @@ export function LoginForm({
     const searchParams = useSearchParams();
     const verified = searchParams.get("verified");
     const nextParam = searchParams.get("next");
-    const next =
-        nextParam && nextParam.startsWith("/") ? nextParam : "/";
+    const next = nextParam && nextParam.startsWith("/") ? nextParam : "/";
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
