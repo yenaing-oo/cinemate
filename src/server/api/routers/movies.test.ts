@@ -52,6 +52,8 @@ describe("moviesRouter", () => {
                 genres: true,
                 runtime: true,
                 posterUrl: true,
+                backdropUrl: true,
+                description: true,
             },
             orderBy: { releaseDate: "desc" },
             // IMPORTANT: no "take" when limit is undefined
@@ -74,6 +76,8 @@ describe("moviesRouter", () => {
                 genres: true,
                 runtime: true,
                 posterUrl: true,
+                backdropUrl: true,
+                description: true,
             },
             orderBy: { releaseDate: "desc" },
             take: 5,
