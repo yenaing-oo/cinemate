@@ -10,11 +10,11 @@ import { Button } from "~/components/ui/button";
 import {
     Card,
     CardContent,
-    CardDescription,
     CardFooter,
     CardHeader,
     CardTitle,
 } from "~/components/ui/card";
+import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { formatShowtimeDate, formatShowtimeTime } from "~/lib/utils";
 import { api } from "~/trpc/react";
@@ -30,6 +30,7 @@ interface Showtime {
 }
 
 type WatchPartyDialogStep = "decision" | "invite";
+const MAX_WATCH_PARTY_INVITES = 5;
 
 function groupShowtimesByDate(showtimes: Showtime[]): Map<string, Showtime[]> {
     return showtimes.reduce((map, showtime) => {
@@ -39,14 +40,9 @@ function groupShowtimesByDate(showtimes: Showtime[]): Map<string, Showtime[]> {
     }, new Map<string, Showtime[]>());
 }
 
-function parseInviteEmails(value: string) {
+function getInviteRecipients(values: string[]) {
     return Array.from(
-        new Set(
-            value
-                .split(/[\n,]+/)
-                .map((email) => email.trim())
-                .filter(Boolean)
-        )
+        new Set(values.map((email) => email.trim()).filter(Boolean))
     );
 }
 
@@ -172,7 +168,9 @@ function WatchPartyDialog({
     inviteEmails,
     bookingPending,
     bookingError,
-    onInviteEmailsChange,
+    onInviteEmailChange,
+    onAddInviteEmailField,
+    onRemoveInviteEmailField,
     onCancel,
     onBack,
     onChooseRegularBooking,
@@ -183,10 +181,12 @@ function WatchPartyDialog({
     movieTitle?: string;
     showtime: Showtime | null;
     step: WatchPartyDialogStep;
-    inviteEmails: string;
+    inviteEmails: string[];
     bookingPending: boolean;
     bookingError?: string;
-    onInviteEmailsChange: (value: string) => void;
+    onInviteEmailChange: (index: number, value: string) => void;
+    onAddInviteEmailField: () => void;
+    onRemoveInviteEmailField: (index: number) => void;
     onCancel: () => void;
     onBack: () => void;
     onChooseRegularBooking: () => void;
@@ -195,16 +195,17 @@ function WatchPartyDialog({
 }) {
     if (!open || !showtime) return null;
 
-    const inviteCount = parseInviteEmails(inviteEmails).length;
+    const parsedInviteEmails = getInviteRecipients(inviteEmails);
+    const inviteCount = parsedInviteEmails.length;
     const showtimeLabel = `${formatShowtimeDate(showtime.startTime)} at ${formatShowtimeTime(showtime.startTime)}`;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-6">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/75 px-4 py-6 backdrop-blur-sm">
             <Card
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="watch-party-dialog-title"
-                className="glass-panel relative w-full max-w-xl rounded-3xl border py-0"
+                className="glass-panel relative mx-auto my-auto flex max-h-[calc(100vh-3rem)] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-white/10 py-0 shadow-2xl shadow-black/40"
             >
                 <CardHeader className="relative gap-2 px-6 pt-6 pb-0">
                     <Button
@@ -219,26 +220,14 @@ function WatchPartyDialog({
                     </Button>
 
                     <div className="pr-12">
-                        <p className="text-primary text-xs font-semibold tracking-[0.28em] uppercase">
-                            {step === "decision"
-                                ? "Watch Party"
-                                : "Invite Guests"}
-                        </p>
                         <CardTitle
                             id="watch-party-dialog-title"
                             className="mt-2 text-2xl"
                         >
                             {step === "decision"
-                                ? "Book this showtime or create a watch party?"
-                                : "Send invites for your watch party"}
+                                ? "Do you want to create a watch party ?"
+                                : "Send invites for watch party"}
                         </CardTitle>
-                        {step === "invite" ? (
-                            <CardDescription className="mt-2 leading-6">
-                                Add the guest email addresses for this showtime.
-                                Invitation code delivery is handled outside this
-                                UI.
-                            </CardDescription>
-                        ) : null}
                     </div>
                 </CardHeader>
 
@@ -246,7 +235,7 @@ function WatchPartyDialog({
                     className={
                         step === "decision"
                             ? "space-y-4 px-6 pt-5 pb-0"
-                            : "space-y-5 px-6 pt-5 pb-0"
+                            : "flex min-h-0 flex-1 flex-col gap-5 px-6 pt-5 pb-0"
                     }
                 >
                     <div className="glass-card space-y-2 rounded-2xl border border-white/10 p-4">
@@ -262,27 +251,84 @@ function WatchPartyDialog({
                     </div>
 
                     {step === "invite" ? (
-                        <div className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="watch-party-emails">
-                                    Invitee emails
+                        <div className="flex min-h-0 flex-1 flex-col">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <Label className="text-sm font-semibold">
+                                    Recipient email addresses
                                 </Label>
-                                <textarea
-                                    id="watch-party-emails"
-                                    value={inviteEmails}
-                                    onChange={(event) =>
-                                        onInviteEmailsChange(event.target.value)
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={onAddInviteEmailField}
+                                    disabled={
+                                        inviteEmails.length >=
+                                        MAX_WATCH_PARTY_INVITES
                                     }
-                                    rows={6}
-                                    placeholder="friend1@example.com, friend2@example.com"
-                                    className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 bg-background min-h-32 w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-[3px]"
-                                />
+                                >
+                                    Add another email
+                                </Button>
                             </div>
 
-                            <p className="text-muted-foreground text-sm">
-                                {inviteCount > 0
-                                    ? `${inviteCount} invite email${inviteCount === 1 ? "" : "s"} ready to send.`
-                                    : "Enter at least one email address to continue."}
+                            <div className="mt-3 min-h-0 flex-1 overflow-y-auto pr-2">
+                                <div className="space-y-3">
+                                    {inviteEmails.map((email, index) => {
+                                        const inputId = `watch-party-email-${index + 1}`;
+
+                                        return (
+                                            <div
+                                                key={inputId}
+                                                className="flex items-end gap-3"
+                                            >
+                                                <div className="flex-1 space-y-2">
+                                                    <Label
+                                                        htmlFor={inputId}
+                                                        className="text-muted-foreground text-xs font-semibold tracking-[0.16em] uppercase"
+                                                    >
+                                                        Recipient {index + 1}
+                                                    </Label>
+                                                    <Input
+                                                        id={inputId}
+                                                        type="email"
+                                                        value={email}
+                                                        onChange={(event) =>
+                                                            onInviteEmailChange(
+                                                                index,
+                                                                event.target
+                                                                    .value
+                                                            )
+                                                        }
+                                                        placeholder="name@example.com"
+                                                        className="bg-background/70 h-11 rounded-xl"
+                                                    />
+                                                </div>
+
+                                                {inviteEmails.length > 1 ? (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon-sm"
+                                                        className="mb-1 shrink-0"
+                                                        onClick={() =>
+                                                            onRemoveInviteEmailField(
+                                                                index
+                                                            )
+                                                        }
+                                                        aria-label={`Remove recipient ${index + 1}`}
+                                                    >
+                                                        <X />
+                                                    </Button>
+                                                ) : null}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            <p className="text-muted-foreground mt-3 text-sm">
+                                Add one email per field. You can invite up to{" "}
+                                {MAX_WATCH_PARTY_INVITES} people from this
+                                watchparty.
                             </p>
                         </div>
                     ) : bookingError ? (
@@ -293,7 +339,7 @@ function WatchPartyDialog({
                 </CardContent>
 
                 {step === "decision" ? (
-                    <div className="grid gap-3 px-6 pt-5 pb-6 sm:grid-cols-2">
+                    <div className="grid shrink-0 gap-3 px-6 pt-5 pb-6 sm:grid-cols-2">
                         <Button
                             variant="outline"
                             onClick={onChooseWatchParty}
@@ -307,11 +353,11 @@ function WatchPartyDialog({
                         >
                             {bookingPending
                                 ? "Starting booking..."
-                                : "Book without watch party"}
+                                : "Continue with booking"}
                         </Button>
                     </div>
                 ) : (
-                    <CardFooter className="flex-col gap-3 px-6 pt-5 pb-6 sm:flex-row sm:justify-end">
+                    <CardFooter className="shrink-0 flex-col gap-3 px-6 pt-5 pb-6 sm:flex-row sm:justify-end">
                         <Button variant="outline" onClick={onBack}>
                             Back
                         </Button>
@@ -322,7 +368,7 @@ function WatchPartyDialog({
                             onClick={onSendEmails}
                             disabled={inviteCount === 0}
                         >
-                            Send emails
+                            Send invitations
                         </Button>
                     </CardFooter>
                 )}
@@ -339,7 +385,7 @@ export function MovieShowtimesPageContent({ movieId }: { movieId: string }) {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogStep, setDialogStep] =
         useState<WatchPartyDialogStep>("decision");
-    const [inviteEmails, setInviteEmails] = useState("");
+    const [inviteEmails, setInviteEmails] = useState<string[]>([""]);
     const [activeShowtime, setActiveShowtime] = useState<Showtime | null>(null);
 
     const { data: payload, isLoading } = api.showtimes.getByMovie.useQuery({
@@ -374,7 +420,7 @@ export function MovieShowtimesPageContent({ movieId }: { movieId: string }) {
     function resetWatchPartyFlow() {
         setDialogOpen(false);
         setDialogStep("decision");
-        setInviteEmails("");
+        setInviteEmails([""]);
         setSelectedShowtimeId(null);
         setActiveShowtime(null);
         createBookingSession.reset();
@@ -384,8 +430,38 @@ export function MovieShowtimesPageContent({ movieId }: { movieId: string }) {
         setSelectedShowtimeId(showtime.id);
         setActiveShowtime(showtime);
         setDialogStep("decision");
-        setInviteEmails("");
+        setInviteEmails([""]);
         setDialogOpen(true);
+    }
+
+    function handleInviteEmailChange(index: number, value: string) {
+        setInviteEmails((currentEmails) =>
+            currentEmails.map((email, currentIndex) =>
+                currentIndex === index ? value : email
+            )
+        );
+    }
+
+    function handleAddInviteEmailField() {
+        setInviteEmails((currentEmails) => {
+            if (currentEmails.length >= MAX_WATCH_PARTY_INVITES) {
+                return currentEmails;
+            }
+
+            return [...currentEmails, ""];
+        });
+    }
+
+    function handleRemoveInviteEmailField(index: number) {
+        setInviteEmails((currentEmails) => {
+            if (currentEmails.length === 1) return [""];
+
+            const nextEmails = currentEmails.filter(
+                (_, currentIndex) => currentIndex !== index
+            );
+
+            return nextEmails.length > 0 ? nextEmails : [""];
+        });
     }
 
     function handleBookWithoutWatchParty() {
@@ -456,7 +532,9 @@ export function MovieShowtimesPageContent({ movieId }: { movieId: string }) {
                         ? "Unable to start the regular booking flow right now. Please try again."
                         : undefined
                 }
-                onInviteEmailsChange={setInviteEmails}
+                onInviteEmailChange={handleInviteEmailChange}
+                onAddInviteEmailField={handleAddInviteEmailField}
+                onRemoveInviteEmailField={handleRemoveInviteEmailField}
                 onCancel={resetWatchPartyFlow}
                 onBack={() => setDialogStep("decision")}
                 onChooseRegularBooking={handleBookWithoutWatchParty}
