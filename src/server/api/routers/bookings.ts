@@ -2,6 +2,15 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { z } from "zod";
 import { BookingStatus, TicketStatus } from "@prisma/client";
 import { env } from "~/env.mjs";
+import {
+    formatBookingNumber,
+    formatCad,
+    formatSeatFromCode,
+    formatShowtimeDate,
+    formatShowtimeTime,
+} from "~/lib/utils";
+import { Resend } from "resend";
+import BookingCancellation from "~/server/emailTemplates/BookingCancellation";
 
 const MILLISECONDS_IN_MINUTE = 60 * 1000;
 const CANCELLATION_WINDOW =
@@ -75,7 +84,60 @@ export const bookingsRouter = createTRPCRouter({
                 });
             });
 
-            // TODO: Trigger cancellation email
+            await ctx.db.$transaction(async (tx) => {
+                const userEmail = ctx.user.email;
+
+                const movieDetails = await tx.movie.findUnique({
+                    where: { id: booking.showtime.movieId },
+                });
+
+                const showtimeSeatIds = booking.tickets.map(
+                    (ticket) => ticket.showtimeSeatId
+                );
+
+                const showtimeSeats = await tx.showtimeSeat.findMany({
+                    where: { id: { in: showtimeSeatIds } },
+                });
+
+                const seatIds = showtimeSeats.map(
+                    (showtimeSeat) => showtimeSeat.seatId
+                );
+
+                const seats = await tx.seat.findMany({
+                    where: { id: { in: seatIds } },
+                });
+
+                const formattedSeatLables = seats.map((seat) => {
+                    return formatSeatFromCode(seat.row, seat.number);
+                });
+
+                if (!userEmail || !movieDetails || !movieDetails.posterUrl)
+                    return;
+
+                const resend = new Resend(
+                    process.env.RESEND_EMAIL_API_KEY ?? ""
+                );
+
+                const { error } = await resend.emails.send({
+                    from: "Cinemate <onboarding@bookcinemate.me>",
+                    to: userEmail,
+                    subject: "Booking Cancelled! - Cinemate",
+                    react: BookingCancellation({
+                        movieTitle: movieDetails.title,
+                        posterUrl: movieDetails.posterUrl,
+                        date: formatShowtimeDate(booking.showtime.startTime),
+                        time: formatShowtimeTime(booking.showtime.startTime),
+                        screen: "#1",
+                        seatLabelList: formattedSeatLables,
+                        refundAmount: formatCad(Number(booking.totalAmount)),
+                        bookingId: formatBookingNumber(booking.bookingNumber),
+                    }),
+                });
+
+                if (error) {
+                    return { error: error };
+                }
+            });
 
             return { success: true };
         }),
