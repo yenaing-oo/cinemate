@@ -377,7 +377,7 @@ function WatchPartyDialog({
     );
 }
 
-export function MovieShowtimesPageContent({ movieId }: { movieId: string }) {
+function MovieShowtimesPageContent({ movieId }: { movieId: string }) {
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
     const [selectedShowtimeId, setSelectedShowtimeId] = useState<string | null>(
         null
