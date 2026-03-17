@@ -1,0 +1,42 @@
+name: Sync Movies
+
+on:
+    schedule:
+        - cron: "0 9 * * 3"
+    workflow_dispatch:
+
+concurrency:
+    group: sync-movies
+    cancel-in-progress: false
+
+jobs:
+    sync-movies:
+        name: Sync Movies From TMDB
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        permissions:
+            contents: read
+        env:
+            NODE_ENV: production
+            SKIP_ENV_VALIDATION: "1"
+            DATABASE_URL: ${{ secrets.PROD_DB_URL }}
+            TMDB_ACCESS_TOKEN: ${{ secrets.TMDB_ACCESS_TOKEN }}
+            CINEMA_TIMEZONE: ${{ secrets.PROD_NEXT_PUBLIC_CINEMA_TIMEZONE }}
+        steps:
+            - name: Check out the repo
+              uses: actions/checkout@v5
+
+            - name: Set up pnpm
+              uses: pnpm/action-setup@v4
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Run movie sync
+              run: pnpm sync:movies
