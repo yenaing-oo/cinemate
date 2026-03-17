@@ -1,40 +1,43 @@
 import {
-    Html,
-    Head,
     Body,
-    Container,
-    Section,
-    Row,
     Column,
-    Text,
+    Container,
+    Head,
+    Html,
     Img,
+    Row,
+    Section,
+    Text,
 } from "@react-email/components";
+import React from "react";
 
-import { styles } from "./TicketConfirmationStyle";
+import { styles } from "./BookingCancellationStyle";
 
-type Props = {
+interface Props {
     movieTitle: string;
     posterUrl: string;
     date: string;
     time: string;
     screen: string;
     seatLabelList: string[];
-    totalPrice: string;
+    refundAmount: string;
     bookingId: string;
-};
+    refundMethod?: string;
+    refundEta?: string;
+}
 
-export default function TicketConfirmation({
+export default function BookingCancellation({
     movieTitle,
     posterUrl,
     date,
     time,
     screen,
     seatLabelList,
-    totalPrice,
+    refundAmount,
     bookingId,
+    refundMethod = "Original payment method",
+    refundEta = "5-7 business days",
 }: Props) {
-    const ticketQrCode =
-        "https://www.davidleonard.london/wp-content/uploads/2024/05/FI-QRcode-of-URL.png";
     return (
         <Html>
             <Head />
@@ -44,15 +47,14 @@ export default function TicketConfirmation({
                     <Text style={styles.title_header}>Cinemate</Text>
 
                     <Text style={styles.intro_msg}>
-                        You&apos;re all set for the movies! Your booking is
-                        confirmed. Keep this email handy to scan at the
-                        entrance.
+                        Your booking has been successfully cancelled. We&apos;re
+                        sorry to see you go — hopefully we&apos;ll catch you at
+                        the movies another time!
                     </Text>
 
-                    {/* Header */}
-                    <Text style={styles.header}>🎬 Booking Details</Text>
+                    {/* Cancelled Movie Details */}
+                    <Text style={styles.header}>🎬 Cancelled Booking</Text>
 
-                    {/* Movie Details Section */}
                     <Section style={styles.movieCard}>
                         <Row>
                             <Column width="120">
@@ -64,11 +66,14 @@ export default function TicketConfirmation({
                             </Column>
 
                             <Column>
+                                <Text style={styles.cancelledBadge}>
+                                    Cancelled
+                                </Text>
                                 <Text style={styles.movieTitle}>
-                                    {movieTitle} <br />
+                                    {movieTitle}
                                 </Text>
                                 <Text style={styles.subText}>
-                                    📅 {date} &nbsp;•&nbsp; ⏰ {time} <br />
+                                    📅 {date} &nbsp;•&nbsp; ⏰ {time}
                                 </Text>
                                 <Text style={styles.subText}>
                                     🎥 Screen {screen}
@@ -77,10 +82,10 @@ export default function TicketConfirmation({
                         </Row>
                     </Section>
 
-                    {/* Tickets Section */}
+                    {/* Cancelled Tickets */}
                     <Section>
                         <Text style={styles.header}>
-                            🎟 Tickets ({seatLabelList.length})
+                            🎟 Cancelled Tickets ({seatLabelList.length})
                         </Text>
 
                         {seatLabelList.map((seatLabel, index) => (
@@ -103,7 +108,8 @@ export default function TicketConfirmation({
                                     >
                                         <Text
                                             style={{
-                                                borderRight: "2px dashed #fff",
+                                                borderRight:
+                                                    "2px dashed #edf2f7",
                                                 padding: "5em 0em",
                                             }}
                                         ></Text>
@@ -113,31 +119,29 @@ export default function TicketConfirmation({
                                         align="center"
                                         style={styles.ticketCard_right}
                                     >
-                                        <Img
-                                            src={ticketQrCode}
-                                            width="110"
-                                            style={styles.qr}
-                                        />
+                                        <Text style={styles.cancelledStamp}>
+                                            VOID
+                                        </Text>
                                     </Column>
                                 </Row>
                             </Section>
                         ))}
                     </Section>
 
-                    {/* Payment Section */}
-                    <Section style={styles.paymentCard}>
+                    {/* Refund Summary */}
+                    <Section style={styles.refundCard}>
                         <Text style={styles.sectionTitle}>
-                            💳 Payment Summary
+                            💰 Refund Summary
                         </Text>
 
                         <Row>
                             <Column>
-                                <Text style={styles.paymentLabel}>
+                                <Text style={styles.refundLabel}>
                                     Booking ID
                                 </Text>
                             </Column>
                             <Column align="right">
-                                <Text style={styles.paymentValue}>
+                                <Text style={styles.refundValue}>
                                     {bookingId}
                                 </Text>
                             </Column>
@@ -145,11 +149,39 @@ export default function TicketConfirmation({
 
                         <Row>
                             <Column>
-                                <Text style={styles.paymentLabel}>Tickets</Text>
+                                <Text style={styles.refundLabel}>
+                                    Tickets Cancelled
+                                </Text>
                             </Column>
                             <Column align="right">
-                                <Text style={styles.paymentValue}>
+                                <Text style={styles.refundValue}>
                                     {seatLabelList.length}
+                                </Text>
+                            </Column>
+                        </Row>
+
+                        <Row>
+                            <Column>
+                                <Text style={styles.refundLabel}>
+                                    Refund Method
+                                </Text>
+                            </Column>
+                            <Column align="right">
+                                <Text style={styles.refundValue}>
+                                    {refundMethod}
+                                </Text>
+                            </Column>
+                        </Row>
+
+                        <Row>
+                            <Column>
+                                <Text style={styles.refundLabel}>
+                                    Estimated Arrival
+                                </Text>
+                            </Column>
+                            <Column align="right">
+                                <Text style={styles.refundValue}>
+                                    {refundEta}
                                 </Text>
                             </Column>
                         </Row>
@@ -159,12 +191,12 @@ export default function TicketConfirmation({
                         <Row>
                             <Column>
                                 <Text style={styles.totalLabel}>
-                                    Total Paid
+                                    Total Refund
                                 </Text>
                             </Column>
                             <Column align="right">
                                 <Text style={styles.totalValue}>
-                                    {totalPrice}
+                                    {refundAmount}
                                 </Text>
                             </Column>
                         </Row>
@@ -172,10 +204,10 @@ export default function TicketConfirmation({
 
                     {/* Footer */}
                     <Text style={styles.footer}>
-                        Please arrive 15 minutes early and present your QR code
-                        at entry.
+                        If you did not request this cancellation or have any
+                        questions, please contact our support team.
                         <br />
-                        Enjoy the show 🍿
+                        We hope to see you at the movies soon 🍿
                     </Text>
                 </Container>
             </Body>

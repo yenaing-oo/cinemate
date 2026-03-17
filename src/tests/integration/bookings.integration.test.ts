@@ -6,6 +6,7 @@ import { db } from "~/server/db";
 vi.mock("~/env", () => ({
     env: {
         BOOKING_CANCEL_WINDOW_MINUTES: 60,
+        RESEND_EMAIL_API_KEY: "re_123",
     },
 }));
 
