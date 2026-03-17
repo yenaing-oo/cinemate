@@ -16,9 +16,11 @@ export const moviesRouter = createTRPCRouter({
                 select: {
                     id: true,
                     title: true,
+                    description: true,
                     genres: true,
                     runtime: true,
                     posterUrl: true,
+                    backdropUrl: true,
                 },
                 orderBy: { releaseDate: "desc" },
                 ...(typeof limit === "number" ? { take: limit } : {}),
