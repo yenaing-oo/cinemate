@@ -1,4 +1,4 @@
- import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { fetchNowPlaying, fetchMovieFull } from "./tmdb";
 
 function mockFetchObject(opts: {
@@ -75,7 +75,9 @@ describe("fetchNowPlaying", () => {
     });
 
     it("throws an error with status and text when response is not OK", async () => {
-        const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
 
         globalThis.fetch = vi.fn().mockResolvedValue(
             mockFetchObject({

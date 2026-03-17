@@ -35,7 +35,7 @@ const config = {
         configFile: "vitest.config.mts",
         related: true,
     },
-    tempDirName: ".stryker-tmp-feature2",
+    tempDirName: ".stryker-tmp-feature4",
 };
 
 export default config;

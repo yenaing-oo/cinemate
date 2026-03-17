@@ -86,7 +86,7 @@ describe("moviesRouter", () => {
 
     it("does not add take when limit is undefined", async () => {
         (db.movie.findMany as any).mockResolvedValue([]);
-        
+
         await moviesRouter.createCaller({} as any).nowPlaying({});
 
         expect(db.movie.findMany).toHaveBeenCalledTimes(1);
@@ -99,7 +99,8 @@ describe("moviesRouter", () => {
                 genres: true,
                 runtime: true,
                 posterUrl: true,
-              
+                backdropUrl: true,
+                description: true,
             },
             orderBy: { releaseDate: "desc" },
         });

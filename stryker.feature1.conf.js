@@ -1,6 +1,5 @@
 // @ts-check
 
-
 const config = {
     packageManager: "pnpm",
     plugins: ["@stryker-mutator/vitest-runner"],
@@ -15,9 +14,7 @@ const config = {
     },
     mutator: {
         name: "typescript",
-        excludedMutations: [
-            "ConditionalExpression",
-        ],
+        excludedMutations: ["ConditionalExpression"],
     },
     mutate: [
         "src/server/api/routers/movies.ts",
