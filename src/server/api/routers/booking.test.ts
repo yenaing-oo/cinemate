@@ -97,12 +97,36 @@ describe("bookingsRouter", () => {
             ],
         };
 
+        const movieInDb = {
+            id: "movie-123",
+            title: "Hoppers",
+            posterUrl: "www.google.com",
+        };
+
+        const showtimeSeatInDb = [
+            {
+                id: "showtimeSeat-123",
+                seatId: "seat-123",
+            },
+        ];
+
+        const seatInDb = [
+            {
+                id: "seat-123",
+                row: 1,
+                number: 1,
+            },
+        ];
+
         const tx = {
             booking: { update: vi.fn().mockResolvedValue({}) },
             ticket: { updateMany: vi.fn().mockResolvedValue({ count: 2 }) },
             showtimeSeat: {
                 updateMany: vi.fn().mockResolvedValue({ count: 2 }),
+                findMany: vi.fn().mockResolvedValue(showtimeSeatInDb),
             },
+            movie: { findUnique: vi.fn().mockResolvedValue(movieInDb) },
+            seat: { findMany: vi.fn().mockResolvedValue(seatInDb) },
         };
 
         const ctx: any = {

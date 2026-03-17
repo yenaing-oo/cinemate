@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createCaller } from "~/server/api/root";
 import { db } from "~/server/db";
 
@@ -6,9 +6,13 @@ describe("Showtimes Integration Tests", () => {
     let movie1Id: string;
     let movie2Id: string;
 
-    beforeEach(async () => {
+    const cleanupDb = async () => {
         await db.showtime.deleteMany();
         await db.movie.deleteMany();
+    };
+
+    beforeEach(async () => {
+        await cleanupDb();
 
         const movie1 = await db.movie.create({
             data: {
@@ -61,6 +65,10 @@ describe("Showtimes Integration Tests", () => {
                 },
             ],
         });
+    });
+
+    afterEach(async () => {
+        await cleanupDb();
     });
 
     it("should return only upcoming showtimes belonging to the selected movie", async () => {

@@ -114,19 +114,19 @@ export default async function MovieDetailsPage({
                     <div className="relative">
                         <div className="from-primary/20 via-secondary/10 to-accent/20 absolute -inset-4 rounded-[28px] bg-gradient-to-br blur-2xl" />
                         <Card className="border-border/60 bg-muted/20 relative overflow-hidden rounded-[28px] border shadow-[0_30px_80px_rgba(5,12,24,0.55)]">
-                            <CardContent className="p-0">
+                            <CardContent className="p-3">
                                 {posterUrl ? (
-                                    <div className="relative h-[520px] w-full">
+                                    <div className="relative aspect-[2/3] w-full overflow-hidden rounded-[22px] bg-[linear-gradient(180deg,rgba(12,28,50,0.92),rgba(12,28,50,0.62))]">
                                         <Image
                                             src={posterUrl}
                                             alt={`${title} poster`}
                                             fill
                                             sizes="(min-width: 1024px) 360px, 80vw"
-                                            className="object-cover"
+                                            className="object-contain object-center"
                                         />
                                     </div>
                                 ) : (
-                                    <div className="bg-muted/40 text-muted-foreground flex h-[520px] items-center justify-center px-6 text-center text-sm">
+                                    <div className="bg-muted/40 text-muted-foreground flex aspect-[2/3] items-center justify-center rounded-[22px] px-6 text-center text-sm">
                                         Poster not available
                                     </div>
                                 )}
