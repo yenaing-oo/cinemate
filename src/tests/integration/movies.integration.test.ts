@@ -1,14 +1,21 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createCaller } from "~/server/api/root";
 import { db } from "@/server/db";
 
 describe("Movies Integration Tests", () => {
+    const cleanupDb = async () => {
+        await db.ticket.deleteMany();
+        await db.booking.deleteMany();
+        await db.bookingSession.deleteMany();
+        await db.showtimeSeat.deleteMany();
+        await db.showtime.deleteMany();
+        await db.movie.deleteMany();
+    };
+
     beforeEach(async () => {
         console.log("DB:", process.env.DATABASE_URL);
 
-        // Clear the movies table before each test
-        await db.booking.deleteMany();
-        await db.movie.deleteMany();
+        await cleanupDb();
 
         await db.movie.create({
             data: {
@@ -19,6 +26,10 @@ describe("Movies Integration Tests", () => {
                 releaseDate: new Date("2024-01-01"),
             },
         });
+    });
+
+    afterEach(async () => {
+        await cleanupDb();
     });
 
     it("should fetch now playing movies from the database through nowPlaying procedure", async () => {
@@ -34,5 +45,21 @@ describe("Movies Integration Tests", () => {
         expect(movies[0]?.title).toBe("Movie 1");
         expect(movies[0]?.posterUrl).toBe("https://example.com/poster1.jpg");
         expect(movies[0]?.runtime).toBe(120);
+    });
+
+    it("should return an empty array when no movies exist", async () => {
+        const caller = createCaller({
+            headers: new Headers(),
+            db,
+            supabaseUser: null,
+            user: null,
+        });
+
+        await cleanupDb();
+
+        const movies = await caller.movies.nowPlaying({});
+
+        expect(movies).toEqual([]);
+        expect(movies).toHaveLength(0);
     });
 });
