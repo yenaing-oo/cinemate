@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { BookingStep, BookingStatus, TicketStatus } from "@prisma/client";
 import { createCaller } from "~/server/api/root";
 import { db } from "~/server/db";
@@ -6,11 +6,12 @@ import { db } from "~/server/db";
 vi.mock("~/env", () => ({
     env: {
         BOOKING_CANCEL_WINDOW_MINUTES: 60,
+        RESEND_EMAIL_API_KEY: "re_123",
     },
 }));
 
 describe("Booking Session Integration Tests", () => {
-    beforeEach(async () => {
+    const cleanupDb = async () => {
         await db.ticket.deleteMany();
         await db.booking.deleteMany();
         await db.bookingSession.deleteMany();
@@ -19,6 +20,14 @@ describe("Booking Session Integration Tests", () => {
         await db.seat.deleteMany();
         await db.movie.deleteMany();
         await db.user.deleteMany();
+    };
+
+    beforeEach(async () => {
+        await cleanupDb();
+    });
+
+    afterEach(async () => {
+        await cleanupDb();
     });
 
     it("should complete a booking successfully from a valid checkout session", async () => {

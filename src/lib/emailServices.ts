@@ -1,7 +1,6 @@
 import { api } from "~/trpc/react";
 
 interface SendEmailProps {
-    isConfirmation: boolean;
     userId: string | null;
     movieTitle: string;
     moviePosterUrl: string | null;

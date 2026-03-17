@@ -94,10 +94,39 @@ jobs:
             - run: pnpm install --frozen-lockfile
             - run: pnpm test:backend -- --run
 
+    test-integration:
+        name: Test Integration
+        runs-on: ubuntu-latest
+        needs: [typecheck, lint, prisma]
+        steps:
+            - uses: actions/checkout@v4
+            - uses: pnpm/action-setup@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: "pnpm"
+            - run: pnpm install --frozen-lockfile
+            - name: Create test env file
+              run: |
+                  cat <<'EOF' > .env.test
+                  DATABASE_URL=${{ secrets.TEST_DB_URL }}
+                  DIRECT_URL=${{ secrets.TEST_DIRECT_URL }}
+                  SKIP_ENV_VALIDATION=true
+                  EOF
+            - run: pnpm test:integration -- --run
+
     build:
         name: Build
         runs-on: ubuntu-latest
-        needs: [typecheck, lint, prisma, test-frontend, test-backend]
+        needs:
+            [
+                typecheck,
+                lint,
+                prisma,
+                test-frontend,
+                test-backend,
+                test-integration,
+            ]
         steps:
             - uses: actions/checkout@v4
             - uses: pnpm/action-setup@v4
