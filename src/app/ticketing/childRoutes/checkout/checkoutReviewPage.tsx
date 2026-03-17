@@ -115,7 +115,6 @@ export default function CheckoutReviewPage({
         );
 
         await sendConfirmationEmail({
-            isConfirmation: true,
             userId: bookingSession.userId,
             movieTitle: movieTitle,
             moviePosterUrl: moviePosterUrl,

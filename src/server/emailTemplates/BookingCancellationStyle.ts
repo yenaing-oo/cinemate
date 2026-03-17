@@ -1,6 +1,6 @@
 export const styles = {
     body: {
-        backgroundColor: "#0f172a", // dark indigo
+        backgroundColor: "#0f172a",
         fontFamily: "Arial, sans-serif",
     },
 
@@ -25,7 +25,7 @@ export const styles = {
     },
 
     header: {
-        color: "#ffd26d", // yellow
+        color: "#ffd26d",
         fontSize: "22px",
         fontWeight: "bold",
         marginBottom: "20px",
@@ -40,6 +40,8 @@ export const styles = {
 
     poster: {
         borderRadius: "8px",
+        opacity: 0.7,
+        filter: "grayscale(60%)",
     },
 
     movieTitle: {
@@ -56,6 +58,20 @@ export const styles = {
         margin: "2px 0",
     },
 
+    cancelledBadge: {
+        display: "inline-block" as const,
+        backgroundColor: "#7f1d1d",
+        color: "#fca5a5",
+        fontSize: "11px",
+        fontWeight: "bold",
+        letterSpacing: "0.1em",
+        padding: "3px 10px",
+        borderRadius: "999px",
+        textTransform: "uppercase" as const,
+        marginTop: "0px",
+        marginBottom: "10px",
+    },
+
     sectionTitle: {
         color: "#e5e7eb",
         fontSize: "16px",
@@ -65,10 +81,11 @@ export const styles = {
 
     ticketCard: {
         marginBottom: "12px",
+        opacity: 0.65,
     },
 
     ticketCard_left: {
-        backgroundColor: "#ffffff",
+        backgroundColor: "#edf2f7",
         borderTopLeftRadius: "16px",
         borderBottomLeftRadius: "16px",
         backgroundImage:
@@ -80,7 +97,7 @@ export const styles = {
     },
 
     ticketCard_right: {
-        backgroundColor: "#ffffff",
+        backgroundColor: "#edf2f7",
         borderTopRightRadius: "16px",
         borderBottomRightRadius: "16px",
         backgroundImage:
@@ -91,54 +108,67 @@ export const styles = {
     },
 
     ticketMovie: {
-        color: "#0f172a",
+        color: "#475569",
         fontSize: "15px",
         fontWeight: "bold",
+        textDecoration: "line-through" as const,
     },
 
     ticketText: {
-        color: "#475569",
+        color: "#94a3b8",
         fontSize: "13px",
         marginTop: "4px",
     },
 
     seatText: {
-        color: "#1d4ed8",
+        color: "#94a3b8",
         fontSize: "14px",
         fontWeight: "bold",
         marginTop: "8px",
     },
 
-    qr: {
-        borderRadius: "8px",
+    cancelledStamp: {
+        color: "#ef4444",
+        fontSize: "18px",
+        fontWeight: "bold",
+        letterSpacing: "0.15em",
+        textTransform: "uppercase" as const,
+        border: "2px solid #ef4444",
+        padding: "6px 12px",
+        borderRadius: "4px",
+        textAlign: "center" as const,
+        margin: "auto",
+        opacity: 0.75,
+        display: "block" as const,
+        width: "fit-content",
     },
 
-    paymentCard: {
+    refundCard: {
         backgroundColor: "#1e293b",
         borderRadius: "14px",
         padding: "16px",
         marginTop: "24px",
     },
 
-    paymentLabel: {
+    refundLabel: {
         color: "#94a3b8",
         fontSize: "13px",
     },
 
-    paymentValue: {
+    refundValue: {
         color: "#e5e7eb",
         fontSize: "13px",
     },
 
     totalLabel: {
-        color: "#ffd26d",
+        color: "#4ade80",
         fontSize: "15px",
         fontWeight: "bold",
         marginTop: "8px",
     },
 
     totalValue: {
-        color: "#ffd26d",
+        color: "#4ade80",
         fontSize: "18px",
         fontWeight: "bold",
         marginTop: "8px",

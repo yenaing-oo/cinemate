@@ -30,6 +30,8 @@ export function LoginForm({
     const router = useRouter();
     const searchParams = useSearchParams();
     const verified = searchParams.get("verified");
+    const nextParam = searchParams.get("next");
+    const next = nextParam && nextParam.startsWith("/") ? nextParam : "/";
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -43,8 +45,7 @@ export function LoginForm({
                 password,
             });
             if (error) throw error;
-            // Update this route to redirect to an authenticated route. The user already has an active session.
-            router.push("/");
+            router.push(next);
         } catch (error: unknown) {
             setError(
                 error instanceof Error ? error.message : "An error occurred"
