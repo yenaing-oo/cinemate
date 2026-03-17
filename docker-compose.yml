@@ -1,14 +1,17 @@
 services:
-  app:
-    platform: "linux/amd64"
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_CLIENTVAR: "clientvar"
-    working_dir: /app
-    ports:
-      - "3000:3000"
-    image: cinemate
-    env_file:
-      - .env
+    app:
+        platform: "linux/amd64"
+        build:
+            context: .
+            dockerfile: Dockerfile
+            args:
+                NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+                NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}
+                NEXT_PUBLIC_CINEMA_TIMEZONE: ${NEXT_PUBLIC_CINEMA_TIMEZONE}
+                NEXT_PUBLIC_BOOKING_CANCEL_WINDOW_MINUTES: ${NEXT_PUBLIC_BOOKING_CANCEL_WINDOW_MINUTES}
+        working_dir: /app
+        ports:
+            - "3000:3000"
+        image: cinemate
+        env_file:
+            - .env
