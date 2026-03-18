@@ -1,30 +1,14 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
 import { Card, CardContent } from "~/components/ui/card";
-import { createClient } from "~/lib/supabase/server";
 import { formatCad, formatShowtimeDate, formatShowtimeTime } from "~/lib/utils";
-import { api } from "~/trpc/server";
 
 export default async function WatchPartyDetailPage({
     params,
 }: {
     params: Promise<{ partyId: string }>;
 }) {
-    const supabase = await createClient();
-    const { data, error } = await supabase.auth.getClaims();
-
-    if (error || !data?.claims) {
-        redirect("/auth/login");
-    }
-
     const { partyId } = await params;
-    const result = await api.watchParty.getById({ partyId });
-
-    if (!result.ok || !result.party) {
-        notFound();
-    }
-
-    const { party, role } = result;
+    const party = createMockParty(partyId);
 
     return (
         <section className="space-y-8 py-10 md:py-14">
@@ -37,9 +21,9 @@ export default async function WatchPartyDetailPage({
                         {party.name}
                     </h1>
                     <p className="text-muted-foreground text-lg">
-                        {party.showtime.movie.title} on{" "}
-                        {formatShowtimeDate(party.showtime.startTime)} at{" "}
-                        {formatShowtimeTime(party.showtime.startTime)}
+                        {party.movieTitle} on{" "}
+                        {formatShowtimeDate(party.startTime)} at{" "}
+                        {formatShowtimeTime(party.startTime)}
                     </p>
                 </div>
 
@@ -57,7 +41,7 @@ export default async function WatchPartyDetailPage({
                         <div className="flex items-start justify-between gap-4">
                             <div>
                                 <p className="text-sm font-semibold tracking-[0.18em] text-cyan-100 uppercase">
-                                    {role === "leader" ? "Leader view" : "Guest view"}
+                                    UI preview
                                 </p>
                                 <h2 className="mt-2 text-2xl font-semibold text-white">
                                     Party details
@@ -82,7 +66,7 @@ export default async function WatchPartyDetailPage({
                                     Ticket price
                                 </p>
                                 <p className="mt-2 text-xl font-semibold text-white">
-                                    {formatCad(Number(party.showtime.price ?? 0))}
+                                    {formatCad(party.ticketPrice)}
                                 </p>
                             </div>
                         </div>
@@ -92,7 +76,7 @@ export default async function WatchPartyDetailPage({
                                 Organizer
                             </p>
                             <p className="text-muted-foreground mt-1">
-                                {party.leader.name ?? party.leader.email}
+                                {party.organizer}
                             </p>
                         </div>
 
@@ -101,9 +85,8 @@ export default async function WatchPartyDetailPage({
                                 Next step
                             </p>
                             <p className="text-muted-foreground mt-1 leading-7">
-                                {role === "leader"
-                                    ? "Share the invite code with the group, then send everyone to checkout once they are ready."
-                                    : "Use this page as your party reference, then continue to ticket selection when the organizer is ready."}
+                                This is a frontend preview page. Real backend
+                                data can be connected here later.
                             </p>
                         </div>
                     </CardContent>
@@ -116,45 +99,57 @@ export default async function WatchPartyDetailPage({
                                 Party members
                             </h2>
                             <p className="text-muted-foreground mt-1 text-sm">
-                                {party._count.participants} guest
-                                {party._count.participants === 1 ? "" : "s"} joined
+                                {party.members.length - 1} guests joined
                             </p>
                         </div>
 
                         <div className="space-y-3">
-                            <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-4">
-                                <p className="font-semibold text-white">
-                                    {party.leader.name ?? party.leader.email}
-                                </p>
-                                <p className="text-sm text-cyan-100">Leader</p>
-                            </div>
-
-                            {party.participants.length === 0 ? (
-                                <div className="rounded-2xl border border-white/10 bg-white/4 p-4">
-                                    <p className="text-muted-foreground">
-                                        No guests have joined with the invite code yet.
+                            {party.members.map((member) => (
+                                <div
+                                    key={member.name}
+                                    className={`rounded-2xl border p-4 ${
+                                        member.role === "Leader"
+                                            ? "border-cyan-300/20 bg-cyan-300/10"
+                                            : "border-white/10 bg-white/4"
+                                    }`}
+                                >
+                                    <p className="font-semibold text-white">
+                                        {member.name}
+                                    </p>
+                                    <p
+                                        className={`text-sm ${
+                                            member.role === "Leader"
+                                                ? "text-cyan-100"
+                                                : "text-muted-foreground"
+                                        }`}
+                                    >
+                                        {member.role}
                                     </p>
                                 </div>
-                            ) : (
-                                party.participants.map((participant) => (
-                                    <div
-                                        key={participant.id}
-                                        className="rounded-2xl border border-white/10 bg-white/4 p-4"
-                                    >
-                                        <p className="font-medium text-white">
-                                            {participant.user.name ??
-                                                participant.user.email}
-                                        </p>
-                                        <p className="text-muted-foreground text-sm">
-                                            Joined party
-                                        </p>
-                                    </div>
-                                ))
-                            )}
+                            ))}
                         </div>
                     </CardContent>
                 </Card>
             </div>
         </section>
     );
+}
+
+function createMockParty(partyId: string) {
+    const inviteCode = partyId.slice(0, 8).toUpperCase();
+
+    return {
+        name: `Watch Party ${inviteCode || "Preview"}`,
+        movieTitle: "Watch Party Preview",
+        startTime: new Date("2026-03-20T19:30:00"),
+        inviteCode: inviteCode || "AB12CD34",
+        ticketPrice: 18.5,
+        organizer: "Demo Organizer",
+        status: "OPEN",
+        members: [
+            { name: "Demo Organizer", role: "Leader" },
+            { name: "Alex Guest", role: "Joined party" },
+            { name: "Sam Guest", role: "Joined party" },
+        ],
+    };
 }

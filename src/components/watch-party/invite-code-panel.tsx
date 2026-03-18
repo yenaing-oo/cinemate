@@ -102,9 +102,9 @@ export function InviteCodePanel({
                                 </p>
                             </div>
                             <p className="text-muted-foreground mt-2 text-sm leading-6">
-                                We will open the matching party, add it to your
-                                joined list, and keep the invite code attached
-                                to your account.
+                                This page is a UI preview right now. Entering a
+                                code will show how a joined party would look in
+                                the layout.
                             </p>
                         </div>
 
@@ -117,8 +117,9 @@ export function InviteCodePanel({
                                     Join the group
                                 </p>
                                 <p className="text-muted-foreground mt-1 text-sm leading-6">
-                                    The party will appear in your joined
-                                    section automatically.
+                                    The preview adds a sample party to the
+                                    joined section so the UI is easier to
+                                    review.
                                 </p>
                             </div>
 
@@ -130,8 +131,9 @@ export function InviteCodePanel({
                                     Stay ready
                                 </p>
                                 <p className="text-muted-foreground mt-1 text-sm leading-6">
-                                    Open the party details and follow the
-                                    organizer&apos;s plan for tickets.
+                                    The next backend step can connect this form
+                                    to real invite codes and real party
+                                    details.
                                 </p>
                             </div>
                         </div>
