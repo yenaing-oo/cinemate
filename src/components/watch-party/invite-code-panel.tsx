@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { LoaderCircle, Sparkles, Ticket, Users } from "lucide-react";
+import { motion } from "motion/react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
@@ -22,6 +23,11 @@ export function InviteCodePanel({
     onInviteCodeChange,
 }: InviteCodePanelProps) {
     return (
+        <motion.div
+            whileHover={{ y: -4 }}
+            transition={{ type: "spring", stiffness: 220, damping: 20 }}
+            className="h-full"
+        >
         <Card className="glass-card h-full rounded-[1.75rem] border-white/10 bg-transparent shadow-none">
             <CardContent className="flex h-full flex-col gap-6 p-6 md:p-8">
                 <div className="space-y-2">
@@ -143,5 +149,6 @@ export function InviteCodePanel({
                 )}
             </CardContent>
         </Card>
+        </motion.div>
     );
 }

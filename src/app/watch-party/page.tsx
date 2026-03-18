@@ -1,6 +1,7 @@
 "use client";
 
 import { type FormEvent, useState } from "react";
+import { motion } from "motion/react";
 import { InviteCodePanel } from "~/components/watch-party/invite-code-panel";
 import { PartySection } from "~/components/watch-party/party-section";
 import { type WatchPartyListItem } from "~/components/watch-party/types";
@@ -36,7 +37,12 @@ export default function WatchPartyPage() {
     return (
         <section className="space-y-8 py-10 md:py-14">
             <div className="grid gap-6 xl:grid-cols-[1.35fr_0.9fr]">
-                <Card className="glass-card rounded-[1.75rem] border-white/10 bg-transparent shadow-none">
+                <motion.div
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.45, ease: "easeOut" }}
+                >
+                    <Card className="glass-card rounded-[1.75rem] border-white/10 bg-transparent shadow-none">
                     <CardContent className="space-y-6 p-6 md:p-8">
                         <div className="space-y-2">
                             <h1 className="text-3xl font-bold text-white md:text-4xl">
@@ -65,9 +71,16 @@ export default function WatchPartyPage() {
                             />
                         </div>
                     </CardContent>
-                </Card>
+                    </Card>
+                </motion.div>
 
-                <form className="h-full" onSubmit={handleJoinParty}>
+                <motion.form
+                    className="h-full"
+                    onSubmit={handleJoinParty}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.45, delay: 0.08, ease: "easeOut" }}
+                >
                     <InviteCodePanel
                         inviteCode={inviteCode}
                         inviteCodeMessage={inviteCodeMessage}
@@ -75,7 +88,7 @@ export default function WatchPartyPage() {
                         isUnauthorized={false}
                         onInviteCodeChange={setInviteCode}
                     />
-                </form>
+                </motion.form>
             </div>
         </section>
     );
