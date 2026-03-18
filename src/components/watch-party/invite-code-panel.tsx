@@ -141,16 +141,16 @@ export function InviteCodePanel({
                                 </div>
                             </div>
 
-                            <Link
-                                href="/movies"
-                                className="text-primary inline-flex text-sm font-medium transition hover:text-cyan-200"
-                            >
-                                Browse movies instead
-                            </Link>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+                        <Link
+                            href="/movies"
+                            className="inline-flex w-full items-center justify-center rounded-full border border-cyan-300/20 bg-cyan-300/10 px-4 py-3 text-sm font-semibold text-cyan-100 transition hover:border-cyan-300/35 hover:bg-cyan-300/16"
+                        >
+                            Browse movies instead
+                        </Link>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
         </motion.div>
     );
 }
