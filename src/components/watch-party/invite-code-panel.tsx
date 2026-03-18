@@ -143,7 +143,7 @@ export function InviteCodePanel({
 
                         <Link
                             href="/movies"
-                            className="inline-flex w-full items-center justify-center rounded-full border border-cyan-300/20 bg-cyan-300/10 px-4 py-3 text-sm font-semibold text-cyan-100 transition hover:border-cyan-300/35 hover:bg-cyan-300/16"
+                            className="inline-flex w-full items-center justify-center rounded-full border border-sky-400/35 bg-sky-500/18 px-4 py-3 text-sm font-semibold text-sky-100 transition hover:border-sky-300/50 hover:bg-sky-500/28"
                         >
                             Browse movies instead
                         </Link>
