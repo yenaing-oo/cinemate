@@ -43,34 +43,34 @@ export default function WatchPartyPage() {
                     transition={{ duration: 0.45, ease: "easeOut" }}
                 >
                     <Card className="glass-card rounded-[1.75rem] border-white/10 bg-transparent shadow-none">
-                    <CardContent className="space-y-6 p-6 md:p-8">
-                        <div className="space-y-2">
-                            <h1 className="text-3xl font-bold text-white md:text-4xl">
-                                Your Watch Parties
-                            </h1>
-                            <p className="text-muted-foreground max-w-2xl leading-7">
-                                Keep track of parties you created and parties
-                                you joined with an invitation code.
-                            </p>
-                        </div>
+                        <CardContent className="space-y-6 p-6 md:p-8">
+                            <div className="space-y-2">
+                                <h1 className="text-3xl font-bold text-white md:text-4xl">
+                                    Your Watch Parties
+                                </h1>
+                                <p className="text-muted-foreground max-w-2xl leading-7">
+                                    Keep track of parties you created and
+                                    parties you joined with an invitation code.
+                                </p>
+                            </div>
 
-                        <div className="space-y-6">
-                            <PartySection
-                                title="Watch Party Created"
-                                emptyTitle="No parties created yet"
-                                emptyMessage="When you create a party, it will appear here."
-                                parties={createdParties}
-                                roleLabel="Leader"
-                            />
-                            <PartySection
-                                title="Watch Party Joined"
-                                emptyTitle="No parties joined yet"
-                                emptyMessage="When you open a party with an invitation code, it will appear here."
-                                parties={joinedParties}
-                                roleLabel="Guest"
-                            />
-                        </div>
-                    </CardContent>
+                            <div className="space-y-6">
+                                <PartySection
+                                    title="Watch Party Created"
+                                    emptyTitle="No parties created yet"
+                                    emptyMessage="When you create a party, it will appear here."
+                                    parties={createdParties}
+                                    roleLabel="Leader"
+                                />
+                                <PartySection
+                                    title="Watch Party Joined"
+                                    emptyTitle="No parties joined yet"
+                                    emptyMessage="When you open a party with an invitation code, it will appear here."
+                                    parties={joinedParties}
+                                    roleLabel="Guest"
+                                />
+                            </div>
+                        </CardContent>
                     </Card>
                 </motion.div>
 
@@ -79,7 +79,11 @@ export default function WatchPartyPage() {
                     onSubmit={handleJoinParty}
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.45, delay: 0.08, ease: "easeOut" }}
+                    transition={{
+                        duration: 0.45,
+                        delay: 0.08,
+                        ease: "easeOut",
+                    }}
                 >
                     <InviteCodePanel
                         inviteCode={inviteCode}

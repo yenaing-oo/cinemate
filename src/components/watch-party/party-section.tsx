@@ -143,7 +143,8 @@ export function PartySection({
                                                 {party.leader.name ??
                                                     party.leader.email}
                                                 {" · "}
-                                                {party._count.participants} joined
+                                                {party._count.participants}{" "}
+                                                joined
                                             </span>
                                         </div>
                                         <p className="text-muted-foreground">
