@@ -102,9 +102,9 @@ export function InviteCodePanel({
                                 </p>
                             </div>
                             <p className="text-muted-foreground mt-2 text-sm leading-6">
-                                This page is a UI preview right now. Entering a
-                                code will show how a joined party would look in
-                                the layout.
+                                Enter the invitation code to open the matching
+                                party and review the details shared with your
+                                group.
                             </p>
                         </div>
 
@@ -117,9 +117,8 @@ export function InviteCodePanel({
                                     Join the group
                                 </p>
                                 <p className="text-muted-foreground mt-1 text-sm leading-6">
-                                    The preview adds a sample party to the
-                                    joined section so the UI is easier to
-                                    review.
+                                    Use a party code to open the shared plan
+                                    and stay aligned with everyone attending.
                                 </p>
                             </div>
 
@@ -131,9 +130,8 @@ export function InviteCodePanel({
                                     Stay ready
                                 </p>
                                 <p className="text-muted-foreground mt-1 text-sm leading-6">
-                                    The next backend step can connect this form
-                                    to real invite codes and real party
-                                    details.
+                                    Check the party details, confirm the plan,
+                                    and get ready for the next booking step.
                                 </p>
                             </div>
                         </div>
