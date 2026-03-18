@@ -1,57 +1,40 @@
 import Image from "next/image";
 import Link from "next/link";
+import HomeHero from "~/app/components/HomeHero";
 import { Card, CardContent } from "~/components/ui/card";
 import { formatRuntime, formatList } from "~/lib/utils";
 import { api, HydrateClient } from "~/trpc/server";
 
 export default async function Home() {
-    const nowPlayingRaw = await api.movies.nowPlaying({ limit: 4 });
-    const nowPlaying = nowPlayingRaw.map((movie) => {
+    const nowPlayingRaw = await api.movies.nowPlaying({ limit: 8 });
+    const movies = nowPlayingRaw.map((movie) => {
         const genres = formatList(movie.genres);
         return {
             id: movie.id,
             title: movie.title,
+            description:
+                movie.description?.trim() ||
+                "Reserve seats, split payments, and get everyone into the same show without the group-chat chaos.",
             genre:
                 genres.length > 0
                     ? genres.slice(0, 2).join(" · ")
                     : "Genre unavailable",
             duration: formatRuntime(movie.runtime),
             poster: movie.posterUrl ?? "/posters/placeholder.png",
+            backdrop:
+                movie.backdropUrl ??
+                movie.posterUrl ??
+                "/posters/placeholder.png",
         };
     });
+    const nowPlaying = movies.slice(0, 4);
+    const featuredMovies =
+        movies.length > 4 ? movies.slice(4, 8) : movies.slice(0, 4);
 
     return (
         <HydrateClient>
             <>
-                {/* HERO */}
-                <section className="full-bleed relative -mt-24 min-h-screen overflow-hidden">
-                    <video
-                        autoPlay
-                        muted
-                        loop
-                        playsInline
-                        className="absolute inset-0 h-full w-full object-cover"
-                    >
-                        <source src="/video/homepage.mp4" type="video/mp4" />
-                    </video>
-
-                    <div className="hero-overlay absolute inset-0" />
-
-                    {/* HERO CONTENT */}
-                    <div className="relative z-10 mx-auto w-full max-w-7xl px-6">
-                        <div className="flex min-h-[70vh] flex-col items-center justify-center pt-16 text-center md:pt-24">
-                            <div className="max-w-3xl">
-                                <h2 className="text-4xl font-bold md:text-5xl">
-                                    Make it a movie night.
-                                </h2>
-                                <p className="text-muted-foreground mt-3 text-lg md:text-xl">
-                                    One organizer, many payers, one smooth
-                                    booking flow.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+                <HomeHero movies={featuredMovies} />
 
                 {/* NOW PLAYING */}
                 <section className="pt-10 pb-16">

@@ -1,0 +1,103 @@
+name: Publish and Deploy to Production
+
+on:
+    push:
+        branches: [main]
+
+env:
+    NODE_VERSION: 20
+    DATABASE_URL: ${{ secrets.PROD_DB_URL }}
+    DIRECT_URL: ${{ secrets.PROD_DIRECT_URL }}
+    NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.PROD_NEXT_PUBLIC_SUPABASE_URL }}
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.PROD_NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+    NEXT_PUBLIC_CINEMA_TIMEZONE: ${{ secrets.PROD_NEXT_PUBLIC_CINEMA_TIMEZONE }}
+    NEXT_PUBLIC_BOOKING_CANCEL_WINDOW_MINUTES: ${{ secrets.PROD_NEXT_PUBLIC_BOOKING_CANCEL_WINDOW_MINUTES }}
+
+jobs:
+    migrate-db:
+        name: Deploy Database Migrations
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check out the repo
+              uses: actions/checkout@v5
+
+            - name: Set up pnpm
+              uses: pnpm/action-setup@v4
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Run Prisma migrations
+              run: pnpm prisma migrate deploy
+
+            - name: Set up Supabase CLI
+              uses: supabase/setup-cli@v1
+
+            - name: Run Supabase migrations
+              run: supabase db push --db-url "$DIRECT_URL" --include-all
+
+    publish-image:
+        name: Publish Docker Image to Docker Hub
+        runs-on: ubuntu-latest
+        needs: migrate-db
+        permissions:
+            packages: write
+            contents: read
+            attestations: write
+            id-token: write
+        steps:
+            - name: Check out the repo
+              uses: actions/checkout@v5
+
+            - name: Log in to Docker Hub
+              uses: docker/login-action@v3.6.0
+              with:
+                  username: ${{ secrets.DOCKER_USERNAME }}
+                  password: ${{ secrets.DOCKER_PASSWORD }}
+
+            - name: Extract metadata (tags, labels) for Docker
+              id: meta
+              uses: docker/metadata-action@v5.10.0
+              with:
+                  images: matrixplus/cinemate
+                  tags: |
+                      type=raw,value=latest
+                      type=sha,prefix=
+
+            - name: Build and push Docker image
+              id: push
+              uses: docker/build-push-action@v6.18.0
+              with:
+                  context: .
+                  file: ./Dockerfile
+                  push: true
+                  build-args: |
+                      NEXT_PUBLIC_SUPABASE_URL=${{ env.NEXT_PUBLIC_SUPABASE_URL }}
+                      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${{ env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+                      NEXT_PUBLIC_CINEMA_TIMEZONE=${{ env.NEXT_PUBLIC_CINEMA_TIMEZONE }}
+                      NEXT_PUBLIC_BOOKING_CANCEL_WINDOW_MINUTES=${{ env.NEXT_PUBLIC_BOOKING_CANCEL_WINDOW_MINUTES }}
+                  tags: ${{ steps.meta.outputs.tags }}
+                  labels: ${{ steps.meta.outputs.labels }}
+
+            - name: Generate artifact attestation
+              uses: actions/attest-build-provenance@v3
+              with:
+                  subject-name: index.docker.io/matrixplus/cinemate
+                  subject-digest: ${{ steps.push.outputs.digest }}
+                  push-to-registry: true
+
+    deploy-render:
+        name: Trigger Render Redeploy
+        runs-on: ubuntu-latest
+        needs: publish-image
+        steps:
+            - name: Deploy
+              env:
+                  deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+              run: curl --fail --show-error --silent "$deploy_url"
