@@ -24,7 +24,8 @@ export function PartySection({
             <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-white">{title}</h3>
                 <p className="text-muted-foreground text-sm">
-                    {parties.length} {parties.length === 1 ? "party" : "parties"}
+                    {parties.length}{" "}
+                    {parties.length === 1 ? "party" : "parties"}
                 </p>
             </div>
 

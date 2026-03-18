@@ -39,9 +39,6 @@ export default function WatchPartyPage() {
                 <Card className="glass-card rounded-[1.75rem] border-white/10 bg-transparent shadow-none">
                     <CardContent className="space-y-6 p-6 md:p-8">
                         <div className="space-y-2">
-                            <div className="inline-flex rounded-full border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-xs font-semibold tracking-[0.24em] text-cyan-100 uppercase">
-                                Watch Party
-                            </div>
                             <h1 className="text-3xl font-bold text-white md:text-4xl">
                                 Your Watch Parties
                             </h1>

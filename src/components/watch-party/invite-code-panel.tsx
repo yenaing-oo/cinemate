@@ -25,9 +25,6 @@ export function InviteCodePanel({
         <Card className="glass-card h-full rounded-[1.75rem] border-white/10 bg-transparent shadow-none">
             <CardContent className="flex h-full flex-col gap-6 p-6 md:p-8">
                 <div className="space-y-2">
-                    <div className="inline-flex rounded-full border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-xs font-semibold tracking-[0.24em] text-cyan-100 uppercase">
-                        Watch Party
-                    </div>
                     <h1 className="text-2xl font-bold text-white md:text-3xl">
                         Open with invitation code
                     </h1>
@@ -117,8 +114,8 @@ export function InviteCodePanel({
                                     Join the group
                                 </p>
                                 <p className="text-muted-foreground mt-1 text-sm leading-6">
-                                    Use a party code to open the shared plan
-                                    and stay aligned with everyone attending.
+                                    Use a party code to open the shared plan and
+                                    stay aligned with everyone attending.
                                 </p>
                             </div>
 
