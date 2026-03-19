@@ -22,7 +22,8 @@ const config = {
             "BooleanLiteral",
             "ArrowFunction",
             "LogicalOperator",
-        ]},
+        ],
+    },
     mutate: [
         "src/server/api/routers/bookings.ts",
         "src/app/bookings/BookingDropDownRow.tsx",
