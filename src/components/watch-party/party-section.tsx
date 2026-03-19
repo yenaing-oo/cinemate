@@ -43,15 +43,15 @@ export function PartySection({
             {parties.length === 0 ? (
                 <div className="glass-card space-y-6 rounded-[1.5rem] border border-white/10 px-6 py-10">
                     <div className="text-center">
-                    <div className="mx-auto mb-4 flex h-18 w-18 items-center justify-center rounded-[1.75rem] bg-cyan-300/12 text-cyan-100">
-                        <Users className="h-8 w-8" />
-                    </div>
-                    <h4 className="text-xl font-semibold text-white">
-                        {emptyTitle}
-                    </h4>
-                    <p className="text-muted-foreground mx-auto mt-2 max-w-xl leading-7">
-                        {emptyMessage}
-                    </p>
+                        <div className="mx-auto mb-4 flex h-18 w-18 items-center justify-center rounded-[1.75rem] bg-cyan-300/12 text-cyan-100">
+                            <Users className="h-8 w-8" />
+                        </div>
+                        <h4 className="text-xl font-semibold text-white">
+                            {emptyTitle}
+                        </h4>
+                        <p className="text-muted-foreground mx-auto mt-2 max-w-xl leading-7">
+                            {emptyMessage}
+                        </p>
                     </div>
 
                     <div className="rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-4">
@@ -219,9 +219,7 @@ function getPreviewParties(role: "Leader" | "Guest"): WatchPartyListItem[] {
         {
             id: `${role.toLowerCase()}-preview-1`,
             name:
-                role === "Leader"
-                    ? "Friday Night Crew"
-                    : "Downtown Movie Plan",
+                role === "Leader" ? "Friday Night Crew" : "Downtown Movie Plan",
             inviteCode: role === "Leader" ? "FRIDAY24" : "JOIN824",
             status: "OPEN",
             leader: {
@@ -241,9 +239,7 @@ function getPreviewParties(role: "Leader" | "Guest"): WatchPartyListItem[] {
         {
             id: `${role.toLowerCase()}-preview-2`,
             name:
-                role === "Leader"
-                    ? "Saturday Premiere"
-                    : "Campus Watch Party",
+                role === "Leader" ? "Saturday Premiere" : "Campus Watch Party",
             inviteCode: role === "Leader" ? "SATSHOW" : "CAMPUS77",
             status: "OPEN",
             leader: {

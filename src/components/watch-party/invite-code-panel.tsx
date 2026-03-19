@@ -1,12 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-    LoaderCircle,
-    Sparkles,
-    Ticket,
-    Users,
-} from "lucide-react";
+import { LoaderCircle, Sparkles, Ticket, Users } from "lucide-react";
 import { motion } from "motion/react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -190,8 +185,8 @@ export function InviteCodeDetails() {
                             </p>
                         </div>
                         <p className="text-muted-foreground mt-2 text-sm leading-6">
-                            Enter the invitation code to open the matching
-                            party and review the details shared with your group.
+                            Enter the invitation code to open the matching party
+                            and review the details shared with your group.
                         </p>
                     </div>
 
