@@ -47,10 +47,10 @@ export default function RootLayout({
                                             Movies
                                         </Link>
                                         <Link
-                                            href="#watch-party"
+                                            href="/watch-party"
                                             className="hover:text-foreground transition"
                                         >
-                                            WatchParty
+                                            Watch Party
                                         </Link>
                                         <Link
                                             href="/bookings"
