@@ -17,8 +17,9 @@ datasource db {
 
 model User {
     id               String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    supabaseId       String? @unique
-    name             String?
+    supabaseId       String  @unique
+    firstName        String
+    lastName         String
     email            String  @unique
     imageURL         String?
     hasPaymentMethod Boolean @default(false)
