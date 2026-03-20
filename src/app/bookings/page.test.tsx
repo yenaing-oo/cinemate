@@ -11,7 +11,7 @@ vi.mock("~/env.mjs", () => ({
 }));
 
 const listResult = {
-    data: [] as unknown[], // will be adjusted in individual tests
+    data: [] as unknown[] | undefined, // allow undefined for mutation coverage
     isLoading: false,
     error: null,
     refetch: vi.fn(),
@@ -26,6 +26,7 @@ vi.mock("~/lib/utils", () => ({
     formatSeatFromCode: vi.fn(() => "A1"),
     formatBookingNumber: vi.fn((n: number) => `#${n}`),
     formatCad: vi.fn((amt: number) => `$${amt.toFixed(2)}`),
+    cn: (...args: any[]) => args.filter(Boolean).join(" "),
 }));
 
 vi.mock("~/trpc/react", () => ({
@@ -44,8 +45,16 @@ vi.mock("~/components/ui/card", () => ({
 }));
 
 describe("OrderHistoryPage", () => {
-    it("shows a message when there are no bookings", () => {
+    it("shows a message when there are no bookings (empty array)", () => {
         listResult.data = [];
+        render(<OrderHistoryPage />);
+        expect(
+            screen.getByText(/you've not booked any tickets yet/i)
+        ).toBeInTheDocument();
+    });
+
+    it("shows a message when there are no bookings (undefined)", () => {
+        listResult.data = undefined;
         render(<OrderHistoryPage />);
         expect(
             screen.getByText(/you've not booked any tickets yet/i)
@@ -86,5 +95,43 @@ describe("OrderHistoryPage", () => {
 
         // Check for the formatted total amount
         expect(screen.getByText(/\$50\.00/i)).toBeInTheDocument();
+    });
+
+    it("calls cancel mutation when cancel is confirmed", async () => {
+        listResult.data = [
+            {
+                id: "1",
+                bookingNumber: 123,
+                status: "CONFIRMED",
+                showtime: {
+                    startTime: new Date(Date.now() + 3 * 60 * 60 * 1000),
+                    movie: {
+                        title: "Interstellar",
+                        qposterUrl: "/posters/test.png",
+                    },
+                },
+                tickets: [{ showtimeSeat: { seat: { row: 1, number: 1 } } }],
+                totalAmount: "50.00",
+            },
+        ];
+        render(<OrderHistoryPage />);
+        // Expand the details to show the cancel button
+        const details = document.querySelector("details");
+        if (details) (details as HTMLDetailsElement).open = true;
+        // Click the cancel button
+        const cancelBtn = screen.getByRole("button", {
+            name: /Cancel Booking/i,
+        });
+        cancelBtn.click();
+        // Confirm dialog should appear, click the confirm button
+        const confirmBtn = await screen.findByRole("button", {
+            name: /Yes, Cancel/i,
+        });
+        confirmBtn.click();
+        // Wait for the mutation to be called
+        await Promise.resolve(); // flush microtasks
+        expect(cancelResult.mutateAsync).toHaveBeenCalledWith({
+            bookingId: "1",
+        });
     });
 });

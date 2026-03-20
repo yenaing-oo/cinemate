@@ -169,4 +169,70 @@ describe("bookingsRouter", () => {
             },
         });
     });
+
+    // Test case: cancel procedure throws if cancellation window has passed
+    it("cancel: throws if cancellation window has passed", async () => {
+        // Set up a showtime that is less than the cancellation window away
+        const now = new Date("2026-03-03T11:30:00-06:00");
+        vi.setSystemTime(now);
+        const showtimeStart = new Date(now.getTime() + 30 * 60 * 1000); // 30 minutes from now
+
+        const bookingInDb = {
+            id: "booking-456",
+            userId: "user-123",
+            status: BookingStatus.CONFIRMED,
+            showtime: { startTime: showtimeStart },
+            tickets: [],
+        };
+
+        const ctx: any = {
+            user: { id: "user-123" },
+            db: {
+                booking: {
+                    findUnique: vi.fn().mockResolvedValue(bookingInDb),
+                },
+                $transaction: vi.fn(),
+            },
+        };
+
+        const caller = bookingsRouter.createCaller(ctx);
+        await expect(
+            caller.cancel({ bookingId: "booking-456" })
+        ).rejects.toThrow(
+            /Cannot cancel booking less than/ // error message check
+        );
+        vi.useRealTimers();
+    });
+
+    // Test case: cancel procedure throws if cancellation window is exactly at the boundary
+    it("cancel: throws if cancellation window is exactly at the boundary", async () => {
+        // Set up a showtime that is exactly the cancellation window away
+        const CANCELLATION_WINDOW = 60 * 60 * 1000; // 60 minutes in ms
+        const now = new Date("2026-03-03T11:30:00-06:00");
+        vi.setSystemTime(now);
+        const showtimeStart = new Date(now.getTime() + CANCELLATION_WINDOW); // exactly at the window
+
+        const bookingInDb = {
+            id: "booking-789",
+            userId: "user-123",
+            status: BookingStatus.CONFIRMED,
+            showtime: { startTime: showtimeStart },
+            tickets: [],
+        };
+
+        const ctx: any = {
+            user: { id: "user-123" },
+            db: {
+                booking: {
+                    findUnique: vi.fn().mockResolvedValue(bookingInDb),
+                },
+                $transaction: vi.fn(),
+            },
+        };
+
+        const caller = bookingsRouter.createCaller(ctx);
+        const result = await caller.cancel({ bookingId: "booking-789" });
+        expect(result).toEqual({ success: true });
+        vi.useRealTimers();
+    });
 });

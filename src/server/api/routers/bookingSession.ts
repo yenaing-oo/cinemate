@@ -190,7 +190,7 @@ export function validateSession(session: any, userId: string, now: Date) {
     }
 }
 
-async function setTicketCount(
+export async function setTicketCount(
     db: PrismaClient,
     ticketCount: number,
     showtimeId: string,

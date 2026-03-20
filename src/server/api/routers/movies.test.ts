@@ -83,4 +83,27 @@ describe("moviesRouter", () => {
             take: 5,
         });
     });
+
+    it("does not add take when limit is undefined", async () => {
+        (db.movie.findMany as any).mockResolvedValue([]);
+
+        await moviesRouter.createCaller({} as any).nowPlaying({});
+
+        expect(db.movie.findMany).toHaveBeenCalledTimes(1);
+
+        const callArgs = (db.movie.findMany as any).mock.calls[0][0];
+        expect(db.movie.findMany).toHaveBeenCalledWith({
+            select: {
+                id: true,
+                title: true,
+                genres: true,
+                runtime: true,
+                posterUrl: true,
+                backdropUrl: true,
+                description: true,
+            },
+            orderBy: { releaseDate: "desc" },
+        });
+        expect(callArgs).not.toHaveProperty("take");
+    });
 });
