@@ -142,8 +142,6 @@ export default function CheckoutReviewPage({
                         bookingSession.id,
                         $Enums.BookingStep.COMPLETED
                     );
-                    await processConfirmationEmail();
-                    router.push("/bookings");
                 } catch (error) {
                     const message =
                         error instanceof Error
@@ -155,6 +153,19 @@ export default function CheckoutReviewPage({
                     });
                     router.replace("/ticketing");
                     router.refresh();
+                    return;
+                }
+
+                try {
+                    await processConfirmationEmail();
+                } catch {
+                    toast.error(
+                        "Your reservation was confirmed, but the confirmation email could not be sent.",
+                        {
+                            description:
+                                "You can still find your latest booking on the bookings page.",
+                        }
+                    );
                 }
             }}
         />
