@@ -14,11 +14,7 @@ const config = {
     },
     mutator: {
         name: "typescript",
-        excludedMutations: [
-            "StringLiteral",
-            "ObjectLiteral",
-            "BlockStatement",
-        ],
+        excludedMutations: ["StringLiteral", "ObjectLiteral", "BlockStatement"],
     },
     mutate: [
         "src/server/api/routers/email.ts",

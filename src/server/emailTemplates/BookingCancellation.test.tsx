@@ -65,5 +65,4 @@ describe("BookingCancellation email template", () => {
         expect(emailContent).toContain("5-7 business days");
         expect(emailContent).toContain("20.00");
     });
-
 });
