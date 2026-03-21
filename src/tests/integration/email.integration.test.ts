@@ -37,7 +37,8 @@ describe("Email Integration Tests", () => {
             data: {
                 id: validUserId,
                 email: "test@example.com",
-                name: "Test User",
+                firstName: "Test",
+                lastName: "User",
             },
         });
     });
@@ -54,8 +55,9 @@ describe("Email Integration Tests", () => {
             user: {
                 id: validUserId,
                 email: "test@example.com",
-                name: null,
-                supabaseId: null,
+                firstName: "Test",
+                lastName: "User",
+                supabaseId: "",
                 imageURL: null,
                 hasPaymentMethod: false,
             },
@@ -87,7 +89,8 @@ describe("Email Integration Tests", () => {
             user: {
                 id: invalidUserId,
                 email: "nonexistent@example.com",
-                name: null,
+                firstName: "",
+                lastName: "",
                 supabaseId: null,
                 imageURL: null,
                 hasPaymentMethod: false,
