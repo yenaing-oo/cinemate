@@ -3,7 +3,20 @@ import { render } from "@react-email/render";
 import { env } from "~/env.mjs";
 import WatchPartyInvitation from "~/server/emailTemplates/WatchPartyInvitation";
 
-const resend = new Resend(process.env.RESEND_EMAIL_API_KEY ?? "");
+let resendClient: Resend | null = null;
+
+const getResendClient = () => {
+    if (resendClient) return resendClient;
+
+    const apiKey = env.RESEND_EMAIL_API_KEY;
+
+    if (!apiKey) {
+        throw new Error("RESEND_EMAIL_API_KEY is not configured");
+    }
+
+    resendClient = new Resend(apiKey);
+    return resendClient;
+};
 
 export interface SendWatchPartyInviteParams {
     emails: string[];
@@ -18,6 +31,7 @@ export interface SendWatchPartyInviteParams {
 export const sendWatchPartyInvitations = async (
     params: SendWatchPartyInviteParams
 ) => {
+    const resend = getResendClient();
     const watchPartyUrl = new URL("/watch-party", env.APP_BASE_URL).toString();
     const signUpUrl = new URL("/auth/sign-up", env.APP_BASE_URL).toString();
 
