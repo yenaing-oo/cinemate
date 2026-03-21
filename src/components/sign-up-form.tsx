@@ -21,6 +21,8 @@ export function SignUpForm({
     className,
     ...props
 }: React.ComponentPropsWithoutRef<"div">) {
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [repeatPassword, setRepeatPassword] = useState("");
@@ -45,6 +47,10 @@ export function SignUpForm({
                 email,
                 password,
                 options: {
+                    data: {
+                        first_name: firstName,
+                        last_name: lastName,
+                    },
                     emailRedirectTo: `${window.location.origin}/auth/login?verified=true`,
                 },
             });
@@ -69,12 +75,37 @@ export function SignUpForm({
                 <CardContent>
                     <form onSubmit={handleSignUp}>
                         <div className="flex flex-col gap-6">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="first-name">
+                                        First Name
+                                    </Label>
+                                    <Input
+                                        id="first-name"
+                                        required
+                                        value={firstName}
+                                        onChange={(e) =>
+                                            setFirstName(e.target.value)
+                                        }
+                                    />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="last-name">Last Name</Label>
+                                    <Input
+                                        id="last-name"
+                                        required
+                                        value={lastName}
+                                        onChange={(e) =>
+                                            setLastName(e.target.value)
+                                        }
+                                    />
+                                </div>
+                            </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="email">Email</Label>
                                 <Input
                                     id="email"
                                     type="email"
-                                    placeholder="m@example.com"
                                     required
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}

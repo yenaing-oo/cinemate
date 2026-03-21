@@ -127,7 +127,9 @@ async function main() {
     console.log("Creating a sample user...");
     const user = await prisma.user.create({
         data: {
-            name: "John Doe",
+            supabaseId: "sample-supabase-id",
+            firstName: "John",
+            lastName: "Doe",
             email: "user@example.com",
         },
     });

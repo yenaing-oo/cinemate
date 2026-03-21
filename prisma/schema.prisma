@@ -17,16 +17,19 @@ datasource db {
 
 model User {
     id               String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    supabaseId       String? @unique
-    name             String?
+    supabaseId       String?  @unique
+    firstName        String
+    lastName         String
     email            String  @unique
     imageURL         String?
     hasPaymentMethod Boolean @default(false)
 
     // Cinemate relations
-    bookings       Booking[]
-    heldSeats      ShowtimeSeat[]
-    bookingSession BookingSession?
+    watchPartiesHosted WatchParty[]    @relation("WatchPartyHost")
+    watchPartiesJoined WatchParty[]    @relation("WatchPartyParticipants")
+    bookings           Booking[]
+    showtimeSeats      ShowtimeSeat[]
+    bookingSession     BookingSession?
 }
 
 // ==================== MOVIES ====================
@@ -82,6 +85,8 @@ model Showtime {
     showtimeSeats   ShowtimeSeat[]
     bookings        Booking[]
     bookingSessions BookingSession[]
+    watchParties    WatchParty[]
+
     @@unique([movieId, startTime])
     @@index([movieId])
     @@index([startTime])
@@ -99,6 +104,8 @@ model Booking {
     showtime      Showtime      @relation(fields: [showtimeId], references: [id])
     totalAmount   Decimal       @db.Decimal(10, 2)
     status        BookingStatus @default(CONFIRMED)
+    watchPartyId  String?       @unique
+    watchParty    WatchParty?   @relation(fields: [watchPartyId], references: [id], onDelete: SetNull)
     createdAt     DateTime      @default(now())
     updatedAt     DateTime      @updatedAt
 
@@ -171,6 +178,8 @@ model BookingSession {
     step          BookingStep
     ticketCount   Int?
     selectedSeats ShowtimeSeat[]
+    watchPartyId  String?
+    watchParty    WatchParty?    @relation(fields: [watchPartyId], references: [id], onDelete: SetNull)
     startedAt     DateTime       @default(now())
     expiresAt     DateTime
     lastUpdatedAt DateTime       @updatedAt
@@ -185,4 +194,30 @@ enum BookingStep {
     SEAT_SELECTION
     CHECKOUT
     COMPLETED
+}
+
+// ==================== WATCH PARTY ====================
+model WatchParty {
+    id              String           @id @default(cuid())
+    name            String?          @db.Text
+    hostUserId      String?          @db.Uuid
+    hostUser        User?            @relation("WatchPartyHost", fields: [hostUserId], references: [id], onDelete: SetNull)
+    inviteCode      String           @unique
+    showtimeId      String?
+    showtime        Showtime?        @relation(fields: [showtimeId], references: [id], onDelete: SetNull)
+    status          WatchPartyStatus @default(ACTIVE)
+    statusUpdatedAt DateTime         @default(now())
+    participants    User[]           @relation("WatchPartyParticipants")
+    createdAt       DateTime         @default(now())
+    updatedAt       DateTime         @updatedAt
+
+    // Relations
+    bookingSessions BookingSession[]
+    booking         Booking?
+}
+
+enum WatchPartyStatus {
+    ACTIVE
+    IN_PROGRESS
+    CONFIRMED
 }
