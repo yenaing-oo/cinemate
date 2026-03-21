@@ -77,12 +77,16 @@ export function SignUpForm({
                         <div className="flex flex-col gap-6">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="first-name">First Name</Label>
+                                    <Label htmlFor="first-name">
+                                        First Name
+                                    </Label>
                                     <Input
                                         id="first-name"
                                         required
                                         value={firstName}
-                                        onChange={(e) => setFirstName(e.target.value)}
+                                        onChange={(e) =>
+                                            setFirstName(e.target.value)
+                                        }
                                     />
                                 </div>
                                 <div className="grid gap-2">
@@ -91,7 +95,9 @@ export function SignUpForm({
                                         id="last-name"
                                         required
                                         value={lastName}
-                                        onChange={(e) => setLastName(e.target.value)}
+                                        onChange={(e) =>
+                                            setLastName(e.target.value)
+                                        }
                                     />
                                 </div>
                             </div>
