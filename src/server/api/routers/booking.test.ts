@@ -1,8 +1,29 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { BookingStatus, TicketStatus } from "@prisma/client";
 
-vi.mock("~/env.mjs", () => ({
-    env: { BOOKING_CANCEL_WINDOW_MINUTES: 60 },
+type EnvModule = {
+    env: Record<string, unknown>;
+};
+
+vi.mock("~/env.mjs", async () => {
+    const actual = await vi.importActual<EnvModule>("~/env.mjs");
+    return {
+        ...actual,
+        env: {
+            ...actual.env,
+            BOOKING_CANCEL_WINDOW_MINUTES: 60,
+        },
+    };
+});
+
+vi.mock("resend", () => ({
+    Resend: vi.fn().mockImplementation(function () {
+        return {
+            emails: {
+                send: vi.fn().mockResolvedValue({ error: null }),
+            },
+        };
+    }),
 }));
 
 vi.mock("~/server/api/trpc", async () => {
@@ -89,8 +110,10 @@ describe("bookingsRouter", () => {
         const bookingInDb = {
             id: "booking-123",
             userId: "user-123",
+            bookingNumber: 123,
+            totalAmount: 42,
             status: BookingStatus.CONFIRMED,
-            showtime: { startTime: showtimeStart },
+            showtime: { startTime: showtimeStart, movieId: "movie-123" },
             tickets: [
                 { id: "ticket-1", showtimeSeatId: "sts-1" },
                 { id: "ticket-2", showtimeSeatId: "sts-2" },
@@ -130,7 +153,7 @@ describe("bookingsRouter", () => {
         };
 
         const ctx: any = {
-            user: { id: "user-123" },
+            user: { id: "user-123", email: "test@example.com" },
             db: {
                 booking: {
                     findUnique: vi.fn().mockResolvedValue(bookingInDb),
