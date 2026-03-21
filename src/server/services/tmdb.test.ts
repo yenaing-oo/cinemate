@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { fetchNowPlaying, fetchMovieFull } from "./tmdb";
 
 function mockFetchObject(opts: {
@@ -22,8 +22,11 @@ describe("fetchNowPlaying", () => {
         vi.resetAllMocks();
     });
 
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
     it("fetches and parses now playing movies when status is OK", async () => {
-        // Arrange
         const validTMDBResponse = {
             results: [
                 {
@@ -39,6 +42,8 @@ describe("fetchNowPlaying", () => {
             total_results: 100,
         };
 
+        const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
         globalThis.fetch = vi.fn().mockResolvedValue(
             mockFetchObject({
                 ok: true,
@@ -48,26 +53,32 @@ describe("fetchNowPlaying", () => {
         ) as any;
 
         const result = await fetchNowPlaying();
+
         expect(result.results[0]!.id).toBe(1);
         expect(result.results[0]!.title).toBe("Dune");
         expect(result.page).toBe(1);
         expect(result.total_pages).toBe(10);
         expect(result.total_results).toBe(100);
 
-        // Assert
+        expect(logSpy).toHaveBeenCalledWith("Fetching now playing movies");
+
         expect(globalThis.fetch).toHaveBeenCalledTimes(1);
         expect(globalThis.fetch).toHaveBeenCalledWith(
-            expect.stringContaining("/movie/now_playing"),
-            expect.objectContaining({
-                headers: expect.objectContaining({
-                    Authorization: expect.stringContaining("Bearer "),
-                }),
-            })
+            "https://api.themoviedb.org/3/movie/now_playing?language=en-US&region=CA&page=1",
+            {
+                headers: {
+                    Authorization: `Bearer ${process.env.TMDB_ACCESS_TOKEN}`,
+                    "Content-Type": "application/json",
+                },
+            }
         );
     });
 
     it("throws an error with status and text when response is not OK", async () => {
-        // Arrange
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
+
         globalThis.fetch = vi.fn().mockResolvedValue(
             mockFetchObject({
                 ok: false,
@@ -79,6 +90,12 @@ describe("fetchNowPlaying", () => {
         await expect(fetchNowPlaying()).rejects.toThrow(
             "TMDB fetch failed: 500"
         );
+
+        expect(errorSpy).toHaveBeenCalledWith("TMDB STATUS:", 500);
+        expect(errorSpy).toHaveBeenCalledWith(
+            "TMDB RESPONSE:",
+            "Internal Server Error"
+        );
     });
 });
 
@@ -87,8 +104,11 @@ describe("fetchMovieFull", () => {
         vi.resetAllMocks();
     });
 
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
     it("fetches and parses full movie details when status is OK", async () => {
-        // Arrange
         const validTMDBResponse = {
             id: 1,
             overview: "Sci-fi epic",
@@ -113,6 +133,8 @@ describe("fetchMovieFull", () => {
             },
         };
 
+        const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
         globalThis.fetch = vi.fn().mockResolvedValue(
             mockFetchObject({
                 ok: true,
@@ -122,6 +144,7 @@ describe("fetchMovieFull", () => {
         ) as any;
 
         const result = await fetchMovieFull(1);
+
         expect(result.overview).toBe("Sci-fi epic");
         expect(result.release_date).toBe("2024-03-01");
         expect(result.runtime).toBe(155);
@@ -136,20 +159,21 @@ describe("fetchMovieFull", () => {
         expect(result.videos?.results?.[0]!.type).toBe("Trailer");
         expect(result.videos?.results?.[0]!.key).toBe("trailerkey123");
 
-        // Assert
+        expect(logSpy).toHaveBeenCalledWith("Fetching details for TMDB ID:", 1);
+
         expect(globalThis.fetch).toHaveBeenCalledTimes(1);
         expect(globalThis.fetch).toHaveBeenCalledWith(
-            expect.stringContaining("/movie/1"),
-            expect.objectContaining({
-                headers: expect.objectContaining({
-                    Authorization: expect.stringContaining("Bearer "),
-                }),
-            })
+            "https://api.themoviedb.org/3/movie/1?append_to_response=credits%2Cvideos&language=en-US",
+            {
+                headers: {
+                    Authorization: `Bearer ${process.env.TMDB_ACCESS_TOKEN}`,
+                    "Content-Type": "application/json",
+                },
+            }
         );
     });
 
     it("throws an error with status and text when response is not OK", async () => {
-        // Arrange
         globalThis.fetch = vi.fn().mockResolvedValue(
             mockFetchObject({
                 ok: false,
