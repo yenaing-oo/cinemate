@@ -51,8 +51,8 @@ export default function WatchPartyInvitation({
                         <Text style={styles.codeHeader}>YOUR INVITE CODE</Text>
                         <Text style={styles.inviteCode}>{inviteCode}</Text>
                         <Text style={styles.instructions}>
-                            Enter this code on the Cinemate app or website to
-                            join the party and secure your seat!
+                            Enter this code on the Cinemate website to join the
+                            party!
                         </Text>
                     </Section>
 
