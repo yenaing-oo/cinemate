@@ -13,6 +13,8 @@ import CheckoutReviewPage from "./childRoutes/checkout/checkoutReviewPage";
 export default function TicketingPage() {
     const router = useRouter();
     const utils = api.useUtils();
+    const [shouldRedirectToBookings, setShouldRedirectToBookings] =
+        useState(false);
     const { data: session, isLoading } = api.bookingSession.get.useQuery(
         undefined,
         {
@@ -30,9 +32,9 @@ export default function TicketingPage() {
 
     useEffect(() => {
         if (!isLoading && !session) {
-            router.replace("/");
+            router.replace(shouldRedirectToBookings ? "/bookings" : "/");
         }
-    }, [isLoading, session, router]);
+    }, [isLoading, router, session, shouldRedirectToBookings]);
 
     useEffect(() => {
         if (!session?.expiresAt) return;
@@ -51,12 +53,26 @@ export default function TicketingPage() {
         ticketCount?: number,
         selectedShowtimeSeatIds?: string[]
     ) => {
-        await updateBookingSession.mutateAsync({
-            sessionId,
-            goToStep,
-            ticketCount,
-            selectedSeatIds: selectedShowtimeSeatIds,
-        });
+        const isCompletingBooking = goToStep === $Enums.BookingStep.COMPLETED;
+
+        if (isCompletingBooking) {
+            setShouldRedirectToBookings(true);
+        }
+
+        try {
+            await updateBookingSession.mutateAsync({
+                sessionId,
+                goToStep,
+                ticketCount,
+                selectedSeatIds: selectedShowtimeSeatIds,
+            });
+        } catch (error) {
+            if (isCompletingBooking) {
+                setShouldRedirectToBookings(false);
+            }
+
+            throw error;
+        }
     };
 
     return (

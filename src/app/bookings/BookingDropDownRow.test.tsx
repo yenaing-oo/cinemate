@@ -156,6 +156,23 @@ describe("BookingDropDownRow render tests", () => {
 
 //Test cases for isBookingCancellable function
 describe("isBookingCancellable", () => {
+    //  Test the boundary: showtime exactly at the cancel window
+    it("returns false for a confirmed booking with showtime exactly at the cancel window", () => {
+        const cancelWindowMs = 60 * 60 * 1000; // 60 minutes in ms
+        const futureDate = new Date(Date.now() + cancelWindowMs);
+        const booking: ComponentBooking = {
+            id: "boundary",
+            bookingNumber: 99999,
+            status: BookingStatus.CONFIRMED,
+            showtime: {
+                startTime: futureDate,
+                movie: { title: "Boundary Movie" },
+            },
+            tickets: [],
+            totalAmount: 0,
+        };
+        expect(isBookingCancellable(booking)).toBe(false);
+    });
     //  Test that a booking is cancellable if it is confirmed and the showtime is more than the cancel window away
     it("returns true for a confirmed booking with showtime more than cancel window away", () => {
         const futureDate = new Date(Date.now() + 3 * 60 * 60 * 1000); // 3 hours from now

@@ -39,7 +39,7 @@ export default async function Home() {
                 {/* NOW PLAYING */}
                 <section className="pt-10 pb-16">
                     <div className="mb-10 flex items-center justify-between">
-                        <h3 className="text-3xl font-bold">Now Playing</h3>
+                        <h3 className="text-3xl font-bold">Now Showing</h3>
                         <Link
                             href="/movies"
                             className="text-primary hover:text-primary/80 text-sm transition"
