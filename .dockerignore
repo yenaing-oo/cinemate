@@ -7,3 +7,8 @@ README.md
 .next
 .git
 generated
+.github
+.vscode
+reports
+tests
+*.log
