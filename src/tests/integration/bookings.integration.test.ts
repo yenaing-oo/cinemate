@@ -34,7 +34,8 @@ describe("Booking Session Integration Tests", () => {
         const user = await db.user.create({
             data: {
                 email: "testuser@example.com",
-                name: "Test User",
+                firstName: "Test",
+                lastName: "User",
             },
         });
 
@@ -174,14 +175,16 @@ describe("Booking Session Integration Tests", () => {
         const user = await db.user.create({
             data: {
                 email: "testuser@example.com",
-                name: "Test User",
+                firstName: "Test",
+                lastName: "User",
             },
         });
 
         const otherUser = await db.user.create({
             data: {
                 email: "otheruser@example.com",
-                name: "Other User",
+                firstName: "Other",
+                lastName: "User",
             },
         });
 
@@ -300,7 +303,8 @@ describe("Booking Session Integration Tests", () => {
         const user = await db.user.create({
             data: {
                 email: "testuser@example.com",
-                name: "Test User",
+                firstName: "Test",
+                lastName: "User",
             },
         });
 
