@@ -1,8 +1,29 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { BookingStatus, TicketStatus } from "@prisma/client";
 
-vi.mock("~/env.mjs", () => ({
-    env: { BOOKING_CANCEL_WINDOW_MINUTES: 60 },
+type EnvModule = {
+    env: Record<string, unknown>;
+};
+
+vi.mock("~/env.mjs", async () => {
+    const actual = await vi.importActual<EnvModule>("~/env.mjs");
+    return {
+        ...actual,
+        env: {
+            ...actual.env,
+            BOOKING_CANCEL_WINDOW_MINUTES: 60,
+        },
+    };
+});
+
+vi.mock("resend", () => ({
+    Resend: vi.fn().mockImplementation(function () {
+        return {
+            emails: {
+                send: vi.fn().mockResolvedValue({ error: null }),
+            },
+        };
+    }),
 }));
 
 vi.mock("~/server/api/trpc", async () => {
@@ -89,8 +110,10 @@ describe("bookingsRouter", () => {
         const bookingInDb = {
             id: "booking-123",
             userId: "user-123",
+            bookingNumber: 123,
+            totalAmount: 42,
             status: BookingStatus.CONFIRMED,
-            showtime: { startTime: showtimeStart },
+            showtime: { startTime: showtimeStart, movieId: "movie-123" },
             tickets: [
                 { id: "ticket-1", showtimeSeatId: "sts-1" },
                 { id: "ticket-2", showtimeSeatId: "sts-2" },
@@ -130,7 +153,7 @@ describe("bookingsRouter", () => {
         };
 
         const ctx: any = {
-            user: { id: "user-123" },
+            user: { id: "user-123", email: "test@example.com" },
             db: {
                 booking: {
                     findUnique: vi.fn().mockResolvedValue(bookingInDb),
@@ -168,5 +191,71 @@ describe("bookingsRouter", () => {
                 bookingSessionId: null,
             },
         });
+    });
+
+    // Test case: cancel procedure throws if cancellation window has passed
+    it("cancel: throws if cancellation window has passed", async () => {
+        // Set up a showtime that is less than the cancellation window away
+        const now = new Date("2026-03-03T11:30:00-06:00");
+        vi.setSystemTime(now);
+        const showtimeStart = new Date(now.getTime() + 30 * 60 * 1000); // 30 minutes from now
+
+        const bookingInDb = {
+            id: "booking-456",
+            userId: "user-123",
+            status: BookingStatus.CONFIRMED,
+            showtime: { startTime: showtimeStart },
+            tickets: [],
+        };
+
+        const ctx: any = {
+            user: { id: "user-123" },
+            db: {
+                booking: {
+                    findUnique: vi.fn().mockResolvedValue(bookingInDb),
+                },
+                $transaction: vi.fn(),
+            },
+        };
+
+        const caller = bookingsRouter.createCaller(ctx);
+        await expect(
+            caller.cancel({ bookingId: "booking-456" })
+        ).rejects.toThrow(
+            /Cannot cancel booking less than/ // error message check
+        );
+        vi.useRealTimers();
+    });
+
+    // Test case: cancel procedure throws if cancellation window is exactly at the boundary
+    it("cancel: throws if cancellation window is exactly at the boundary", async () => {
+        // Set up a showtime that is exactly the cancellation window away
+        const CANCELLATION_WINDOW = 60 * 60 * 1000; // 60 minutes in ms
+        const now = new Date("2026-03-03T11:30:00-06:00");
+        vi.setSystemTime(now);
+        const showtimeStart = new Date(now.getTime() + CANCELLATION_WINDOW); // exactly at the window
+
+        const bookingInDb = {
+            id: "booking-789",
+            userId: "user-123",
+            status: BookingStatus.CONFIRMED,
+            showtime: { startTime: showtimeStart },
+            tickets: [],
+        };
+
+        const ctx: any = {
+            user: { id: "user-123" },
+            db: {
+                booking: {
+                    findUnique: vi.fn().mockResolvedValue(bookingInDb),
+                },
+                $transaction: vi.fn(),
+            },
+        };
+
+        const caller = bookingsRouter.createCaller(ctx);
+        const result = await caller.cancel({ bookingId: "booking-789" });
+        expect(result).toEqual({ success: true });
+        vi.useRealTimers();
     });
 });

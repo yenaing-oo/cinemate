@@ -61,6 +61,10 @@ export const bookingsRouter = createTRPCRouter({
                 );
             }
 
+            const showtimeSeatIds = booking.tickets.map(
+                (ticket) => ticket.showtimeSeatId
+            );
+
             await ctx.db.$transaction(async (tx) => {
                 await tx.booking.update({
                     where: { id: input.bookingId },
@@ -70,9 +74,6 @@ export const bookingsRouter = createTRPCRouter({
                     where: { bookingId: input.bookingId },
                     data: { status: TicketStatus.CANCELLED },
                 });
-                const showtimeSeatIds = booking.tickets.map(
-                    (ticket) => ticket.showtimeSeatId
-                );
                 await tx.showtimeSeat.updateMany({
                     where: { id: { in: showtimeSeatIds } },
                     data: {
@@ -91,9 +92,7 @@ export const bookingsRouter = createTRPCRouter({
                     where: { id: booking.showtime.movieId },
                 });
 
-                const showtimeSeatIds = booking.tickets.map(
-                    (ticket) => ticket.showtimeSeatId
-                );
+                if (!movieDetails || !movieDetails.posterUrl) return;
 
                 const showtimeSeats = await tx.showtimeSeat.findMany({
                     where: { id: { in: showtimeSeatIds } },
@@ -107,12 +106,9 @@ export const bookingsRouter = createTRPCRouter({
                     where: { id: { in: seatIds } },
                 });
 
-                const formattedSeatLables = seats.map((seat) => {
+                const formattedSeatLabels = seats.map((seat) => {
                     return formatSeatFromCode(seat.row, seat.number);
                 });
-
-                if (!userEmail || !movieDetails || !movieDetails.posterUrl)
-                    return;
 
                 const resend = new Resend(env.RESEND_EMAIL_API_KEY ?? "");
 
@@ -126,7 +122,7 @@ export const bookingsRouter = createTRPCRouter({
                         date: formatShowtimeDate(booking.showtime.startTime),
                         time: formatShowtimeTime(booking.showtime.startTime),
                         screen: "#1",
-                        seatLabelList: formattedSeatLables,
+                        seatLabelList: formattedSeatLabels,
                         refundAmount: formatCad(Number(booking.totalAmount)),
                         bookingId: formatBookingNumber(booking.bookingNumber),
                     }),

@@ -11,6 +11,7 @@ export const env = createEnv({
         DIRECT_URL: z.string().url().optional(),
         TMDB_ACCESS_TOKEN: z.string(),
         RESEND_EMAIL_API_KEY: z.string(),
+        APP_BASE_URL: z.string().url(),
         CINEMA_TIMEZONE: z.string(),
         NODE_ENV: z
             .enum(["development", "test", "production"])
@@ -43,6 +44,7 @@ export const env = createEnv({
         DIRECT_URL: process.env.DIRECT_URL,
         TMDB_ACCESS_TOKEN: process.env.TMDB_ACCESS_TOKEN,
         RESEND_EMAIL_API_KEY: process.env.RESEND_EMAIL_API_KEY,
+        APP_BASE_URL: process.env.APP_BASE_URL,
         CINEMA_TIMEZONE: process.env.CINEMA_TIMEZONE,
         NODE_ENV: process.env.NODE_ENV,
         BOOKING_CANCEL_WINDOW_MINUTES:
