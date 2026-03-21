@@ -30,8 +30,9 @@ describe("Email Integration Tests", () => {
     };
 
     const validUserId = "ff923fd5-ecb1-44a6-83be-735ee5445d01";
+    const OLD_ENV = process.env;
     beforeEach(async () => {
-        console.log("DB:", process.env.DATABASE_URL);
+        process.env = { ...OLD_ENV, RESEND_EMAIL_API_KEY: "test-key" };
         await cleanupDb();
         await db.user.create({
             data: {
@@ -44,6 +45,7 @@ describe("Email Integration Tests", () => {
     });
 
     afterEach(async () => {
+        process.env = OLD_ENV;
         await cleanupDb();
     });
 
