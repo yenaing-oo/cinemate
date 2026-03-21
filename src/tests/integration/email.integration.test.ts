@@ -1,4 +1,20 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+// Mock Resend client to avoid real API key and external calls
+vi.mock("resend", () => {
+    return {
+        Resend: function () {
+            return {
+                emails: {
+                    send: vi.fn().mockResolvedValue({
+                        data: { id: "mock-email-id" },
+                        error: null,
+                    }),
+                },
+            };
+        },
+    };
+});
 import { createCaller } from "~/server/api/root";
 import { db } from "@/server/db";
 
