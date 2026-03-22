@@ -43,6 +43,7 @@ export function WatchPartyDialog({
     const [addRowError, setAddRowError] = useState<string | undefined>();
 
     const router = useRouter();
+    const utils = api.useUtils();
 
     const createBookingSession = api.bookingSession.create.useMutation({
         onSuccess: () => {
@@ -87,11 +88,14 @@ export function WatchPartyDialog({
     }
 
     async function handleSendInvitations(emails: string[]) {
-        await createWatchParty.mutateAsync({
+        const watchParty = await createWatchParty.mutateAsync({
             showtimeId: activeShowtime.id,
             emails,
         });
+
+        await utils.watchParty.listMine.invalidate();
         handleClose();
+        router.push(`/watch-party/${watchParty.id}`);
     }
 
     function handleAddInviteEmailField() {
