@@ -3,7 +3,11 @@ import { ArrowRight, Ticket, Users } from "lucide-react";
 import { motion } from "motion/react";
 import { Card, CardContent } from "~/components/ui/card";
 import { formatShowtimeDate, formatShowtimeTime } from "~/lib/utils";
-import { type WatchPartyListItem } from "~/components/watch-party/types";
+import { type WatchPartyListItem } from "~/lib/watch-party/types";
+import {
+    getWatchPartyStatusBadgeClassName,
+    getWatchPartyStatusLabel,
+} from "~/components/watch-party/watch-party-status";
 
 type PartySectionProps = {
     title: string;
@@ -117,7 +121,9 @@ export function PartySection({
                                         <p className="text-muted-foreground">
                                             Status:{" "}
                                             <span className="font-semibold text-white">
-                                                {party.status}
+                                                {getWatchPartyStatusLabel(
+                                                    party.status
+                                                )}
                                             </span>
                                         </p>
                                     </div>
@@ -154,8 +160,14 @@ export function PartySection({
                                                 {party.showtime.movie.title}
                                             </p>
                                         </div>
-                                        <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-semibold text-cyan-100">
-                                            {roleLabel}
+                                        <span
+                                            className={getWatchPartyStatusBadgeClassName(
+                                                party.status
+                                            )}
+                                        >
+                                            {getWatchPartyStatusLabel(
+                                                party.status
+                                            )}
                                         </span>
                                     </div>
 
@@ -192,7 +204,9 @@ export function PartySection({
                                         <p className="text-muted-foreground">
                                             Status:{" "}
                                             <span className="font-semibold text-white">
-                                                {party.status}
+                                                {getWatchPartyStatusLabel(
+                                                    party.status
+                                                )}
                                             </span>
                                         </p>
                                     </div>
@@ -221,13 +235,16 @@ function getPreviewParties(role: "Leader" | "Guest"): WatchPartyListItem[] {
             name:
                 role === "Leader" ? "Friday Night Crew" : "Downtown Movie Plan",
             inviteCode: role === "Leader" ? "FRIDAY24" : "JOIN824",
-            status: "OPEN",
+            status: "ACTIVE",
             leader: {
+                id: "leader-preview-1",
                 name: "Mia Carter",
                 email: "mia@example.com",
             },
             showtime: {
+                id: `${role.toLowerCase()}-showtime-preview-1`,
                 startTime: new Date("2026-03-20T19:30:00"),
+                price: 18.5,
                 movie: {
                     title: "Midnight Run",
                 },
@@ -241,13 +258,16 @@ function getPreviewParties(role: "Leader" | "Guest"): WatchPartyListItem[] {
             name:
                 role === "Leader" ? "Saturday Premiere" : "Campus Watch Party",
             inviteCode: role === "Leader" ? "SATSHOW" : "CAMPUS77",
-            status: "OPEN",
+            status: "ACTIVE",
             leader: {
+                id: "leader-preview-2",
                 name: "Jordan Lee",
                 email: "jordan@example.com",
             },
             showtime: {
+                id: `${role.toLowerCase()}-showtime-preview-2`,
                 startTime: new Date("2026-03-22T20:15:00"),
+                price: 17,
                 movie: {
                     title: "Skyline Echo",
                 },
