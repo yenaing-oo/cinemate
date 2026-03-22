@@ -48,7 +48,6 @@ export function WatchPartyDashboard() {
     });
 
     const createdParties = watchPartiesQuery.data?.createdParties ?? [];
-    const joinedParties = watchPartiesQuery.data?.joinedParties ?? [];
     const isWatchPartyListLoading =
         isAuthenticated === true && watchPartiesQuery.isLoading;
 
@@ -99,7 +98,6 @@ export function WatchPartyDashboard() {
                             setInviteCode(value);
                             setInviteCodeMessage(null);
                         }}
-                        recentJoinedParty={joinedParties[0] ?? null}
                     />
                 </motion.form>
 
@@ -157,14 +155,15 @@ export function WatchPartyDashboard() {
                                     emptyTitle="No parties created yet"
                                     emptyMessage="When you create a party, it will appear here."
                                     parties={createdParties}
-                                    roleLabel="Leader"
                                 />
                                 <PartySection
                                     title="Watch Party Joined"
                                     emptyTitle="No parties joined yet"
                                     emptyMessage="When you join a party with an invitation code, it will appear here."
-                                    parties={joinedParties}
-                                    roleLabel="Participant"
+                                    parties={
+                                        watchPartiesQuery.data?.joinedParties ??
+                                        []
+                                    }
                                 />
                             </div>
                         )}
