@@ -6,6 +6,7 @@ import type { PrismaClient } from "@prisma/client";
 import { sendWatchPartyInvitations } from "~/server/services/email";
 import { formatShowtimeDate, formatShowtimeTime } from "~/lib/utils";
 import {
+    isWatchPartyJoinable,
     isWatchPartyParticipant,
     mapWatchPartyDetail,
     mapWatchPartyListItem,
@@ -16,8 +17,12 @@ import {
 
 const MAX_NUM_PARTICIPANTS = 5;
 const MIN_NUM_PARTICIPANTS = 1;
+const INVITE_CODE_LENGTH = 7;
 
-const generateCode = customAlphabet("23456789ABCDEFGHJKLMNPQRSTUVWXYZ", 7);
+const generateCode = customAlphabet(
+    "23456789ABCDEFGHJKLMNPQRSTUVWXYZ",
+    INVITE_CODE_LENGTH
+);
 
 const generateUniqueCode = async (db: PrismaClient): Promise<string> => {
     for (let attempts = 0; attempts < 5; attempts++) {
@@ -99,7 +104,7 @@ export const watchPartyRouter = createTRPCRouter({
     join: protectedProcedure
         .input(
             z.object({
-                inviteCode: z.string().trim().min(1).max(32),
+                inviteCode: z.string().trim().length(INVITE_CODE_LENGTH),
             })
         )
         .mutation(async ({ ctx, input }) => {
@@ -119,11 +124,11 @@ export const watchPartyRouter = createTRPCRouter({
             const isHost = party.hostUserId === ctx.user.id;
             const hasJoined = isWatchPartyParticipant(party, ctx.user.id);
 
-            if (!isHost && !hasJoined && party.status === "CONFIRMED") {
+            if (!isHost && !hasJoined && !isWatchPartyJoinable(party.status)) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     message:
-                        "This watch party has already been booked and cannot be joined anymore.",
+                        "This watch party is not active and cannot be joined.",
                 });
             }
 

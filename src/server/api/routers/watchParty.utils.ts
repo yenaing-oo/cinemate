@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, WatchPartyStatus } from "@prisma/client";
 import type {
     WatchPartyDetail,
     WatchPartyListItem,
@@ -111,6 +111,10 @@ export function isWatchPartyParticipant(
     userId: string
 ) {
     return party.participants.some((participant) => participant.id === userId);
+}
+
+export function isWatchPartyJoinable(status: WatchPartyStatus) {
+    return status === WatchPartyStatus.ACTIVE;
 }
 
 export function mapWatchPartyListItem(
