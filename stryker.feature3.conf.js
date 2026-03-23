@@ -1,5 +1,4 @@
-// @ts-nocheck
-// 
+// @ts-check
 
 const config = {
     packageManager: "pnpm",
@@ -15,18 +14,12 @@ const config = {
     },
     mutator: {
         name: "typescript",
-        excludedMutations: [
-            "ConditionalExpression",
-        ],
+        excludedMutations: ["StringLiteral", "ObjectLiteral", "BlockStatement"],
     },
     mutate: [
-        "src/server/api/routers/movies.ts",
-        "src/server/api/routers/showtimes.ts",
-        // "src/server/api/routers/showtimeSeats.ts",
-        // "src/server/api/routers/bookingSession.ts",
-        // "src/server/api/routers/bookings.ts",
-        "src/server/services/tmdb.ts",
-        "src/lib/utils.ts",
+        "src/server/api/routers/email.ts",
+        "src/server/emailTemplates/TicketConfirmation.tsx",
+        "src/server/emailTemplates/BookingCancellation.tsx",
         "!src/**/*.test.ts",
         "!src/**/*.test.tsx",
     ],
@@ -34,7 +27,7 @@ const config = {
         configFile: "vitest.config.mts",
         related: true,
     },
-    tempDirName: ".stryker-tmp-feature1",
+    tempDirName: ".stryker-tmp-feature3",
 };
 
 export default config;

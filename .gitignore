@@ -10,6 +10,7 @@
 /reports/mutation/
 /.stryker-tmp/
 .stryker-tmp*
+.stryker-tmp-*
 
 # database
 /prisma/db.sqlite

@@ -13,7 +13,10 @@ export default defineConfig({
                     name: "frontend",
                     environment: "happy-dom",
                     globals: true,
-                    include: ["src/app/**/*.test.{ts,tsx}"],
+                    include: [
+                        "src/app/**/*.test.{ts,tsx}",
+                        "src/server/emailTemplates/**/*.test.{ts,tsx}",
+                    ],
                     setupFiles: "./setupTests.ts",
                 },
             },
