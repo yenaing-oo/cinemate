@@ -1,11 +1,18 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Ticket, Users } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Spinner } from "~/components/ui/spinner";
 import { formatCad, formatShowtimeDate, formatShowtimeTime } from "~/lib/utils";
+import {
+    formatWatchPartyTimeLeft,
+    getWatchPartyBookingDeadline,
+    getWatchPartyTimeLeftMs,
+    isWatchPartyBookable,
+} from "~/lib/watch-party/timing";
 import { useAuthSession } from "~/lib/hooks/use-auth-session";
 import { api } from "~/trpc/react";
 import {
@@ -21,6 +28,27 @@ export function WatchPartyDetailView({ partyId }: { partyId: string }) {
             enabled: isAuthenticated === true,
         }
     );
+    const [timeLeftMs, setTimeLeftMs] = useState(0);
+
+    useEffect(() => {
+        if (
+            !watchPartyQuery.data ||
+            watchPartyQuery.data.viewerRole !== "LEADER"
+        ) {
+            return;
+        }
+
+        const updateTimeLeft = () => {
+            setTimeLeftMs(
+                getWatchPartyTimeLeftMs(watchPartyQuery.data.showtime.startTime)
+            );
+        };
+
+        updateTimeLeft();
+        const intervalId = window.setInterval(updateTimeLeft, 1000);
+
+        return () => window.clearInterval(intervalId);
+    }, [watchPartyQuery.data]);
 
     if (isAuthLoading) {
         return (
@@ -98,6 +126,10 @@ export function WatchPartyDetailView({ partyId }: { partyId: string }) {
         party.viewerRole === "PARTICIPANT"
             ? "You joined this watch party. The party leader can now include you when booking tickets for this showtime."
             : "Everyone who joins with your invite code appears here so you can coordinate one booking for the group.";
+    const bookingDeadline = getWatchPartyBookingDeadline(
+        party.showtime.startTime
+    );
+    const canBookWatchParty = isWatchPartyBookable(party.showtime.startTime);
 
     return (
         <section className="space-y-8 py-10 md:py-14">
@@ -174,6 +206,55 @@ export function WatchPartyDetailView({ partyId }: { partyId: string }) {
                                 {viewerSummary}
                             </p>
                         </div>
+
+                        {party.viewerRole === "LEADER" ? (
+                            <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/8 p-4">
+                                <div className="flex flex-wrap items-start justify-between gap-3">
+                                    <div>
+                                        <p className="text-sm font-semibold text-white">
+                                            Watch party booking window
+                                        </p>
+                                        <p className="text-muted-foreground mt-1 text-sm leading-6">
+                                            This watch party stays valid until{" "}
+                                            {formatShowtimeDate(
+                                                bookingDeadline
+                                            )}{" "}
+                                            at{" "}
+                                            {formatShowtimeTime(
+                                                bookingDeadline
+                                            )}
+                                            . Booking closes 1 hour before the
+                                            selected showtime.
+                                        </p>
+                                    </div>
+                                    <span className="rounded-full border border-white/12 bg-white/[0.05] px-3 py-1 text-xs font-semibold text-white">
+                                        {canBookWatchParty
+                                            ? "Valid"
+                                            : "Expired"}
+                                    </span>
+                                </div>
+
+                                <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                                    <div>
+                                        <p className="text-muted-foreground text-xs font-semibold tracking-[0.18em] uppercase">
+                                            Time left
+                                        </p>
+                                        <p className="mt-2 text-2xl font-semibold text-white">
+                                            {formatWatchPartyTimeLeft(
+                                                timeLeftMs
+                                            )}
+                                        </p>
+                                    </div>
+
+                                    <Button
+                                        type="button"
+                                        disabled={!canBookWatchParty}
+                                    >
+                                        Book Watch Party
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : null}
                     </CardContent>
                 </Card>
 
