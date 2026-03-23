@@ -121,14 +121,19 @@ export const watchPartyRouter = createTRPCRouter({
                 });
             }
 
-            const isHost = party.hostUserId === ctx.user.id;
+            if (party.hostUserId === ctx.user.id) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "You cannot join your own watch party.",
+                });
+            }
             const hasJoined = isWatchPartyParticipant(party, ctx.user.id);
 
-            if (!isHost && !hasJoined && !isWatchPartyJoinable(party.status)) {
+            if (hasJoined) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     message:
-                        "This watch party is not active and cannot be joined.",
+                        "You have already joined this watch party.",
                 });
             }
 
