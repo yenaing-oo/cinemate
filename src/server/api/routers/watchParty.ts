@@ -124,11 +124,11 @@ export const watchPartyRouter = createTRPCRouter({
             }
             const hasJoined = isWatchPartyParticipant(party, ctx.user.id);
 
-            if (!isHost && !hasJoined && party.status === "CONFIRMED") {
+            if (hasJoined) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     message:
-                        "This watch party has already been booked and cannot be joined anymore.",
+                        "You have already joined this watch party.",
                 });
             }
 
