@@ -205,7 +205,7 @@ model WatchParty {
     inviteCode      String           @unique
     showtimeId      String?
     showtime        Showtime?        @relation(fields: [showtimeId], references: [id], onDelete: SetNull)
-    status          WatchPartyStatus @default(ACTIVE)
+    status          WatchPartyStatus @default(OPEN)
     statusUpdatedAt DateTime         @default(now())
     participants    User[]           @relation("WatchPartyParticipants")
     createdAt       DateTime         @default(now())
@@ -217,7 +217,7 @@ model WatchParty {
 }
 
 enum WatchPartyStatus {
-    ACTIVE
-    IN_PROGRESS
+    OPEN
+    CLOSED
     CONFIRMED
 }

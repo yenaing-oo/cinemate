@@ -27,12 +27,12 @@ describe("watchPartyRouter.join", () => {
         };
     });
 
-    it("allows a user to join when the watch party is active", async () => {
+    it("allows a user to join when the watch party is open", async () => {
         mockCtx.db.watchParty.findUnique.mockResolvedValue({
             id: "party-1",
             hostUserId: "user-1",
             showtimeId: "showtime-1",
-            status: WatchPartyStatus.ACTIVE,
+            status: WatchPartyStatus.OPEN,
             participants: [],
         });
         mockCtx.db.watchParty.update.mockResolvedValue({});
@@ -60,7 +60,7 @@ describe("watchPartyRouter.join", () => {
         });
     });
 
-    it.each([WatchPartyStatus.IN_PROGRESS, WatchPartyStatus.CONFIRMED])(
+    it.each([WatchPartyStatus.CLOSED, WatchPartyStatus.CONFIRMED])(
         "rejects new joins when the watch party status is %s",
         async (status) => {
             mockCtx.db.watchParty.findUnique.mockResolvedValue({
@@ -77,7 +77,7 @@ describe("watchPartyRouter.join", () => {
                 caller.join({ inviteCode: "abc1234" })
             ).rejects.toMatchObject({
                 code: "BAD_REQUEST",
-                message: "This watch party is not active and cannot be joined.",
+                message: "This watch party is not open and cannot be joined.",
             });
 
             expect(mockCtx.db.watchParty.update).not.toHaveBeenCalled();
@@ -89,7 +89,7 @@ describe("watchPartyRouter.join", () => {
             id: "party-1",
             hostUserId: "user-2",
             showtimeId: "showtime-1",
-            status: WatchPartyStatus.ACTIVE,
+            status: WatchPartyStatus.OPEN,
             participants: [],
         });
 

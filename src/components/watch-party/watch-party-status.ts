@@ -8,13 +8,13 @@ const WATCH_PARTY_STATUS_META: Record<
         badgeClassName: string;
     }
 > = {
-    ACTIVE: {
+    OPEN: {
         label: "Open",
         badgeClassName: "border-cyan-300/20 bg-cyan-300/10 text-cyan-100",
     },
-    IN_PROGRESS: {
-        label: "Booking",
-        badgeClassName: "border-amber-300/20 bg-amber-300/10 text-amber-100",
+    CLOSED: {
+        label: "Closed",
+        badgeClassName: "border-gray-300/20 bg-gray-300/10 text-gray-100",
     },
     CONFIRMED: {
         label: "Booked",

@@ -1,4 +1,4 @@
-export type WatchPartyStatusValue = "ACTIVE" | "IN_PROGRESS" | "CONFIRMED";
+export type WatchPartyStatusValue = "OPEN" | "CLOSED" | "CONFIRMED";
 
 export type WatchPartyViewerRole = "LEADER" | "PARTICIPANT";
 
