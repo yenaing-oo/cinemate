@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, X } from "lucide-react";
-import z from "zod";
-import { Badge } from "~/components/ui/badge";
+import { X } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import {
     Card,
@@ -12,19 +10,13 @@ import {
     CardHeader,
     CardTitle,
 } from "~/components/ui/card";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
+import { WatchPartyInviteEmailFields } from "~/components/watch-party/watch-party-invite-email-fields";
+import { useWatchPartyInviteEmails } from "~/components/watch-party/use-watch-party-invite-emails";
 import { formatShowtimeDate, formatShowtimeTime } from "~/lib/utils";
 import { useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
 
 export type WatchPartyDialogStep = "decision" | "invite";
-export const MAX_WATCH_PARTY_INVITES = 5;
-
-const inviteEmailSchema = z
-    .string()
-    .trim()
-    .email("Please enter a valid email address.");
 
 export function WatchPartyDialog({
     open,
@@ -38,9 +30,15 @@ export function WatchPartyDialog({
     onClose: () => void;
 }) {
     const [step, setStep] = useState<WatchPartyDialogStep>("decision");
-    const [inviteEmails, setInviteEmails] = useState<string[]>([]);
-    const [recipientInput, setRecipientInput] = useState("");
-    const [addRowError, setAddRowError] = useState<string | undefined>();
+    const {
+        addRowError,
+        handleAddInviteEmail,
+        handleRecipientInputChange,
+        handleRemoveInviteEmail,
+        inviteEmails,
+        recipientInput,
+        resetInviteEmails,
+    } = useWatchPartyInviteEmails();
 
     const router = useRouter();
     const utils = api.useUtils();
@@ -69,9 +67,7 @@ export function WatchPartyDialog({
 
     function resetDialogState() {
         setStep("decision");
-        setInviteEmails([]);
-        setRecipientInput("");
-        setAddRowError(undefined);
+        resetInviteEmails();
     }
 
     function handleClose() {
@@ -96,43 +92,6 @@ export function WatchPartyDialog({
         await utils.watchParty.listMine.invalidate();
         handleClose();
         router.push(`/watch-party/${watchParty.id}`);
-    }
-
-    function handleAddInviteEmailField() {
-        if (inviteEmails.length >= MAX_WATCH_PARTY_INVITES) return;
-
-        const valueToValidate = recipientInput.trim();
-        const parsed = inviteEmailSchema.safeParse(valueToValidate);
-
-        if (!parsed.success) {
-            setAddRowError(parsed.error.issues[0]?.message);
-            return;
-        }
-
-        const normalizedEmail = valueToValidate.toLowerCase();
-        const isDuplicate = inviteEmails.some(
-            (email) => email.toLowerCase() === normalizedEmail
-        );
-
-        if (isDuplicate) {
-            setAddRowError("This email has already been added.");
-            return;
-        }
-
-        setAddRowError(undefined);
-
-        setInviteEmails((currentEmails) => [...currentEmails, valueToValidate]);
-        setRecipientInput("");
-    }
-
-    function handleRemoveInviteEmailField(index: number) {
-        setInviteEmails((currentEmails) => {
-            const nextEmails = currentEmails.filter(
-                (_, currentIndex) => currentIndex !== index
-            );
-            return nextEmails;
-        });
-        setAddRowError(undefined);
     }
 
     const inviteCount = inviteEmails.length;
@@ -191,84 +150,17 @@ export function WatchPartyDialog({
                         </div>
 
                         {step === "invite" ? (
-                            <div className="flex min-h-0 flex-1 flex-col">
-                                <div className="space-y-2">
-                                    <Label
-                                        htmlFor="watch-party-add-recipient"
-                                        className="text-sm font-semibold"
-                                    >
-                                        Add recipient
-                                    </Label>
-                                    <p className="text-muted-foreground mt-1 text-sm">
-                                        You can invite up to{" "}
-                                        {MAX_WATCH_PARTY_INVITES} people to a
-                                        watch party.
-                                    </p>
-                                    <div className="mt-2 flex items-center gap-3">
-                                        <Input
-                                            id="watch-party-add-recipient"
-                                            type="email"
-                                            value={recipientInput}
-                                            onChange={(event) => {
-                                                setRecipientInput(
-                                                    event.target.value
-                                                );
-                                                setAddRowError(undefined);
-                                            }}
-                                            placeholder="name@example.com"
-                                            className="bg-background/70 h-11 rounded-xl"
-                                            aria-invalid={Boolean(addRowError)}
-                                        />
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="icon-sm"
-                                            className="shrink-0"
-                                            onClick={handleAddInviteEmailField}
-                                            disabled={
-                                                inviteEmails.length >=
-                                                MAX_WATCH_PARTY_INVITES
-                                            }
-                                            aria-label="Add recipient"
-                                        >
-                                            <Plus />
-                                        </Button>
-                                    </div>
-                                    {addRowError ? (
-                                        <p className="text-destructive text-xs">
-                                            {addRowError}
-                                        </p>
-                                    ) : null}
-                                </div>
-
-                                <div className="mt-4 min-h-0 flex-1 overflow-y-auto pr-2">
-                                    <div className="flex flex-wrap gap-2">
-                                        {inviteEmails.map((email, index) => (
-                                            <Badge
-                                                key={`${email}-${index}`}
-                                                variant="outline"
-                                                className="flex items-center gap-2 py-1 pr-1 pl-3"
-                                            >
-                                                <span className="text-sm">
-                                                    {email}
-                                                </span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        handleRemoveInviteEmailField(
-                                                            index
-                                                        )
-                                                    }
-                                                    className="text-muted-foreground hover:text-foreground inline-flex h-5 w-5 items-center justify-center rounded-sm"
-                                                    aria-label={`Remove ${email}`}
-                                                >
-                                                    <X className="h-3.5 w-3.5" />
-                                                </button>
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
+                            <WatchPartyInviteEmailFields
+                                addRowError={addRowError}
+                                inputId="watch-party-add-recipient"
+                                inviteEmails={inviteEmails}
+                                onAddInviteEmail={handleAddInviteEmail}
+                                onRecipientInputChange={
+                                    handleRecipientInputChange
+                                }
+                                onRemoveInviteEmail={handleRemoveInviteEmail}
+                                recipientInput={recipientInput}
+                            />
                         ) : bookingError ? (
                             <p className="text-destructive text-sm">
                                 {bookingError}

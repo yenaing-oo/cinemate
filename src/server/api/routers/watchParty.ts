@@ -3,6 +3,12 @@ import { customAlphabet } from "nanoid";
 import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import type { PrismaClient } from "@prisma/client";
+import {
+    hasWatchPartyInviteEmail,
+    WATCH_PARTY_INVITE_CODE_LENGTH,
+    WATCH_PARTY_SELF_INVITE_MESSAGE,
+    watchPartyInviteEmailsSchema,
+} from "~/lib/watch-party/invite";
 import { sendWatchPartyInvitations } from "~/server/services/email";
 import { formatShowtimeDate, formatShowtimeTime } from "~/lib/utils";
 import {
@@ -15,14 +21,87 @@ import {
     watchPartyListInclude,
 } from "./watchParty.utils";
 
-const MAX_NUM_PARTICIPANTS = 5;
-const MIN_NUM_PARTICIPANTS = 1;
-const INVITE_CODE_LENGTH = 7;
-
 const generateCode = customAlphabet(
     "23456789ABCDEFGHJKLMNPQRSTUVWXYZ",
-    INVITE_CODE_LENGTH
+    WATCH_PARTY_INVITE_CODE_LENGTH
 );
+
+type WatchPartyInvitationEmailData = {
+    host: {
+        email: string;
+        firstName: string;
+        lastName: string;
+    } | null;
+    showtime: {
+        startTime: Date;
+        movie: {
+            title: string;
+            posterUrl: string | null;
+        };
+    } | null;
+};
+
+function assertWatchPartyInviteEmails(
+    emails: string[],
+    userEmail: string
+): void {
+    if (hasWatchPartyInviteEmail(emails, userEmail)) {
+        throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: WATCH_PARTY_SELF_INVITE_MESSAGE,
+        });
+    }
+}
+
+async function deliverWatchPartyInvitations({
+    emails,
+    host,
+    inviteCode,
+    showtime,
+}: {
+    emails: string[];
+    host: WatchPartyInvitationEmailData["host"];
+    inviteCode: string;
+    showtime: WatchPartyInvitationEmailData["showtime"];
+}) {
+    if (!host || !showtime) {
+        return;
+    }
+
+    const hostName = `${host.firstName} ${host.lastName}`.trim() || host.email;
+
+    await sendWatchPartyInvitations({
+        emails,
+        hostName,
+        movieTitle: showtime.movie.title,
+        moviePosterUrl: showtime.movie.posterUrl ?? "",
+        showDate: formatShowtimeDate(showtime.startTime),
+        showTime: formatShowtimeTime(showtime.startTime),
+        inviteCode,
+    });
+}
+
+function queueWatchPartyInvitations({
+    emails,
+    inviteCode,
+    loadInvitationData,
+}: {
+    emails: string[];
+    inviteCode: string;
+    loadInvitationData: () => Promise<WatchPartyInvitationEmailData>;
+}) {
+    void loadInvitationData()
+        .then((invitationData) =>
+            deliverWatchPartyInvitations({
+                ...invitationData,
+                emails,
+                inviteCode,
+            })
+        )
+        .catch((error) => {
+            console.error("Failed to send watch party invites:", error);
+        });
+}
 
 const generateUniqueCode = async (db: PrismaClient): Promise<string> => {
     for (let attempts = 0; attempts < 5; attempts++) {
@@ -44,20 +123,11 @@ export const watchPartyRouter = createTRPCRouter({
             z.object({
                 showtimeId: z.string(),
                 name: z.string().min(1).max(100).optional(),
-                emails: z
-                    .array(z.string().email())
-                    .min(MIN_NUM_PARTICIPANTS)
-                    .max(MAX_NUM_PARTICIPANTS),
+                emails: watchPartyInviteEmailsSchema,
             })
         )
         .mutation(async ({ ctx, input }) => {
-            if (input.emails.includes(ctx.user.email)) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    message:
-                        "You cannot invite yourself to a watch party. Please remove your email from the invite list.",
-                });
-            }
+            assertWatchPartyInviteEmails(input.emails, ctx.user.email);
             const inviteCode = await generateUniqueCode(ctx.db);
 
             const watchParty = await ctx.db.watchParty.create({
@@ -69,42 +139,49 @@ export const watchPartyRouter = createTRPCRouter({
                 },
             });
 
-            // Send email invitations asynchronously so we don't block the response
-            Promise.all([
-                ctx.db.showtime.findUnique({
-                    where: { id: input.showtimeId },
-                    include: { movie: true },
-                }),
-                ctx.db.user.findUnique({
-                    where: { id: ctx.user.id },
-                }),
-            ])
-                .then(async ([showtime, host]) => {
-                    if (showtime && host) {
-                        const hostName =
-                            `${host.firstName} ${host.lastName}`.trim();
+            queueWatchPartyInvitations({
+                emails: input.emails,
+                inviteCode,
+                loadInvitationData: async () => {
+                    const [showtime, host] = await Promise.all([
+                        ctx.db.showtime.findUnique({
+                            where: { id: input.showtimeId },
+                            select: {
+                                startTime: true,
+                                movie: {
+                                    select: {
+                                        title: true,
+                                        posterUrl: true,
+                                    },
+                                },
+                            },
+                        }),
+                        ctx.db.user.findUnique({
+                            where: { id: ctx.user.id },
+                            select: {
+                                email: true,
+                                firstName: true,
+                                lastName: true,
+                            },
+                        }),
+                    ]);
 
-                        await sendWatchPartyInvitations({
-                            emails: input.emails,
-                            hostName,
-                            movieTitle: showtime.movie.title,
-                            moviePosterUrl: showtime.movie.posterUrl ?? "",
-                            showDate: formatShowtimeDate(showtime.startTime),
-                            showTime: formatShowtimeTime(showtime.startTime),
-                            inviteCode,
-                        });
-                    }
-                })
-                .catch((error) => {
-                    console.error("Failed to send watch party invites:", error);
-                });
+                    return {
+                        host,
+                        showtime,
+                    };
+                },
+            });
 
             return watchParty;
         }),
     join: protectedProcedure
         .input(
             z.object({
-                inviteCode: z.string().trim().length(INVITE_CODE_LENGTH),
+                inviteCode: z
+                    .string()
+                    .trim()
+                    .length(WATCH_PARTY_INVITE_CODE_LENGTH),
             })
         )
         .mutation(async ({ ctx, input }) => {
@@ -132,27 +209,32 @@ export const watchPartyRouter = createTRPCRouter({
             if (hasJoined) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
-                    message:
-                        "You have already joined this watch party.",
+                    message: "You have already joined this watch party.",
                 });
             }
 
-            if (!isHost && !hasJoined) {
-                await ctx.db.watchParty.update({
-                    where: { id: party.id },
-                    data: {
-                        participants: {
-                            connect: {
-                                id: ctx.user.id,
-                            },
-                        },
-                    },
+            if (!isWatchPartyJoinable(party.status)) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message:
+                        "This watch party is not active and cannot be joined.",
                 });
             }
+
+            await ctx.db.watchParty.update({
+                where: { id: party.id },
+                data: {
+                    participants: {
+                        connect: {
+                            id: ctx.user.id,
+                        },
+                    },
+                },
+            });
 
             return {
                 id: party.id,
-                joined: !isHost && !hasJoined,
+                joined: true,
             };
         }),
     listMine: protectedProcedure.query(async ({ ctx }) => {

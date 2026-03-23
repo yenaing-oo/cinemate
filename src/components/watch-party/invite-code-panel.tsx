@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
+import { WATCH_PARTY_INVITE_CODE_LENGTH } from "~/lib/watch-party/invite";
 import { formatShowtimeDate, formatShowtimeTime } from "~/lib/utils";
 import { type WatchPartyListItem } from "~/lib/watch-party/types";
 import {
@@ -73,11 +74,15 @@ export function InviteCodePanel({
                                             event.target.value
                                                 .toUpperCase()
                                                 .replace(/\s+/g, "")
+                                                .slice(
+                                                    0,
+                                                    WATCH_PARTY_INVITE_CODE_LENGTH
+                                                )
                                         )
                                     }
-                                    placeholder="AB12CD34"
-                                    minLength={4}
-                                    maxLength={32}
+                                    placeholder="ABC1234"
+                                    minLength={WATCH_PARTY_INVITE_CODE_LENGTH}
+                                    maxLength={WATCH_PARTY_INVITE_CODE_LENGTH}
                                     required
                                 />
                             </label>
@@ -86,7 +91,9 @@ export function InviteCodePanel({
                                 type="submit"
                                 className="w-full"
                                 disabled={
-                                    isPending || inviteCode.trim().length === 0
+                                    isPending ||
+                                    inviteCode.trim().length !==
+                                        WATCH_PARTY_INVITE_CODE_LENGTH
                                 }
                             >
                                 {isPending ? (

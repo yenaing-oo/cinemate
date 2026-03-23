@@ -12,6 +12,7 @@ import { PartySection } from "~/components/watch-party/party-section";
 import { Spinner } from "~/components/ui/spinner";
 import { Card, CardContent } from "~/components/ui/card";
 import { useAuthSession } from "~/lib/hooks/use-auth-session";
+import { WATCH_PARTY_INVITE_CODE_LENGTH } from "~/lib/watch-party/invite";
 import { api } from "~/trpc/react";
 
 export function WatchPartyDashboard() {
@@ -62,6 +63,13 @@ export function WatchPartyDashboard() {
 
         if (isAuthenticated !== true) {
             setInviteCodeMessage("Sign in to open a watch party.");
+            return;
+        }
+
+        if (normalizedInviteCode.length !== WATCH_PARTY_INVITE_CODE_LENGTH) {
+            setInviteCodeMessage(
+                `Invitation code must be ${WATCH_PARTY_INVITE_CODE_LENGTH} characters.`
+            );
             return;
         }
 
