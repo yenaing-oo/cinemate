@@ -19,7 +19,14 @@ export const emailRouter = createTRPCRouter({
             })
         )
         .mutation(async ({ input, ctx }) => {
-            const resend = new Resend(process.env.RESEND_EMAIL_API_KEY ?? "");
+            const apiKey = process.env.RESEND_EMAIL_API_KEY;
+            if (!apiKey) {
+                return {
+                    ok: false,
+                    error: "RESEND_EMAIL_API_KEY is missing or empty",
+                };
+            }
+            const resend = new Resend(apiKey);
 
             const user = await ctx.db.user.findUnique({
                 where: { id: input.userId },
