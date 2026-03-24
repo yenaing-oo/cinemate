@@ -240,7 +240,8 @@ export function WatchPartyDetailView({ partyId }: { partyId: string }) {
                             </p>
                         </div>
 
-                        {party.viewerRole === "LEADER" ? (
+                        {party.viewerRole === "LEADER" &&
+                        party.status !== "CONFIRMED" ? (
                             <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/8 p-4">
                                 <div className="flex flex-wrap items-start justify-between gap-3">
                                     <div>
