@@ -9,11 +9,8 @@ import {
     formatSeatFromCode,
     formatShowtimeDate,
     formatShowtimeTime,
-    formatBookingNumber,
 } from "~/lib/utils";
 import { BookingReviewPanel } from "~/components/checkout/bookingReviewPanel";
-import { useSendConfirmationEmail } from "~/lib/emailServices";
-import { api } from "~/trpc/react";
 
 interface CheckoutReviewPageProps {
     bookingSession: {
@@ -77,9 +74,6 @@ export default function CheckoutReviewPage({
     isSubmitting,
 }: CheckoutReviewPageProps) {
     const router = useRouter();
-    const latestBookingMutation =
-        api.bookings.latestBookingDetails.useMutation();
-    const sendConfirmationEmail = useSendConfirmationEmail();
 
     const movieTitle = bookingSession.showtime.movie.title;
     const moviePosterUrl = bookingSession.showtime.movie.posterUrl;
@@ -110,30 +104,6 @@ export default function CheckoutReviewPage({
     const showTime = formatShowtimeTime(showtimeDate);
     const showtimeLabel = `${showDate} | ${showTime}`;
 
-    async function processConfirmationEmail() {
-        const lastestBooking = await latestBookingMutation.mutateAsync();
-
-        if (!lastestBooking) return;
-
-        const formatedBookingNumber = formatBookingNumber(
-            lastestBooking.bookingNumber
-        );
-
-        await sendConfirmationEmail({
-            userId: bookingSession.userId,
-            movieTitle: movieTitle,
-            moviePosterUrl: moviePosterUrl,
-            showDate: showDate,
-            showTime: showTime,
-            seatLabelList:
-                bookingSession.watchPartyId && selectedSeatLabels.length > 0
-                    ? selectedSeatLabels.slice(0, 1)
-                    : selectedSeatLabels,
-            totalPrice: total,
-            bookingId: formatedBookingNumber,
-        });
-    }
-
     return (
         <BookingReviewPanel
             movieTitle={movieTitle}
@@ -162,18 +132,6 @@ export default function CheckoutReviewPage({
                     router.replace("/ticketing");
                     router.refresh();
                     return;
-                }
-
-                try {
-                    await processConfirmationEmail();
-                } catch {
-                    toast.error(
-                        "Your reservation was confirmed, but the confirmation email could not be sent.",
-                        {
-                            description:
-                                "You can still find your latest booking on the bookings page.",
-                        }
-                    );
                 }
             }}
         />

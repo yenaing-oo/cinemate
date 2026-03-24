@@ -11,6 +11,15 @@ import {
     WatchPartyStatus,
     type PrismaClient,
 } from "@prisma/client";
+import { Resend } from "resend";
+import TicketConfirmation from "~/server/emailTemplates/TicketConfirmation";
+import {
+    formatBookingNumber,
+    formatCad,
+    formatSeatFromCode,
+    formatShowtimeDate,
+    formatShowtimeTime,
+} from "~/lib/utils";
 
 export const bookingSessionRouter = createTRPCRouter({
     create: protectedProcedure
@@ -441,6 +450,17 @@ export async function reserveSeats(
 }
 
 async function completeBooking(db: PrismaClient, session: any) {
+    const confirmationEmails: Array<{
+        userEmail: string;
+        movieTitle: string;
+        posterUrl: string;
+        showDate: string;
+        showTime: string;
+        seatLabelList: string[];
+        totalPrice: string;
+        bookingId: string;
+    }> = [];
+
     await db.$transaction(async (tx) => {
         // 1. Mark seats as booked
         const count = await tx.showtimeSeat.updateMany({
@@ -464,11 +484,45 @@ async function completeBooking(db: PrismaClient, session: any) {
         // 2. Calculate total amount (fetch price from showtime)
         const showtime = await tx.showtime.findUniqueOrThrow({
             where: { id: session.showtimeId },
-            select: { price: true },
+            select: {
+                price: true,
+                startTime: true,
+                movie: {
+                    select: {
+                        title: true,
+                        posterUrl: true,
+                    },
+                },
+            },
         });
         const sortedShowtimeSeatIds = [...session.selectedSeats]
             .map((showtimeSeat: any) => showtimeSeat.id)
             .sort((a: string, b: string) => a.localeCompare(b));
+        const showtimeSeats = await tx.showtimeSeat.findMany({
+            where: {
+                id: { in: sortedShowtimeSeatIds },
+            },
+            select: {
+                id: true,
+                seat: {
+                    select: {
+                        row: true,
+                        number: true,
+                    },
+                },
+            },
+        });
+        const seatLabelByShowtimeSeatId = new Map(
+            showtimeSeats.map((showtimeSeat) => [
+                showtimeSeat.id,
+                formatSeatFromCode(
+                    showtimeSeat.seat.row,
+                    showtimeSeat.seat.number
+                ),
+            ])
+        );
+        const showDate = formatShowtimeDate(showtime.startTime);
+        const showTime = formatShowtimeTime(showtime.startTime);
 
         if (session.watchPartyId) {
             const watchParty = await tx.watchParty.findUnique({
@@ -498,6 +552,16 @@ async function completeBooking(db: PrismaClient, session: any) {
             ];
 
             const uniqueMemberUserIds = [...new Set(memberUserIds)];
+            const memberUsers = await tx.user.findMany({
+                where: { id: { in: uniqueMemberUserIds } },
+                select: {
+                    id: true,
+                    email: true,
+                },
+            });
+            const memberUserById = new Map(
+                memberUsers.map((member) => [member.id, member])
+            );
 
             if (uniqueMemberUserIds.length !== sortedShowtimeSeatIds.length) {
                 throw new Error(
@@ -523,6 +587,25 @@ async function completeBooking(db: PrismaClient, session: any) {
                         watchPartyId: session.watchPartyId,
                     },
                 });
+                const memberUser = memberUserById.get(memberUserId);
+                const seatLabel = seatLabelByShowtimeSeatId.get(showtimeSeatId);
+
+                if (
+                    memberUser?.email &&
+                    seatLabel &&
+                    showtime.movie.posterUrl
+                ) {
+                    confirmationEmails.push({
+                        userEmail: memberUser.email,
+                        movieTitle: showtime.movie.title,
+                        posterUrl: showtime.movie.posterUrl,
+                        showDate,
+                        showTime,
+                        seatLabelList: [seatLabel],
+                        totalPrice: formatCad(Number(showtime.price)),
+                        bookingId: formatBookingNumber(booking.bookingNumber),
+                    });
+                }
 
                 await tx.ticket.create({
                     data: {
@@ -547,6 +630,30 @@ async function completeBooking(db: PrismaClient, session: any) {
                     showtimeId: session.showtimeId,
                 },
             });
+            const user = await tx.user.findUnique({
+                where: {
+                    id: session.userId,
+                },
+                select: {
+                    email: true,
+                },
+            });
+            if (user?.email && showtime.movie.posterUrl) {
+                confirmationEmails.push({
+                    userEmail: user.email,
+                    movieTitle: showtime.movie.title,
+                    posterUrl: showtime.movie.posterUrl,
+                    showDate,
+                    showTime,
+                    seatLabelList: sortedShowtimeSeatIds
+                        .map((showtimeSeatId: string) =>
+                            seatLabelByShowtimeSeatId.get(showtimeSeatId)
+                        )
+                        .filter((label): label is string => Boolean(label)),
+                    totalPrice: formatCad(Number(totalAmount)),
+                    bookingId: formatBookingNumber(booking.bookingNumber),
+                });
+            }
 
             // 4. Create tickets
             await Promise.all(
@@ -577,4 +684,48 @@ async function completeBooking(db: PrismaClient, session: any) {
             });
         }
     });
+
+    await sendBookingConfirmationEmails(confirmationEmails);
+}
+
+async function sendBookingConfirmationEmails(
+    confirmationEmails: Array<{
+        userEmail: string;
+        movieTitle: string;
+        posterUrl: string;
+        showDate: string;
+        showTime: string;
+        seatLabelList: string[];
+        totalPrice: string;
+        bookingId: string;
+    }>
+) {
+    const apiKey = process.env.RESEND_EMAIL_API_KEY;
+    if (!apiKey || confirmationEmails.length === 0) {
+        return;
+    }
+
+    const resend = new Resend(apiKey);
+
+    for (const confirmationEmail of confirmationEmails) {
+        try {
+            await resend.emails.send({
+                from: "Cinemate <do-not-reply@bookcinemate.me>",
+                to: confirmationEmail.userEmail,
+                subject: "Booking Confirmed! - Cinemate",
+                react: TicketConfirmation({
+                    movieTitle: confirmationEmail.movieTitle,
+                    posterUrl: confirmationEmail.posterUrl,
+                    date: confirmationEmail.showDate,
+                    time: confirmationEmail.showTime,
+                    screen: "#1",
+                    seatLabelList: confirmationEmail.seatLabelList,
+                    totalPrice: confirmationEmail.totalPrice,
+                    bookingId: confirmationEmail.bookingId,
+                }),
+            });
+        } catch (error) {
+            console.error("Failed to send booking confirmation email:", error);
+        }
+    }
 }
