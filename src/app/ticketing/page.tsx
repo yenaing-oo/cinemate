@@ -97,10 +97,16 @@ export default function TicketingPage() {
             ) : session ? (
                 <>
                     <div className="sticky top-20 z-[9999] float-right mb-6">
-                        <span className="font-semibold">Time left:</span>{" "}
-                        <span className="font-mono font-semibold text-red-500">
-                            {timeLeft !== null ? formatTime(timeLeft) : "00:00"}
-                        </span>
+                        <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-slate-950/75 px-3 py-1.5 shadow-lg backdrop-blur-sm">
+                            <span className="text-xs font-semibold text-slate-200">
+                                Time left:
+                            </span>
+                            <span className="font-mono text-sm font-semibold text-red-400">
+                                {timeLeft !== null
+                                    ? formatTime(timeLeft)
+                                    : "00:00"}
+                            </span>
+                        </div>
                     </div>
                     {session.watchPartyId ? (
                         <Alert className="glass-card clear-both mt-0 mb-4 border-cyan-300/20 bg-cyan-300/8 text-slate-100">
