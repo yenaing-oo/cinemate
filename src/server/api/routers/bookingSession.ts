@@ -8,8 +8,18 @@ import {
     BookingStatus,
     BookingStep,
     TicketStatus,
+    WatchPartyStatus,
     type PrismaClient,
 } from "@prisma/client";
+import { Resend } from "resend";
+import TicketConfirmation from "~/server/emailTemplates/TicketConfirmation";
+import {
+    formatBookingNumber,
+    formatCad,
+    formatSeatFromCode,
+    formatShowtimeDate,
+    formatShowtimeTime,
+} from "~/lib/utils";
 
 export const bookingSessionRouter = createTRPCRouter({
     create: protectedProcedure
@@ -55,6 +65,119 @@ export const bookingSessionRouter = createTRPCRouter({
             });
         }),
 
+    createForWatchParty: protectedProcedure
+        .input(
+            z.object({
+                watchPartyId: z.string(),
+            })
+        )
+        .mutation(async ({ ctx, input }) => {
+            const now = new Date();
+            const expiresAt = new Date(
+                now.getTime() + BOOKING_SESSION_DURATION_MS
+            );
+            // Validate the watch party
+            const watchParty = await ctx.db.watchParty.findUnique({
+                where: { id: input.watchPartyId },
+                select: {
+                    id: true,
+                    hostUserId: true,
+                    showtimeId: true,
+                    status: true,
+                    _count: { select: { participants: true } },
+                },
+            });
+
+            if (!watchParty) {
+                throw new Error("Watch party not found.");
+            }
+            if (watchParty.hostUserId !== ctx.user.id) {
+                throw new Error(
+                    "Only the watch party host can create a booking session for the group."
+                );
+            }
+            if (watchParty.status === WatchPartyStatus.CONFIRMED) {
+                throw new Error(
+                    "A booking has already been confirmed for this watch party."
+                );
+            }
+            if (watchParty._count.participants === 0) {
+                throw new Error(
+                    "The watch party must have at least one participant besides the host before booking."
+                );
+            }
+            if (!watchParty.showtimeId) {
+                throw new Error(
+                    "The watch party does not have an associated showtime."
+                );
+            }
+
+            const showtimeId = watchParty.showtimeId;
+
+            // Total seats = host + participants
+            const ticketCount = 1 + watchParty._count.participants;
+
+            // Verify enough seats are available for the whole group
+            const availableSeatsCount = await ctx.db.showtimeSeat.count({
+                where: {
+                    showtimeId,
+                    isBooked: false,
+                    OR: [
+                        { heldTill: null },
+                        { heldTill: { lt: now } },
+                        { heldByUserId: ctx.user.id },
+                    ],
+                },
+            });
+            if (availableSeatsCount < ticketCount) {
+                throw new Error(
+                    "Not enough seats available for all watch party members."
+                );
+            }
+
+            return ctx.db.$transaction(async (tx) => {
+                // Delete any existing sessions for this user
+                await tx.bookingSession.deleteMany({
+                    where: { userId: ctx.user.id },
+                });
+
+                // Mark the watch party as CLOSED when starting a booking session
+                if (watchParty.status === WatchPartyStatus.OPEN) {
+                    await tx.watchParty.update({
+                        where: { id: input.watchPartyId },
+                        data: { status: WatchPartyStatus.CLOSED },
+                    });
+                }
+
+                return tx.bookingSession.create({
+                    data: {
+                        userId: ctx.user.id,
+                        showtimeId: showtimeId,
+                        watchPartyId: input.watchPartyId,
+                        step: BookingStep.SEAT_SELECTION,
+                        ticketCount,
+                        startedAt: now,
+                        expiresAt,
+                    },
+                    include: {
+                        showtime: {
+                            include: {
+                                movie: {
+                                    select: {
+                                        id: true,
+                                        title: true,
+                                        posterUrl: true,
+                                        backdropUrl: true,
+                                        languages: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                });
+            });
+        }),
+
     get: protectedProcedure.query(async ({ ctx }) => {
         const now = new Date();
         const session = await ctx.db.bookingSession.findFirst({
@@ -62,6 +185,16 @@ export const bookingSessionRouter = createTRPCRouter({
                 userId: ctx.user.id,
                 expiresAt: { gt: now },
                 step: { not: BookingStep.COMPLETED },
+                OR: [
+                    { watchPartyId: null },
+                    {
+                        watchParty: {
+                            status: {
+                                in: [WatchPartyStatus.CLOSED],
+                            },
+                        },
+                    },
+                ],
             },
             orderBy: { startedAt: "desc" },
             include: {
@@ -75,6 +208,32 @@ export const bookingSessionRouter = createTRPCRouter({
                                 backdropUrl: true,
                                 languages: true,
                             },
+                        },
+                    },
+                },
+                watchParty: {
+                    select: {
+                        id: true,
+                        name: true,
+                        hostUser: {
+                            select: {
+                                firstName: true,
+                                lastName: true,
+                                email: true,
+                            },
+                        },
+                        participants: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                email: true,
+                            },
+                            orderBy: [
+                                { firstName: "asc" },
+                                { lastName: "asc" },
+                                { email: "asc" },
+                            ],
                         },
                     },
                 },
@@ -92,7 +251,18 @@ export const bookingSessionRouter = createTRPCRouter({
             },
         });
 
-        return session;
+        if (!session) {
+            return null;
+        }
+
+        const payableTicketCount = session.watchPartyId
+            ? 1
+            : session.selectedSeats.length;
+
+        return {
+            ...session,
+            payableTicketCount,
+        };
     }),
 
     update: protectedProcedure
@@ -124,6 +294,11 @@ export const bookingSessionRouter = createTRPCRouter({
                 session.step === BookingStep.TICKET_QUANTITY &&
                 input.goToStep === BookingStep.SEAT_SELECTION
             ) {
+                if (session.watchPartyId) {
+                    throw new Error(
+                        "Watch party booking sessions start at seat selection — ticket quantity step is not applicable."
+                    );
+                }
                 if (!input.ticketCount) {
                     throw new Error(
                         "Ticket count is required for seat selection"
@@ -275,6 +450,17 @@ export async function reserveSeats(
 }
 
 async function completeBooking(db: PrismaClient, session: any) {
+    const confirmationEmails: Array<{
+        userEmail: string;
+        movieTitle: string;
+        posterUrl: string;
+        showDate: string;
+        showTime: string;
+        seatLabelList: string[];
+        totalPrice: string;
+        bookingId: string;
+    }> = [];
+
     await db.$transaction(async (tx) => {
         // 1. Mark seats as booked
         const count = await tx.showtimeSeat.updateMany({
@@ -298,38 +484,248 @@ async function completeBooking(db: PrismaClient, session: any) {
         // 2. Calculate total amount (fetch price from showtime)
         const showtime = await tx.showtime.findUniqueOrThrow({
             where: { id: session.showtimeId },
-            select: { price: true },
-        });
-        const totalAmount = showtime.price.mul(session.selectedSeats.length);
-
-        // 3. Create booking
-        const booking = await tx.booking.create({
-            data: {
-                totalAmount,
-                status: BookingStatus.CONFIRMED,
-                userId: session.userId,
-                showtimeId: session.showtimeId,
+            select: {
+                price: true,
+                startTime: true,
+                movie: {
+                    select: {
+                        title: true,
+                        posterUrl: true,
+                    },
+                },
             },
         });
+        const sortedShowtimeSeatIds = [...session.selectedSeats]
+            .map((showtimeSeat: any) => showtimeSeat.id)
+            .sort((a: string, b: string) => a.localeCompare(b));
+        const showtimeSeats = await tx.showtimeSeat.findMany({
+            where: {
+                id: { in: sortedShowtimeSeatIds },
+            },
+            select: {
+                id: true,
+                seat: {
+                    select: {
+                        row: true,
+                        number: true,
+                    },
+                },
+            },
+        });
+        const seatLabelByShowtimeSeatId = new Map(
+            showtimeSeats.map((showtimeSeat) => [
+                showtimeSeat.id,
+                formatSeatFromCode(
+                    showtimeSeat.seat.row,
+                    showtimeSeat.seat.number
+                ),
+            ])
+        );
+        const showDate = formatShowtimeDate(showtime.startTime);
+        const showTime = formatShowtimeTime(showtime.startTime);
 
-        // 4. Create tickets
-        await Promise.all(
-            session.selectedSeats.map((showtimeSeat: any) =>
-                tx.ticket.create({
+        if (session.watchPartyId) {
+            const watchParty = await tx.watchParty.findUnique({
+                where: { id: session.watchPartyId },
+                select: {
+                    hostUserId: true,
+                    participants: {
+                        select: { id: true },
+                        orderBy: [
+                            { firstName: "asc" },
+                            { lastName: "asc" },
+                            { email: "asc" },
+                        ],
+                    },
+                },
+            });
+
+            if (!watchParty?.hostUserId) {
+                throw new Error(
+                    "Watch party host is missing. Unable to complete booking."
+                );
+            }
+
+            const memberUserIds = [
+                watchParty.hostUserId,
+                ...watchParty.participants.map((participant) => participant.id),
+            ];
+
+            const uniqueMemberUserIds = [...new Set(memberUserIds)];
+            const memberUsers = await tx.user.findMany({
+                where: { id: { in: uniqueMemberUserIds } },
+                select: {
+                    id: true,
+                    email: true,
+                },
+            });
+            const memberUserById = new Map(
+                memberUsers.map((member) => [member.id, member])
+            );
+
+            if (uniqueMemberUserIds.length !== sortedShowtimeSeatIds.length) {
+                throw new Error(
+                    "Watch party member count does not match selected seat count."
+                );
+            }
+
+            for (const [index, memberUserId] of uniqueMemberUserIds.entries()) {
+                const showtimeSeatId = sortedShowtimeSeatIds[index];
+
+                if (!memberUserId || !showtimeSeatId) {
+                    throw new Error(
+                        "Watch party booking data is incomplete. Please try again."
+                    );
+                }
+
+                const booking = await tx.booking.create({
+                    data: {
+                        totalAmount: showtime.price,
+                        status: BookingStatus.CONFIRMED,
+                        userId: memberUserId,
+                        showtimeId: session.showtimeId,
+                        watchPartyId: session.watchPartyId,
+                    },
+                });
+                const memberUser = memberUserById.get(memberUserId);
+                const seatLabel = seatLabelByShowtimeSeatId.get(showtimeSeatId);
+
+                if (
+                    memberUser?.email &&
+                    seatLabel &&
+                    showtime.movie.posterUrl
+                ) {
+                    confirmationEmails.push({
+                        userEmail: memberUser.email,
+                        movieTitle: showtime.movie.title,
+                        posterUrl: showtime.movie.posterUrl,
+                        showDate,
+                        showTime,
+                        seatLabelList: [seatLabel],
+                        totalPrice: formatCad(Number(showtime.price)),
+                        bookingId: formatBookingNumber(booking.bookingNumber),
+                    });
+                }
+
+                await tx.ticket.create({
                     data: {
                         bookingId: booking.id,
-                        showtimeSeatId: showtimeSeat.id,
+                        showtimeSeatId,
                         price: showtime.price,
                         status: TicketStatus.VALID,
                     },
-                })
-            )
-        );
+                });
+            }
+        } else {
+            const totalAmount = showtime.price.mul(
+                session.selectedSeats.length
+            );
+
+            // 3. Create booking
+            const booking = await tx.booking.create({
+                data: {
+                    totalAmount,
+                    status: BookingStatus.CONFIRMED,
+                    userId: session.userId,
+                    showtimeId: session.showtimeId,
+                },
+            });
+            const user = await tx.user.findUnique({
+                where: {
+                    id: session.userId,
+                },
+                select: {
+                    email: true,
+                },
+            });
+            if (user?.email && showtime.movie.posterUrl) {
+                confirmationEmails.push({
+                    userEmail: user.email,
+                    movieTitle: showtime.movie.title,
+                    posterUrl: showtime.movie.posterUrl,
+                    showDate,
+                    showTime,
+                    seatLabelList: sortedShowtimeSeatIds
+                        .map((showtimeSeatId: string) =>
+                            seatLabelByShowtimeSeatId.get(showtimeSeatId)
+                        )
+                        .filter((label): label is string => Boolean(label)),
+                    totalPrice: formatCad(Number(totalAmount)),
+                    bookingId: formatBookingNumber(booking.bookingNumber),
+                });
+            }
+
+            // 4. Create tickets
+            await Promise.all(
+                sortedShowtimeSeatIds.map((showtimeSeatId: string) =>
+                    tx.ticket.create({
+                        data: {
+                            bookingId: booking.id,
+                            showtimeSeatId,
+                            price: showtime.price,
+                            status: TicketStatus.VALID,
+                        },
+                    })
+                )
+            );
+        }
 
         // 5. Update booking session step
         await tx.bookingSession.update({
             where: { id: session.id },
             data: { step: BookingStep.COMPLETED },
         });
+
+        // 6. If this is a watch party booking, mark the party as CONFIRMED
+        if (session.watchPartyId) {
+            await tx.watchParty.update({
+                where: { id: session.watchPartyId },
+                data: { status: WatchPartyStatus.CONFIRMED },
+            });
+        }
     });
+
+    await sendBookingConfirmationEmails(confirmationEmails);
+}
+
+async function sendBookingConfirmationEmails(
+    confirmationEmails: Array<{
+        userEmail: string;
+        movieTitle: string;
+        posterUrl: string;
+        showDate: string;
+        showTime: string;
+        seatLabelList: string[];
+        totalPrice: string;
+        bookingId: string;
+    }>
+) {
+    const apiKey = process.env.RESEND_EMAIL_API_KEY;
+    if (!apiKey || confirmationEmails.length === 0) {
+        return;
+    }
+
+    const resend = new Resend(apiKey);
+
+    for (const confirmationEmail of confirmationEmails) {
+        try {
+            await resend.emails.send({
+                from: "Cinemate <do-not-reply@bookcinemate.me>",
+                to: confirmationEmail.userEmail,
+                subject: "Booking Confirmed! - Cinemate",
+                react: TicketConfirmation({
+                    movieTitle: confirmationEmail.movieTitle,
+                    posterUrl: confirmationEmail.posterUrl,
+                    date: confirmationEmail.showDate,
+                    time: confirmationEmail.showTime,
+                    screen: "#1",
+                    seatLabelList: confirmationEmail.seatLabelList,
+                    totalPrice: confirmationEmail.totalPrice,
+                    bookingId: confirmationEmail.bookingId,
+                }),
+            });
+        } catch (error) {
+            console.error("Failed to send booking confirmation email:", error);
+        }
+    }
 }

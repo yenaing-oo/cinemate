@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Users } from "lucide-react";
 import { api } from "~/trpc/react";
 import { formatTime } from "~/lib/utils";
 import { $Enums } from "@prisma/client";
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
+import { Separator } from "~/components/ui/separator";
 
 import TicketSelectionPage from "./childRoutes/ticketSelection/ticketSelectionpage";
 import SeatSelectionPage from "./childRoutes/seatSelection/seatSelectionpage";
@@ -75,18 +78,68 @@ export default function TicketingPage() {
         }
     };
 
+    const watchPartyHost = session?.watchParty?.hostUser;
+    const watchPartyHostName = watchPartyHost
+        ? `${watchPartyHost.firstName} ${watchPartyHost.lastName}`.trim() ||
+          watchPartyHost.email
+        : null;
+    const watchPartyParticipantNames =
+        session?.watchParty?.participants.map((participant) => {
+            const fullName =
+                `${participant.firstName} ${participant.lastName}`.trim();
+            return fullName || participant.email;
+        }) ?? [];
+
     return (
         <section>
             {isLoading ? (
                 <p className="text-lg text-gray-600">Loading session…</p>
             ) : session ? (
                 <>
-                    <div className="sticky top-20 z-5 float-right">
-                        <span className="font-semibold">Time left:</span>{" "}
-                        <span className="font-mono font-semibold text-red-500">
-                            {timeLeft !== null ? formatTime(timeLeft) : "00:00"}
-                        </span>
+                    <div className="sticky top-20 z-[9999] float-right mb-6">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-slate-950/75 px-3 py-1.5 shadow-lg backdrop-blur-sm">
+                            <span className="text-xs font-semibold text-slate-200">
+                                Time left:
+                            </span>
+                            <span className="font-mono text-sm font-semibold text-red-400">
+                                {timeLeft !== null
+                                    ? formatTime(timeLeft)
+                                    : "00:00"}
+                            </span>
+                        </div>
                     </div>
+                    {session.watchPartyId ? (
+                        <Alert className="glass-card clear-both mt-0 mb-4 border-cyan-300/20 bg-cyan-300/8 text-slate-100">
+                            <Users className="text-cyan-100" />
+                            <AlertTitle className="text-sm font-semibold text-white">
+                                Watch party booking in progress
+                            </AlertTitle>
+                            <AlertDescription className="space-y-0 text-xs text-slate-200">
+                                <p>
+                                    You are booking tickets on behalf of your
+                                    watch party. You will only need to pay for
+                                    one ticket.
+                                </p>
+                                <Separator className="my-1 bg-white/15" />
+                                {watchPartyHostName ? (
+                                    <p>
+                                        <span className="font-semibold text-slate-100">
+                                            Host:
+                                        </span>{" "}
+                                        {watchPartyHostName}
+                                    </p>
+                                ) : null}
+                                {watchPartyParticipantNames.length > 0 ? (
+                                    <p>
+                                        <span className="font-semibold text-slate-100">
+                                            Participants:
+                                        </span>{" "}
+                                        {watchPartyParticipantNames.join(", ")}
+                                    </p>
+                                ) : null}
+                            </AlertDescription>
+                        </Alert>
+                    ) : null}
                     {session.step === $Enums.BookingStep.TICKET_QUANTITY && (
                         <TicketSelectionPage
                             bookingSession={session}

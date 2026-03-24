@@ -217,7 +217,7 @@ export const watchPartyRouter = createTRPCRouter({
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     message:
-                        "This watch party is not active and cannot be joined.",
+                        "This watch party is not open and cannot be joined.",
                 });
             }
 

@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Ticket, Users } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Spinner } from "~/components/ui/spinner";
@@ -21,13 +23,28 @@ import {
 } from "~/components/watch-party/watch-party-status";
 
 export function WatchPartyDetailView({ partyId }: { partyId: string }) {
+    const router = useRouter();
     const { isAuthenticated, isLoading: isAuthLoading } = useAuthSession();
+    const [bookingError, setBookingError] = useState<string | null>(null);
     const watchPartyQuery = api.watchParty.getById.useQuery(
         { partyId },
         {
             enabled: isAuthenticated === true,
         }
     );
+    const createWatchPartyBookingSession =
+        api.bookingSession.createForWatchParty.useMutation({
+            onSuccess: () => {
+                toast.success("Watch party booking session started.");
+                router.push("/ticketing");
+            },
+            onError: (error) => {
+                setBookingError(
+                    error.message ||
+                        "Unable to start watch party booking right now."
+                );
+            },
+        });
     const [timeLeftMs, setTimeLeftMs] = useState(0);
 
     useEffect(() => {
@@ -131,6 +148,22 @@ export function WatchPartyDetailView({ partyId }: { partyId: string }) {
     );
     const canBookWatchParty = isWatchPartyBookable(party.showtime.startTime);
 
+    const handleBookTickets = async () => {
+        if (party.viewerRole !== "LEADER") {
+            return;
+        }
+
+        setBookingError(null);
+
+        await createWatchPartyBookingSession
+            .mutateAsync({
+                watchPartyId: party.id,
+            })
+            .catch(() => {
+                // User-facing error state is handled in onError.
+            });
+    };
+
     return (
         <section className="space-y-8 py-10 md:py-14">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -207,7 +240,8 @@ export function WatchPartyDetailView({ partyId }: { partyId: string }) {
                             </p>
                         </div>
 
-                        {party.viewerRole === "LEADER" ? (
+                        {party.viewerRole === "LEADER" &&
+                        party.status !== "CONFIRMED" ? (
                             <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/8 p-4">
                                 <div className="flex flex-wrap items-start justify-between gap-3">
                                     <div>
@@ -248,11 +282,26 @@ export function WatchPartyDetailView({ partyId }: { partyId: string }) {
 
                                     <Button
                                         type="button"
-                                        disabled={!canBookWatchParty}
+                                        disabled={
+                                            !canBookWatchParty ||
+                                            createWatchPartyBookingSession.isPending
+                                        }
+                                        onClick={handleBookTickets}
                                     >
-                                        Book Watch Party
+                                        <span className="inline-flex items-center gap-2">
+                                            {createWatchPartyBookingSession.isPending ? (
+                                                <Spinner />
+                                            ) : null}
+                                            <span>Book Tickets</span>
+                                        </span>
                                     </Button>
                                 </div>
+
+                                {bookingError ? (
+                                    <p className="mt-3 text-sm text-red-300">
+                                        {bookingError}
+                                    </p>
+                                ) : null}
                             </div>
                         ) : null}
                     </CardContent>

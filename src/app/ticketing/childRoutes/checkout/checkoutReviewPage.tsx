@@ -9,11 +9,8 @@ import {
     formatSeatFromCode,
     formatShowtimeDate,
     formatShowtimeTime,
-    formatBookingNumber,
 } from "~/lib/utils";
 import { BookingReviewPanel } from "~/components/checkout/bookingReviewPanel";
-import { useSendConfirmationEmail } from "~/lib/emailServices";
-import { api } from "~/trpc/react";
 
 interface CheckoutReviewPageProps {
     bookingSession: {
@@ -53,6 +50,8 @@ interface CheckoutReviewPageProps {
     } & {
         id: string;
         userId: string | null;
+        watchPartyId?: string | null;
+        payableTicketCount?: number;
         showtimeId: string;
         ticketCount: number | null;
         step: $Enums.BookingStep;
@@ -75,15 +74,15 @@ export default function CheckoutReviewPage({
     isSubmitting,
 }: CheckoutReviewPageProps) {
     const router = useRouter();
-    const latestBookingMutation =
-        api.bookings.latestBookingDetails.useMutation();
-    const sendConfirmationEmail = useSendConfirmationEmail();
 
     const movieTitle = bookingSession.showtime.movie.title;
     const moviePosterUrl = bookingSession.showtime.movie.posterUrl;
     const showtimeDate = bookingSession.showtime.startTime;
     const ticketPrice = Number(bookingSession.showtime.price);
     const seatCount = bookingSession.selectedSeats.length;
+    const payableTicketCount =
+        bookingSession.payableTicketCount ??
+        (bookingSession.watchPartyId ? 1 : seatCount);
 
     const selectedSeatLabels = bookingSession.selectedSeats
         .map((selectedSeat) => {
@@ -100,31 +99,10 @@ export default function CheckoutReviewPage({
         .map((seat) => seat.label);
 
     const priceEach = formatCad(ticketPrice);
-    const total = formatCad(ticketPrice * seatCount);
+    const total = formatCad(ticketPrice * payableTicketCount);
     const showDate = formatShowtimeDate(showtimeDate);
     const showTime = formatShowtimeTime(showtimeDate);
     const showtimeLabel = `${showDate} | ${showTime}`;
-
-    async function processConfirmationEmail() {
-        const lastestBooking = await latestBookingMutation.mutateAsync();
-
-        if (!lastestBooking) return;
-
-        const formatedBookingNumber = formatBookingNumber(
-            lastestBooking.bookingNumber
-        );
-
-        await sendConfirmationEmail({
-            userId: bookingSession.userId,
-            movieTitle: movieTitle,
-            moviePosterUrl: moviePosterUrl,
-            showDate: showDate,
-            showTime: showTime,
-            seatLabelList: selectedSeatLabels,
-            totalPrice: total,
-            bookingId: formatedBookingNumber,
-        });
-    }
 
     return (
         <BookingReviewPanel
@@ -132,7 +110,7 @@ export default function CheckoutReviewPage({
             showtimeLabel={showtimeLabel}
             posterUrl={moviePosterUrl}
             seatLabels={selectedSeatLabels}
-            ticketCount={seatCount}
+            ticketCount={payableTicketCount}
             priceEach={priceEach}
             total={total}
             isSubmitting={isSubmitting}
@@ -154,18 +132,6 @@ export default function CheckoutReviewPage({
                     router.replace("/ticketing");
                     router.refresh();
                     return;
-                }
-
-                try {
-                    await processConfirmationEmail();
-                } catch {
-                    toast.error(
-                        "Your reservation was confirmed, but the confirmation email could not be sent.",
-                        {
-                            description:
-                                "You can still find your latest booking on the bookings page.",
-                        }
-                    );
                 }
             }}
         />

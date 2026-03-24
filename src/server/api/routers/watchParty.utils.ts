@@ -114,7 +114,7 @@ export function isWatchPartyParticipant(
 }
 
 export function isWatchPartyJoinable(status: WatchPartyStatus) {
-    return status === WatchPartyStatus.ACTIVE;
+    return status === WatchPartyStatus.OPEN;
 }
 
 export function mapWatchPartyListItem(
