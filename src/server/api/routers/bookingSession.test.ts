@@ -49,12 +49,25 @@ describe("bookingSessionRouter.get", () => {
         const caller = bookingSessionRouter.createCaller(mockCtx);
         const result = await caller.get();
 
-        expect(result).toEqual(mockSession);
+        expect(result).toEqual({
+            ...mockSession,
+            payableTicketCount: 0,
+        });
         expect(mockCtx.db.bookingSession.findFirst).toHaveBeenCalledWith({
             where: {
                 userId: "user-123",
                 expiresAt: { gt: expect.any(Date) },
                 step: { not: BookingStep.COMPLETED },
+                OR: [
+                    { watchPartyId: null },
+                    {
+                        watchParty: {
+                            status: {
+                                in: ["CLOSED"],
+                            },
+                        },
+                    },
+                ],
             },
             orderBy: { startedAt: "desc" },
             include: expect.any(Object),
