@@ -8,6 +8,7 @@ import {
     BookingStatus,
     BookingStep,
     TicketStatus,
+    WatchPartyStatus,
     type PrismaClient,
 } from "@prisma/client";
 
@@ -55,6 +56,119 @@ export const bookingSessionRouter = createTRPCRouter({
             });
         }),
 
+    createForWatchParty: protectedProcedure
+        .input(
+            z.object({
+                watchPartyId: z.string(),
+            })
+        )
+        .mutation(async ({ ctx, input }) => {
+            const now = new Date();
+            const expiresAt = new Date(
+                now.getTime() + BOOKING_SESSION_DURATION_MS
+            );
+            // Validate the watch party
+            const watchParty = await ctx.db.watchParty.findUnique({
+                where: { id: input.watchPartyId },
+                select: {
+                    id: true,
+                    hostUserId: true,
+                    showtimeId: true,
+                    status: true,
+                    _count: { select: { participants: true } },
+                },
+            });
+
+            if (!watchParty) {
+                throw new Error("Watch party not found.");
+            }
+            if (watchParty.hostUserId !== ctx.user.id) {
+                throw new Error(
+                    "Only the watch party host can create a booking session for the group."
+                );
+            }
+            if (watchParty.status === WatchPartyStatus.CONFIRMED) {
+                throw new Error(
+                    "A booking has already been confirmed for this watch party."
+                );
+            }
+            if (watchParty._count.participants === 0) {
+                throw new Error(
+                    "The watch party must have at least one participant besides the host before booking."
+                );
+            }
+            if (!watchParty.showtimeId) {
+                throw new Error(
+                    "The watch party does not have an associated showtime."
+                );
+            }
+
+            const showtimeId = watchParty.showtimeId;
+
+            // Total seats = host + participants
+            const ticketCount = 1 + watchParty._count.participants;
+
+            // Verify enough seats are available for the whole group
+            const availableSeatsCount = await ctx.db.showtimeSeat.count({
+                where: {
+                    showtimeId,
+                    isBooked: false,
+                    OR: [
+                        { heldTill: null },
+                        { heldTill: { lt: now } },
+                        { heldByUserId: ctx.user.id },
+                    ],
+                },
+            });
+            if (availableSeatsCount < ticketCount) {
+                throw new Error(
+                    "Not enough seats available for all watch party members."
+                );
+            }
+
+            return ctx.db.$transaction(async (tx) => {
+                // Delete any existing sessions for this user
+                await tx.bookingSession.deleteMany({
+                    where: { userId: ctx.user.id },
+                });
+
+                // Mark the watch party as CLOSED when starting a booking session
+                if (watchParty.status === WatchPartyStatus.OPEN) {
+                    await tx.watchParty.update({
+                        where: { id: input.watchPartyId },
+                        data: { status: WatchPartyStatus.CLOSED },
+                    });
+                }
+
+                return tx.bookingSession.create({
+                    data: {
+                        userId: ctx.user.id,
+                        showtimeId: showtimeId,
+                        watchPartyId: input.watchPartyId,
+                        step: BookingStep.SEAT_SELECTION,
+                        ticketCount,
+                        startedAt: now,
+                        expiresAt,
+                    },
+                    include: {
+                        showtime: {
+                            include: {
+                                movie: {
+                                    select: {
+                                        id: true,
+                                        title: true,
+                                        posterUrl: true,
+                                        backdropUrl: true,
+                                        languages: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                });
+            });
+        }),
+
     get: protectedProcedure.query(async ({ ctx }) => {
         const now = new Date();
         const session = await ctx.db.bookingSession.findFirst({
@@ -62,6 +176,16 @@ export const bookingSessionRouter = createTRPCRouter({
                 userId: ctx.user.id,
                 expiresAt: { gt: now },
                 step: { not: BookingStep.COMPLETED },
+                OR: [
+                    { watchPartyId: null },
+                    {
+                        watchParty: {
+                            status: {
+                                in: [WatchPartyStatus.CLOSED],
+                            },
+                        },
+                    },
+                ],
             },
             orderBy: { startedAt: "desc" },
             include: {
@@ -75,6 +199,32 @@ export const bookingSessionRouter = createTRPCRouter({
                                 backdropUrl: true,
                                 languages: true,
                             },
+                        },
+                    },
+                },
+                watchParty: {
+                    select: {
+                        id: true,
+                        name: true,
+                        hostUser: {
+                            select: {
+                                firstName: true,
+                                lastName: true,
+                                email: true,
+                            },
+                        },
+                        participants: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                email: true,
+                            },
+                            orderBy: [
+                                { firstName: "asc" },
+                                { lastName: "asc" },
+                                { email: "asc" },
+                            ],
                         },
                     },
                 },
@@ -124,6 +274,11 @@ export const bookingSessionRouter = createTRPCRouter({
                 session.step === BookingStep.TICKET_QUANTITY &&
                 input.goToStep === BookingStep.SEAT_SELECTION
             ) {
+                if (session.watchPartyId) {
+                    throw new Error(
+                        "Watch party booking sessions start at seat selection — ticket quantity step is not applicable."
+                    );
+                }
                 if (!input.ticketCount) {
                     throw new Error(
                         "Ticket count is required for seat selection"
@@ -309,6 +464,9 @@ async function completeBooking(db: PrismaClient, session: any) {
                 status: BookingStatus.CONFIRMED,
                 userId: session.userId,
                 showtimeId: session.showtimeId,
+                ...(session.watchPartyId
+                    ? { watchPartyId: session.watchPartyId }
+                    : {}),
             },
         });
 
@@ -331,5 +489,13 @@ async function completeBooking(db: PrismaClient, session: any) {
             where: { id: session.id },
             data: { step: BookingStep.COMPLETED },
         });
+
+        // 6. If this is a watch party booking, mark the party as CONFIRMED
+        if (session.watchPartyId) {
+            await tx.watchParty.update({
+                where: { id: session.watchPartyId },
+                data: { status: WatchPartyStatus.CONFIRMED },
+            });
+        }
     });
 }
