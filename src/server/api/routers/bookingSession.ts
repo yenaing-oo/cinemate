@@ -242,7 +242,18 @@ export const bookingSessionRouter = createTRPCRouter({
             },
         });
 
-        return session;
+        if (!session) {
+            return null;
+        }
+
+        const payableTicketCount = session.watchPartyId
+            ? 1
+            : session.selectedSeats.length;
+
+        return {
+            ...session,
+            payableTicketCount,
+        };
     }),
 
     update: protectedProcedure
@@ -455,34 +466,102 @@ async function completeBooking(db: PrismaClient, session: any) {
             where: { id: session.showtimeId },
             select: { price: true },
         });
-        const totalAmount = showtime.price.mul(session.selectedSeats.length);
+        const sortedShowtimeSeatIds = [...session.selectedSeats]
+            .map((showtimeSeat: any) => showtimeSeat.id)
+            .sort((a: string, b: string) => a.localeCompare(b));
 
-        // 3. Create booking
-        const booking = await tx.booking.create({
-            data: {
-                totalAmount,
-                status: BookingStatus.CONFIRMED,
-                userId: session.userId,
-                showtimeId: session.showtimeId,
-                ...(session.watchPartyId
-                    ? { watchPartyId: session.watchPartyId }
-                    : {}),
-            },
-        });
+        if (session.watchPartyId) {
+            const watchParty = await tx.watchParty.findUnique({
+                where: { id: session.watchPartyId },
+                select: {
+                    hostUserId: true,
+                    participants: {
+                        select: { id: true },
+                        orderBy: [
+                            { firstName: "asc" },
+                            { lastName: "asc" },
+                            { email: "asc" },
+                        ],
+                    },
+                },
+            });
 
-        // 4. Create tickets
-        await Promise.all(
-            session.selectedSeats.map((showtimeSeat: any) =>
-                tx.ticket.create({
+            if (!watchParty?.hostUserId) {
+                throw new Error(
+                    "Watch party host is missing. Unable to complete booking."
+                );
+            }
+
+            const memberUserIds = [
+                watchParty.hostUserId,
+                ...watchParty.participants.map((participant) => participant.id),
+            ];
+
+            const uniqueMemberUserIds = [...new Set(memberUserIds)];
+
+            if (uniqueMemberUserIds.length !== sortedShowtimeSeatIds.length) {
+                throw new Error(
+                    "Watch party member count does not match selected seat count."
+                );
+            }
+
+            for (const [index, memberUserId] of uniqueMemberUserIds.entries()) {
+                const showtimeSeatId = sortedShowtimeSeatIds[index];
+
+                if (!memberUserId || !showtimeSeatId) {
+                    throw new Error(
+                        "Watch party booking data is incomplete. Please try again."
+                    );
+                }
+
+                const booking = await tx.booking.create({
+                    data: {
+                        totalAmount: showtime.price,
+                        status: BookingStatus.CONFIRMED,
+                        userId: memberUserId,
+                        showtimeId: session.showtimeId,
+                        watchPartyId: session.watchPartyId,
+                    },
+                });
+
+                await tx.ticket.create({
                     data: {
                         bookingId: booking.id,
-                        showtimeSeatId: showtimeSeat.id,
+                        showtimeSeatId,
                         price: showtime.price,
                         status: TicketStatus.VALID,
                     },
-                })
-            )
-        );
+                });
+            }
+        } else {
+            const totalAmount = showtime.price.mul(
+                session.selectedSeats.length
+            );
+
+            // 3. Create booking
+            const booking = await tx.booking.create({
+                data: {
+                    totalAmount,
+                    status: BookingStatus.CONFIRMED,
+                    userId: session.userId,
+                    showtimeId: session.showtimeId,
+                },
+            });
+
+            // 4. Create tickets
+            await Promise.all(
+                sortedShowtimeSeatIds.map((showtimeSeatId: string) =>
+                    tx.ticket.create({
+                        data: {
+                            bookingId: booking.id,
+                            showtimeSeatId,
+                            price: showtime.price,
+                            status: TicketStatus.VALID,
+                        },
+                    })
+                )
+            );
+        }
 
         // 5. Update booking session step
         await tx.bookingSession.update({

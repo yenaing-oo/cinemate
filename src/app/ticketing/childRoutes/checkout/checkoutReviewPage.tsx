@@ -53,6 +53,8 @@ interface CheckoutReviewPageProps {
     } & {
         id: string;
         userId: string | null;
+        watchPartyId?: string | null;
+        payableTicketCount?: number;
         showtimeId: string;
         ticketCount: number | null;
         step: $Enums.BookingStep;
@@ -84,6 +86,9 @@ export default function CheckoutReviewPage({
     const showtimeDate = bookingSession.showtime.startTime;
     const ticketPrice = Number(bookingSession.showtime.price);
     const seatCount = bookingSession.selectedSeats.length;
+    const payableTicketCount =
+        bookingSession.payableTicketCount ??
+        (bookingSession.watchPartyId ? 1 : seatCount);
 
     const selectedSeatLabels = bookingSession.selectedSeats
         .map((selectedSeat) => {
@@ -100,7 +105,7 @@ export default function CheckoutReviewPage({
         .map((seat) => seat.label);
 
     const priceEach = formatCad(ticketPrice);
-    const total = formatCad(ticketPrice * seatCount);
+    const total = formatCad(ticketPrice * payableTicketCount);
     const showDate = formatShowtimeDate(showtimeDate);
     const showTime = formatShowtimeTime(showtimeDate);
     const showtimeLabel = `${showDate} | ${showTime}`;
@@ -120,7 +125,10 @@ export default function CheckoutReviewPage({
             moviePosterUrl: moviePosterUrl,
             showDate: showDate,
             showTime: showTime,
-            seatLabelList: selectedSeatLabels,
+            seatLabelList:
+                bookingSession.watchPartyId && selectedSeatLabels.length > 0
+                    ? selectedSeatLabels.slice(0, 1)
+                    : selectedSeatLabels,
             totalPrice: total,
             bookingId: formatedBookingNumber,
         });
@@ -132,7 +140,7 @@ export default function CheckoutReviewPage({
             showtimeLabel={showtimeLabel}
             posterUrl={moviePosterUrl}
             seatLabels={selectedSeatLabels}
-            ticketCount={seatCount}
+            ticketCount={payableTicketCount}
             priceEach={priceEach}
             total={total}
             isSubmitting={isSubmitting}

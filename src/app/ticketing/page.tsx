@@ -117,7 +117,8 @@ export default function TicketingPage() {
                             <AlertDescription className="space-y-0 text-xs text-slate-200">
                                 <p>
                                     You are booking tickets on behalf of your
-                                    watch party.
+                                    watch party. You will only need to pay for
+                                    one ticket.
                                 </p>
                                 <Separator className="my-1 bg-white/15" />
                                 {watchPartyHostName ? (
