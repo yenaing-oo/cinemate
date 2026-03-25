@@ -19,9 +19,12 @@ const config = {
             "ObjectLiteral",
             "BooleanLiteral",
             "StringLiteral",
-            "EqualityOperator",
             "BlockStatement",
             "ArithmeticOperator",
+            "ArrayDeclaration",
+            "ArrowFunction",
+            "LogicalOperator",
+            "OptionalChaining",
         ],
     },
     mutate: [

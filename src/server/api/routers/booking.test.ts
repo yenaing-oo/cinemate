@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { bookingsRouter } from "./bookings";
 import { BookingStatus, TicketStatus } from "@prisma/client";
 
 type EnvModule = {
@@ -52,9 +53,6 @@ vi.mock("~/server/api/trpc", async () => {
     };
 });
 
-import { bookingsRouter } from "./bookings";
-
-//Test cases for bookingsRouter, specifically the list and cancel procedures
 describe("bookingsRouter", () => {
     beforeEach(() => {
         vi.useFakeTimers();
@@ -257,5 +255,91 @@ describe("bookingsRouter", () => {
         const result = await caller.cancel({ bookingId: "booking-789" });
         expect(result).toEqual({ success: true });
         vi.useRealTimers();
+    });
+
+    it("cancel: returns email error object from the email transaction when resend fails", async () => {
+        const showtimeStart = new Date("2026-03-03T12:00:00-06:00");
+
+        const bookingInDb = {
+            id: "booking-999",
+            userId: "user-123",
+            bookingNumber: 999,
+            totalAmount: 42,
+            status: BookingStatus.CONFIRMED,
+            showtime: { startTime: showtimeStart, movieId: "movie-123" },
+            tickets: [{ id: "ticket-1", showtimeSeatId: "sts-1" }],
+        };
+
+        const movieInDb = {
+            id: "movie-123",
+            title: "Hoppers",
+            posterUrl: "www.google.com",
+        };
+
+        const showtimeSeatInDb = [
+            {
+                id: "sts-1",
+                seatId: "seat-123",
+            },
+        ];
+
+        const seatInDb = [
+            {
+                id: "seat-123",
+                row: 1,
+                number: 1,
+            },
+        ];
+
+        const tx = {
+            booking: { update: vi.fn().mockResolvedValue({}) },
+            ticket: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+            showtimeSeat: {
+                updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+                findMany: vi.fn().mockResolvedValue(showtimeSeatInDb),
+            },
+            movie: { findUnique: vi.fn().mockResolvedValue(movieInDb) },
+            seat: { findMany: vi.fn().mockResolvedValue(seatInDb) },
+        };
+
+        let secondTransactionResult: any;
+
+        const ctx: any = {
+            user: { id: "user-123", email: "test@example.com" },
+            db: {
+                booking: {
+                    findUnique: vi.fn().mockResolvedValue(bookingInDb),
+                },
+                $transaction: vi
+                    .fn()
+                    .mockImplementationOnce(async (cb: any) => cb(tx))
+                    .mockImplementationOnce(async (cb: any) => {
+                        secondTransactionResult = await cb(tx);
+                        return secondTransactionResult;
+                    }),
+            },
+        };
+
+        const { Resend } = await import("resend");
+        vi.mocked(Resend).mockImplementation(function () {
+            return {
+                emails: {
+                    send: vi.fn().mockResolvedValue({
+                        error: { message: "email failed" },
+                    }),
+                },
+            } as any;
+        });
+
+        const caller = bookingsRouter.createCaller(ctx);
+        const result = await caller.cancel({ bookingId: "booking-999" });
+
+        expect(result).toEqual({ success: true });
+
+        expect(secondTransactionResult).toEqual({
+            error: { message: "email failed" },
+        });
+
+        expect(ctx.db.$transaction).toHaveBeenCalledTimes(2);
     });
 });

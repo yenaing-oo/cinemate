@@ -1,10 +1,22 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
     bookingSessionRouter,
     validateSession,
     reserveSeats,
 } from "./bookingSession";
-import { BookingStep } from "@prisma/client";
+import { BookingStep, WatchPartyStatus } from "@prisma/client";
+
+const sendEmailMock = vi.fn();
+
+vi.mock("resend", () => {
+    return {
+        Resend: vi.fn().mockImplementation(() => ({
+            emails: {
+                send: sendEmailMock,
+            },
+        })),
+    };
+});
 
 // Test cases for bookingSessionRouter.get procedure
 describe("bookingSessionRouter.get", () => {
@@ -21,7 +33,6 @@ describe("bookingSessionRouter.get", () => {
         };
     });
 
-    // Test case for retrieving an active booking session for the current user
     it("should return an active booking session for the current user", async () => {
         const mockSession = {
             id: "session-123",
@@ -31,6 +42,7 @@ describe("bookingSessionRouter.get", () => {
             startedAt: new Date(),
             expiresAt: new Date(Date.now() + 600000),
             ticketCount: 2,
+            watchPartyId: "wp-1",
             showtime: {
                 id: "showtime-123",
                 movie: {
@@ -42,6 +54,16 @@ describe("bookingSessionRouter.get", () => {
                 },
             },
             selectedSeats: [],
+            watchParty: {
+                id: "wp-1",
+                name: "Party",
+                hostUser: {
+                    firstName: "Host",
+                    lastName: "User",
+                    email: "host@test.com",
+                },
+                participants: [],
+            },
         };
 
         mockCtx.db.bookingSession.findFirst.mockResolvedValue(mockSession);
@@ -51,8 +73,10 @@ describe("bookingSessionRouter.get", () => {
 
         expect(result).toEqual({
             ...mockSession,
-            payableTicketCount: 0,
+            payableTicketCount: 1,
         });
+
+        // 🔥 KILLS orderBy: [] mutant
         expect(mockCtx.db.bookingSession.findFirst).toHaveBeenCalledWith({
             where: {
                 userId: "user-123",
@@ -63,14 +87,67 @@ describe("bookingSessionRouter.get", () => {
                     {
                         watchParty: {
                             status: {
-                                in: ["CLOSED"],
+                                in: [WatchPartyStatus.CLOSED],
                             },
                         },
                     },
                 ],
             },
-            orderBy: { startedAt: "desc" },
-            include: expect.any(Object),
+            orderBy: {
+                startedAt: "desc",
+            },
+            include: {
+                showtime: {
+                    include: {
+                        movie: {
+                            select: {
+                                id: true,
+                                title: true,
+                                posterUrl: true,
+                                backdropUrl: true,
+                                languages: true,
+                            },
+                        },
+                    },
+                },
+                selectedSeats: {
+                    include: {
+                        seat: {
+                            select: {
+                                id: true,
+                                row: true,
+                                number: true,
+                            },
+                        },
+                    },
+                },
+                watchParty: {
+                    select: {
+                        id: true,
+                        name: true,
+                        hostUser: {
+                            select: {
+                                firstName: true,
+                                lastName: true,
+                                email: true,
+                            },
+                        },
+                        participants: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                email: true,
+                            },
+                            orderBy: [
+                                { firstName: "asc" },
+                                { lastName: "asc" },
+                                { email: "asc" },
+                            ],
+                        },
+                    },
+                },
+            },
         });
     });
 
@@ -234,8 +311,6 @@ describe("reserveSeats", () => {
     });
 });
 
-// Test for expiry calculation in bookingSessionRouter.create
-
 describe("bookingSessionRouter.create", () => {
     let mockCtx: any;
     beforeEach(() => {
@@ -265,8 +340,6 @@ describe("bookingSessionRouter.create", () => {
         vi.useRealTimers();
     });
 });
-
-// Test for OR array in setTicketCount
 
 describe("setTicketCount", () => {
     it("should use correct OR array for available seats", async () => {
@@ -304,19 +377,107 @@ describe("setTicketCount", () => {
             })
         );
     });
-});
 
-// Test for invalid step transitions in bookingSessionRouter.update
+    it("should allow ticket count when available seats exactly equals requested ticket count", async () => {
+        const db = {
+            showtimeSeat: {
+                count: vi.fn().mockResolvedValue(2),
+            },
+            bookingSession: {
+                update: vi.fn().mockResolvedValue({}),
+            },
+        };
+
+        const now = new Date();
+        const ticketCount = 2;
+        const showtimeId = "showtime-1";
+        const userId = "user-1";
+        const bookingSessionId = "session-1";
+
+        const mod = await import("./bookingSession");
+
+        await expect(
+            mod.setTicketCount(
+                db as any,
+                ticketCount,
+                showtimeId,
+                userId,
+                bookingSessionId,
+                now
+            )
+        ).resolves.not.toThrow();
+
+        expect(db.bookingSession.update).toHaveBeenCalled();
+    });
+});
 
 describe("bookingSessionRouter.update", () => {
     let mockCtx: any;
+
     beforeEach(() => {
+        vi.useRealTimers();
+        vi.clearAllMocks();
+        vi.restoreAllMocks();
+        sendEmailMock.mockReset();
+
         mockCtx = {
             user: { id: "user-abc" },
             db: {
                 bookingSession: {
                     findUniqueOrThrow: vi.fn(),
+                    delete: vi.fn().mockResolvedValue({}),
                 },
+                booking: {
+                    create: vi.fn().mockResolvedValue({
+                        id: "booking-1",
+                        status: "CONFIRMED",
+                    }),
+                },
+                ticket: {
+                    createMany: vi.fn().mockResolvedValue({ count: 1 }),
+                    updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+                },
+                showtimeSeat: {
+                    updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+                },
+                watchParty: {
+                    update: vi.fn().mockResolvedValue({}),
+                    findUnique: vi.fn().mockResolvedValue({
+                        id: "wp-1",
+                        name: "Party",
+                    }),
+                },
+                user: {
+                    findUnique: vi.fn(),
+                    findMany: vi.fn(),
+                },
+                $transaction: vi.fn(async (cb: any) =>
+                    cb({
+                        bookingSession: {
+                            delete: vi.fn().mockResolvedValue({}),
+                        },
+                        booking: {
+                            create: vi.fn().mockResolvedValue({
+                                id: "booking-1",
+                                status: "CONFIRMED",
+                            }),
+                        },
+                        ticket: {
+                            createMany: vi.fn().mockResolvedValue({ count: 1 }),
+                            updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+                        },
+                        showtimeSeat: {
+                            updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+                        },
+                        watchParty: {
+                            update: vi.fn().mockResolvedValue({}),
+                            findUnique: vi.fn().mockResolvedValue({
+                                id: "wp-1",
+                                name: "Party",
+                            }),
+                        },
+                    })
+                ),
             },
         };
     });
@@ -325,7 +486,7 @@ describe("bookingSessionRouter.update", () => {
         const session = {
             id: "session-1",
             userId: "user-abc",
-            step: BookingStep.SEAT_SELECTION, // not CHECKOUT
+            step: BookingStep.SEAT_SELECTION,
             showtimeId: "showtime-xyz",
             ticketCount: 2,
             expiresAt: new Date(Date.now() + 10000),
@@ -359,5 +520,283 @@ describe("bookingSessionRouter.update", () => {
                 goToStep: BookingStep.SEAT_SELECTION,
             })
         ).rejects.toThrow(/Invalid step transition/);
+    });
+
+    it("should throw when number of unique member user IDs does not match number of selected seats", async () => {
+        const ctx = {
+            ...mockCtx,
+            db: {
+                ...mockCtx.db,
+                bookingSession: {
+                    ...mockCtx.db.bookingSession,
+                    findUnique: vi.fn().mockResolvedValue({
+                        id: "session-1",
+                        userId: mockCtx.user.id,
+                        showtimeId: "showtime-1",
+                        currentStep: BookingStep.SEAT_SELECTION,
+                        ticketCount: 2,
+                        selectedSeatIds: ["showtime-seat-1", "showtime-seat-2"],
+                        expiresAt: new Date(Date.now() + 1000 * 60 * 10),
+                    }),
+                    update: vi.fn(),
+                },
+                showtimeSeat: {
+                    ...mockCtx.db.showtimeSeat,
+                    findMany: vi.fn().mockResolvedValue([
+                        {
+                            id: "showtime-seat-1",
+                            showtimeId: "showtime-1",
+                            seatId: "seat-1",
+                            isBooked: false,
+                            heldByUserId: mockCtx.user.id,
+                            heldTill: new Date(Date.now() + 1000 * 60 * 10),
+                        },
+                        {
+                            id: "showtime-seat-2",
+                            showtimeId: "showtime-1",
+                            seatId: "seat-2",
+                            isBooked: false,
+                            heldByUserId: mockCtx.user.id,
+                            heldTill: new Date(Date.now() + 1000 * 60 * 10),
+                        },
+                    ]),
+                },
+            },
+        };
+
+        const caller = bookingSessionRouter.createCaller(ctx as any);
+
+        await expect(
+            caller.update({
+                sessionId: "session-1",
+                goToStep: BookingStep.CHECKOUT,
+                selectedSeatIds: ["showtime-seat-1", "showtime-seat-2"],
+                memberUserIds: ["user-1"], // mismatch: 1 unique member, 2 seats
+            } as any)
+        ).rejects.toThrow();
+
+        expect(ctx.db.bookingSession.update).not.toHaveBeenCalled();
+    });
+});
+
+describe("bookingSessionRouter.createForWatchParty", () => {
+    beforeEach(() => {
+        vi.useRealTimers();
+        vi.clearAllMocks();
+        vi.restoreAllMocks();
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
+        vi.clearAllMocks();
+        vi.restoreAllMocks();
+    });
+
+    it("should create a booking session for the watch party host", async () => {
+        const findUnique = vi.fn().mockResolvedValue({
+            id: "wp-1",
+            hostUserId: "user-1",
+            showtimeId: "showtime-1",
+            status: WatchPartyStatus.OPEN,
+            _count: { participants: 2 },
+        });
+
+        const count = vi.fn().mockResolvedValue(3);
+
+        const deleteMany = vi.fn().mockResolvedValue({ count: 1 });
+        const update = vi.fn().mockResolvedValue({
+            id: "wp-1",
+            status: WatchPartyStatus.CLOSED,
+        });
+
+        const create = vi.fn().mockImplementation(async (args) => ({
+            id: "session-1",
+            userId: args.data.userId,
+            showtimeId: args.data.showtimeId,
+            watchPartyId: args.data.watchPartyId,
+            step: args.data.step,
+            ticketCount: args.data.ticketCount,
+            startedAt: args.data.startedAt,
+            expiresAt: args.data.expiresAt,
+            showtime: {
+                movie: {
+                    id: "movie-1",
+                    title: "Dune",
+                    posterUrl: "/poster.jpg",
+                    backdropUrl: "/backdrop.jpg",
+                    languages: "English",
+                },
+            },
+        }));
+
+        const tx = {
+            bookingSession: {
+                deleteMany,
+                create,
+            },
+            watchParty: {
+                update,
+            },
+        };
+
+        const $transaction = vi.fn(async (callback: any) => {
+            return callback(tx);
+        });
+
+        const caller = bookingSessionRouter.createCaller({
+            db: {
+                watchParty: { findUnique },
+                showtimeSeat: { count },
+                $transaction,
+            },
+            user: { id: "user-1" },
+        } as any);
+
+        const result = await caller.createForWatchParty({
+            watchPartyId: "wp-1",
+        });
+
+        expect(findUnique).toHaveBeenCalledWith({
+            where: { id: "wp-1" },
+            select: {
+                id: true,
+                hostUserId: true,
+                showtimeId: true,
+                status: true,
+                _count: { select: { participants: true } },
+            },
+        });
+
+        expect(count).toHaveBeenCalledWith({
+            where: {
+                showtimeId: "showtime-1",
+                isBooked: false,
+                OR: [
+                    { heldTill: null },
+                    { heldTill: { lt: expect.any(Date) } },
+                    { heldByUserId: "user-1" },
+                ],
+            },
+        });
+
+        expect(deleteMany).toHaveBeenCalledWith({
+            where: { userId: "user-1" },
+        });
+
+        expect(update).toHaveBeenCalledWith({
+            where: { id: "wp-1" },
+            data: { status: WatchPartyStatus.CLOSED },
+        });
+
+        expect(create).toHaveBeenCalledWith({
+            data: {
+                userId: "user-1",
+                showtimeId: "showtime-1",
+                watchPartyId: "wp-1",
+                step: BookingStep.SEAT_SELECTION,
+                ticketCount: 3,
+                startedAt: expect.any(Date),
+                expiresAt: expect.any(Date),
+            },
+            include: {
+                showtime: {
+                    include: {
+                        movie: {
+                            select: {
+                                id: true,
+                                title: true,
+                                posterUrl: true,
+                                backdropUrl: true,
+                                languages: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        expect(result).toEqual({
+            id: "session-1",
+            userId: "user-1",
+            showtimeId: "showtime-1",
+            watchPartyId: "wp-1",
+            step: BookingStep.SEAT_SELECTION,
+            ticketCount: 3,
+            startedAt: expect.any(Date),
+            expiresAt: expect.any(Date),
+            showtime: {
+                movie: {
+                    id: "movie-1",
+                    title: "Dune",
+                    posterUrl: "/poster.jpg",
+                    backdropUrl: "/backdrop.jpg",
+                    languages: "English",
+                },
+            },
+        });
+    });
+
+    it("should throw when user is not host", async () => {
+        const findUnique = vi.fn().mockResolvedValue({
+            id: "wp-1",
+            hostUserId: "other-user",
+            showtimeId: "showtime-1",
+            status: WatchPartyStatus.OPEN,
+            _count: { participants: 2 },
+        });
+
+        const caller = bookingSessionRouter.createCaller({
+            db: {
+                watchParty: { findUnique },
+                showtimeSeat: { count: vi.fn() },
+                $transaction: vi.fn(),
+            },
+            user: { id: "user-1" },
+        } as any);
+
+        await expect(
+            caller.createForWatchParty({ watchPartyId: "wp-1" })
+        ).rejects.toThrow(
+            "Only the watch party host can create a booking session for the group."
+        );
+    });
+
+    it("should throw when not enough seats are available", async () => {
+        const findUnique = vi.fn().mockResolvedValue({
+            id: "wp-1",
+            hostUserId: "user-1",
+            showtimeId: "showtime-1",
+            status: WatchPartyStatus.OPEN,
+            _count: { participants: 3 },
+        });
+
+        const count = vi.fn().mockResolvedValue(2);
+
+        const caller = bookingSessionRouter.createCaller({
+            db: {
+                watchParty: { findUnique },
+                showtimeSeat: { count },
+                $transaction: vi.fn(),
+            },
+            user: { id: "user-1" },
+        } as any);
+
+        await expect(
+            caller.createForWatchParty({ watchPartyId: "wp-1" })
+        ).rejects.toThrow(
+            "Not enough seats available for all watch party members."
+        );
+
+        expect(count).toHaveBeenCalledWith({
+            where: {
+                showtimeId: "showtime-1",
+                isBooked: false,
+                OR: [
+                    { heldTill: null },
+                    { heldTill: { lt: expect.any(Date) } },
+                    { heldByUserId: "user-1" },
+                ],
+            },
+        });
     });
 });
