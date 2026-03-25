@@ -522,60 +522,140 @@ describe("bookingSessionRouter.update", () => {
         ).rejects.toThrow(/Invalid step transition/);
     });
 
-    it("should throw when number of unique member user IDs does not match number of selected seats", async () => {
-        const ctx = {
-            ...mockCtx,
-            db: {
-                ...mockCtx.db,
-                bookingSession: {
-                    ...mockCtx.db.bookingSession,
-                    findUnique: vi.fn().mockResolvedValue({
-                        id: "session-1",
-                        userId: mockCtx.user.id,
-                        showtimeId: "showtime-1",
-                        currentStep: BookingStep.SEAT_SELECTION,
-                        ticketCount: 2,
-                        selectedSeatIds: ["showtime-seat-1", "showtime-seat-2"],
-                        expiresAt: new Date(Date.now() + 1000 * 60 * 10),
-                    }),
-                    update: vi.fn(),
-                },
-                showtimeSeat: {
-                    ...mockCtx.db.showtimeSeat,
-                    findMany: vi.fn().mockResolvedValue([
-                        {
-                            id: "showtime-seat-1",
-                            showtimeId: "showtime-1",
-                            seatId: "seat-1",
-                            isBooked: false,
-                            heldByUserId: mockCtx.user.id,
-                            heldTill: new Date(Date.now() + 1000 * 60 * 10),
-                        },
-                        {
-                            id: "showtime-seat-2",
-                            showtimeId: "showtime-1",
-                            seatId: "seat-2",
-                            isBooked: false,
-                            heldByUserId: mockCtx.user.id,
-                            heldTill: new Date(Date.now() + 1000 * 60 * 10),
-                        },
-                    ]),
-                },
-            },
+    it("should advance from TICKET_QUANTITY to SEAT_SELECTION when ticket count and seats are available", async () => {
+        const session = {
+            id: "session-1",
+            userId: "user-abc",
+            step: BookingStep.TICKET_QUANTITY,
+            showtimeId: "showtime-xyz",
+            ticketCount: null,
+            watchPartyId: null,
+            expiresAt: new Date(Date.now() + 10000),
+            selectedSeats: [],
         };
-
-        const caller = bookingSessionRouter.createCaller(ctx as any);
-
+        mockCtx.db.bookingSession.findUniqueOrThrow.mockResolvedValue(session);
+        mockCtx.db.showtimeSeat = {
+            ...mockCtx.db.showtimeSeat,
+            count: vi.fn().mockResolvedValue(5),
+        };
+        mockCtx.db.bookingSession.update = vi.fn().mockResolvedValue({});
+        const caller = bookingSessionRouter.createCaller(mockCtx);
         await expect(
             caller.update({
                 sessionId: "session-1",
-                goToStep: BookingStep.CHECKOUT,
-                selectedSeatIds: ["showtime-seat-1", "showtime-seat-2"],
-                memberUserIds: ["user-1"], // mismatch: 1 unique member, 2 seats
-            } as any)
-        ).rejects.toThrow();
+                goToStep: BookingStep.SEAT_SELECTION,
+                ticketCount: 2,
+            })
+        ).resolves.not.toThrow();
+        expect(mockCtx.db.bookingSession.update).toHaveBeenCalledWith(
+            expect.objectContaining({
+                data: expect.objectContaining({
+                    step: BookingStep.SEAT_SELECTION,
+                    ticketCount: 2,
+                }),
+            })
+        );
+    });
 
-        expect(ctx.db.bookingSession.update).not.toHaveBeenCalled();
+    it("should throw when advancing TICKET_QUANTITY → SEAT_SELECTION for a watch party session", async () => {
+        const session = {
+            id: "session-1",
+            userId: "user-abc",
+            step: BookingStep.TICKET_QUANTITY,
+            showtimeId: "showtime-xyz",
+            ticketCount: null,
+            watchPartyId: "wp-1",
+            expiresAt: new Date(Date.now() + 10000),
+            selectedSeats: [],
+        };
+        mockCtx.db.bookingSession.findUniqueOrThrow.mockResolvedValue(session);
+        const caller = bookingSessionRouter.createCaller(mockCtx);
+        await expect(
+            caller.update({
+                sessionId: "session-1",
+                goToStep: BookingStep.SEAT_SELECTION,
+                ticketCount: 2,
+            })
+        ).rejects.toThrow(
+            "Watch party booking sessions start at seat selection — ticket quantity step is not applicable."
+        );
+    });
+
+    it("should throw when watch party member count does not match selected seat count", async () => {
+        // Session is at CHECKOUT step — completeBooking will be called
+        const selectedSeats = [{ id: "ss-1" }, { id: "ss-2" }];
+        const session = {
+            id: "session-1",
+            userId: "user-abc",
+            step: BookingStep.CHECKOUT,
+            showtimeId: "showtime-xyz",
+            ticketCount: 2,
+            watchPartyId: "wp-1",
+            expiresAt: new Date(Date.now() + 10000),
+            selectedSeats,
+        };
+        mockCtx.db.bookingSession.findUniqueOrThrow.mockResolvedValue(session);
+
+        // Build a transaction mock that contains the watch party with only 1 member
+        // but the session has 2 selected seats — mismatch triggers the throw
+        mockCtx.db.$transaction = vi.fn(async (cb: any) =>
+            cb({
+                showtimeSeat: {
+                    updateMany: vi.fn().mockResolvedValue({ count: 2 }),
+                    findMany: vi.fn().mockResolvedValue([
+                        { id: "ss-1", seat: { row: 1, number: 1 } },
+                        { id: "ss-2", seat: { row: 1, number: 2 } },
+                    ]),
+                },
+                showtime: {
+                    findUniqueOrThrow: vi.fn().mockResolvedValue({
+                        price: 15,
+                        startTime: new Date("2026-06-01T20:00:00Z"),
+                        movie: {
+                            title: "Test Movie",
+                            posterUrl: "/poster.jpg",
+                        },
+                    }),
+                },
+                watchParty: {
+                    findUnique: vi.fn().mockResolvedValue({
+                        hostUserId: "user-abc",
+                        // Only 1 participant but 2 seats selected → mismatch
+                        participants: [],
+                    }),
+                },
+                user: {
+                    findMany: vi
+                        .fn()
+                        .mockResolvedValue([
+                            { id: "user-abc", email: "host@test.com" },
+                        ]),
+                },
+                bookingSession: {
+                    update: vi.fn().mockResolvedValue({}),
+                    delete: vi.fn().mockResolvedValue({}),
+                },
+                booking: {
+                    create: vi.fn().mockResolvedValue({
+                        id: "booking-1",
+                        bookingNumber: 1001,
+                    }),
+                },
+                ticket: {
+                    create: vi.fn().mockResolvedValue({}),
+                },
+            })
+        );
+
+        const caller = bookingSessionRouter.createCaller(mockCtx);
+        await expect(
+            caller.update({
+                sessionId: "session-1",
+                goToStep: BookingStep.COMPLETED,
+            })
+        ).rejects.toThrow(
+            "Watch party member count does not match selected seat count."
+        );
     });
 });
 
