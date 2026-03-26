@@ -76,7 +76,6 @@ describe("bookingSessionRouter.get", () => {
             payableTicketCount: 1,
         });
 
-        // 🔥 KILLS orderBy: [] mutant
         expect(mockCtx.db.bookingSession.findFirst).toHaveBeenCalledWith({
             where: {
                 userId: "user-123",
@@ -287,7 +286,7 @@ describe("reserveSeats", () => {
             },
             data: {
                 heldByUserId: userId,
-                heldTill: expect.any(Date), // computed using SEAT_HOLD_DURATION_MS
+                heldTill: expect.any(Date), 
             },
         });
 
@@ -582,7 +581,6 @@ describe("bookingSessionRouter.update", () => {
     });
 
     it("should throw when watch party member count does not match selected seat count", async () => {
-        // Session is at CHECKOUT step — completeBooking will be called
         const selectedSeats = [{ id: "ss-1" }, { id: "ss-2" }];
         const session = {
             id: "session-1",
@@ -596,8 +594,7 @@ describe("bookingSessionRouter.update", () => {
         };
         mockCtx.db.bookingSession.findUniqueOrThrow.mockResolvedValue(session);
 
-        // Build a transaction mock that contains the watch party with only 1 member
-        // but the session has 2 selected seats — mismatch triggers the throw
+        
         mockCtx.db.$transaction = vi.fn(async (cb: any) =>
             cb({
                 showtimeSeat: {
@@ -620,7 +617,6 @@ describe("bookingSessionRouter.update", () => {
                 watchParty: {
                     findUnique: vi.fn().mockResolvedValue({
                         hostUserId: "user-abc",
-                        // Only 1 participant but 2 seats selected → mismatch
                         participants: [],
                     }),
                 },
@@ -696,7 +692,6 @@ describe("bookingSessionRouter.update", () => {
                         startTime: new Date("2026-06-01T20:00:00Z"),
                         movie: {
                             title: "Test Movie",
-                            // keep this null so confirmation emails are skipped
                             posterUrl: null,
                         },
                     }),
