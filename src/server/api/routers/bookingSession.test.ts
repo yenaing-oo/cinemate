@@ -76,7 +76,6 @@ describe("bookingSessionRouter.get", () => {
             payableTicketCount: 1,
         });
 
-        // 🔥 KILLS orderBy: [] mutant
         expect(mockCtx.db.bookingSession.findFirst).toHaveBeenCalledWith({
             where: {
                 userId: "user-123",
@@ -287,7 +286,7 @@ describe("reserveSeats", () => {
             },
             data: {
                 heldByUserId: userId,
-                heldTill: expect.any(Date), // computed using SEAT_HOLD_DURATION_MS
+                heldTill: expect.any(Date),
             },
         });
 
@@ -582,7 +581,6 @@ describe("bookingSessionRouter.update", () => {
     });
 
     it("should throw when watch party member count does not match selected seat count", async () => {
-        // Session is at CHECKOUT step — completeBooking will be called
         const selectedSeats = [{ id: "ss-1" }, { id: "ss-2" }];
         const session = {
             id: "session-1",
@@ -596,8 +594,6 @@ describe("bookingSessionRouter.update", () => {
         };
         mockCtx.db.bookingSession.findUniqueOrThrow.mockResolvedValue(session);
 
-        // Build a transaction mock that contains the watch party with only 1 member
-        // but the session has 2 selected seats — mismatch triggers the throw
         mockCtx.db.$transaction = vi.fn(async (cb: any) =>
             cb({
                 showtimeSeat: {
@@ -620,7 +616,6 @@ describe("bookingSessionRouter.update", () => {
                 watchParty: {
                     findUnique: vi.fn().mockResolvedValue({
                         hostUserId: "user-abc",
-                        // Only 1 participant but 2 seats selected → mismatch
                         participants: [],
                     }),
                 },
@@ -656,6 +651,113 @@ describe("bookingSessionRouter.update", () => {
         ).rejects.toThrow(
             "Watch party member count does not match selected seat count."
         );
+    });
+
+    it("should assign watch party tickets in sorted selected seat order", async () => {
+        const ticketCreateMock = vi.fn().mockResolvedValue({});
+        const bookingCreateMock = vi.fn().mockResolvedValue({
+            id: "booking-1",
+            bookingNumber: 1001,
+        });
+        const watchPartyUpdateMock = vi.fn().mockResolvedValue({});
+        const bookingSessionDeleteMock = vi.fn().mockResolvedValue({});
+
+        const session = {
+            id: "session-1",
+            userId: "user-abc",
+            step: BookingStep.CHECKOUT,
+            showtimeId: "showtime-xyz",
+            ticketCount: 2,
+            watchPartyId: "wp-1",
+            expiresAt: new Date(Date.now() + 10000),
+            // intentionally unsorted
+            selectedSeats: [{ id: "ss-2" }, { id: "ss-1" }],
+        };
+
+        mockCtx.db.bookingSession.findUniqueOrThrow.mockResolvedValue(session);
+
+        mockCtx.db.$transaction = vi.fn(async (cb: any) =>
+            cb({
+                showtimeSeat: {
+                    updateMany: vi.fn().mockResolvedValue({ count: 2 }),
+                    findMany: vi.fn().mockResolvedValue([
+                        { id: "ss-1", seat: { row: 1, number: 1 } },
+                        { id: "ss-2", seat: { row: 1, number: 2 } },
+                    ]),
+                },
+                showtime: {
+                    findUniqueOrThrow: vi.fn().mockResolvedValue({
+                        price: 15,
+                        startTime: new Date("2026-06-01T20:00:00Z"),
+                        movie: {
+                            title: "Test Movie",
+                            posterUrl: null,
+                        },
+                    }),
+                },
+                watchParty: {
+                    findUnique: vi.fn().mockResolvedValue({
+                        id: "wp-1",
+                        hostUserId: "user-abc",
+                        participants: [{ id: "user-def" }],
+                    }),
+                    update: watchPartyUpdateMock,
+                },
+                user: {
+                    findMany: vi.fn().mockResolvedValue([
+                        { id: "user-abc", email: "host@test.com" },
+                        { id: "user-def", email: "guest@test.com" },
+                    ]),
+                },
+                bookingSession: {
+                    update: vi.fn().mockResolvedValue({}),
+                    delete: bookingSessionDeleteMock,
+                },
+                booking: {
+                    create: bookingCreateMock,
+                },
+                ticket: {
+                    create: ticketCreateMock,
+                },
+            })
+        );
+
+        const caller = bookingSessionRouter.createCaller(mockCtx);
+
+        await expect(
+            caller.update({
+                sessionId: "session-1",
+                goToStep: BookingStep.COMPLETED,
+            })
+        ).resolves.toBeUndefined();
+
+        expect(bookingCreateMock).toHaveBeenCalled();
+        expect(ticketCreateMock).toHaveBeenCalledTimes(2);
+
+        expect(ticketCreateMock.mock.calls[0]![0]).toEqual(
+            expect.objectContaining({
+                data: expect.objectContaining({
+                    bookingId: "booking-1",
+                    showtimeSeatId: "ss-1",
+                    price: 15,
+                    status: "VALID",
+                }),
+            })
+        );
+
+        // next member should get the second sorted seat
+        expect(ticketCreateMock.mock.calls[1]![0]).toEqual(
+            expect.objectContaining({
+                data: expect.objectContaining({
+                    bookingId: "booking-1",
+                    showtimeSeatId: "ss-2",
+                    price: 15,
+                    status: "VALID",
+                }),
+            })
+        );
+
+        expect(watchPartyUpdateMock).toHaveBeenCalled();
     });
 });
 
