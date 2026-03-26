@@ -95,33 +95,38 @@ Supabase is used as the authentication provider for this project. It handles use
     pnpm db:generate
     ```
 
-4. **Seed the database with development data**
+4. **Generate Test Database**
+    ```bash
+    pnpm db:test:prepare
+    ```
+
+5. **Seed the database with development data**
 
     ```bash
     pnpm db:seed --dev
     ```
 
-5. **Sync movies from TMDB**
+6. **Sync movies from TMDB**
 
     ```bash
     pnpm sync:movies
     ```
 
-6. **Start the development server**
+7. **Start the development server**
 
     ```bash
     pnpm dev
     ```
 
-7. **Sign up for a test user**
+8. **Sign up for a test user**
     - Go to [http://localhost:3000/auth/sign-up](http://localhost:3000/auth/sign-up)
     - Use `user@example.com` and any password. Associated seed data exists for this email from step 4.
 
-8. **Confirm your email**
+9. **Confirm your email**
     - Open [http://localhost:54324/](http://localhost:54324/) (Mailpit email server)
     - Find the confirmation email and click the link
 
-9. **Sign in with your test credentials**
+10. **Sign in with your test credentials**
     - `user@example.com` is seeded with sample bookings and tickets
 
 ## Running the Application
@@ -165,11 +170,16 @@ The application will be available at [http://localhost:3000](http://localhost:30
 
 ## Mutation Testing
 
-Mutation testing is configured with StrykerJS using [`stryker.conf.js`](./stryker.conf.js). The current mutation scope is limited to source files that already have active Vitest coverage.
+Mutation testing is configured with StrykerJS using [`stryker.conf.js`](./stryker.conf.js). The current mutation scope is limited to source files that already have active Vitest coverage. We have implemented this per feature.
 
 ### Commands
 
-- `pnpm test:mutation` - Run the full mutation test suite.
+- `pnpm exec stryker run stryker.feature1.conf.js` - Run mutation tests for Feature 1.
+- `pnpm exec stryker run stryker.feature2.conf.js` - Run mutation tests for Feature 2.
+- `pnpm exec stryker run stryker.feature3.conf.js` - Run mutation tests for Feature 3.
+- `pnpm exec stryker run stryker.feature4.conf.js` - Run mutation tests for Feature 4.
+- `pnpm exec stryker run stryker.feature5.conf.js` - Run mutation tests for Feature 5.
+
 
 ### Reports
 
