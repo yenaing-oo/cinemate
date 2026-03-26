@@ -294,7 +294,7 @@ describe("deliverWatchPartyInvitations", () => {
 
         expect(sendWatchPartyInvitations).toHaveBeenCalledWith(
             expect.objectContaining({
-                hostName: "john@example.com", 
+                hostName: "john@example.com",
             })
         );
     });
@@ -375,7 +375,7 @@ describe("generateUniqueCode", () => {
     it("generates a unique code that is 7 characters long and uppercase", async () => {
         const mockDb: any = {
             watchParty: {
-                findUnique: vi.fn().mockResolvedValue(null), 
+                findUnique: vi.fn().mockResolvedValue(null),
             },
         };
 
