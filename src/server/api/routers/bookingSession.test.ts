@@ -286,7 +286,7 @@ describe("reserveSeats", () => {
             },
             data: {
                 heldByUserId: userId,
-                heldTill: expect.any(Date), 
+                heldTill: expect.any(Date),
             },
         });
 
@@ -594,7 +594,6 @@ describe("bookingSessionRouter.update", () => {
         };
         mockCtx.db.bookingSession.findUniqueOrThrow.mockResolvedValue(session);
 
-        
         mockCtx.db.$transaction = vi.fn(async (cb: any) =>
             cb({
                 showtimeSeat: {
