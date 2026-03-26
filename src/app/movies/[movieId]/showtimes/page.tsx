@@ -1,9 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { use, useMemo, useState } from "react";
+import { BackButton } from "~/components/ui/back-button";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { WatchPartyDialog } from "~/app/components/WatchPartyDialog";
@@ -184,13 +184,9 @@ function MovieShowtimesPageContent({ movieId }: { movieId: string }) {
         <>
             <section className="mx-auto w-full max-w-7xl px-6">
                 <div className="mb-8">
-                    <Link
-                        href={`/movies/${movieId}`}
-                        className="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 text-sm transition"
-                    >
-                        <span aria-hidden="true">←</span>
+                    <BackButton href={`/movies/${movieId}`}>
                         Back to details
-                    </Link>
+                    </BackButton>
                 </div>
 
                 <Card className="glass-panel overflow-hidden rounded-3xl border">
