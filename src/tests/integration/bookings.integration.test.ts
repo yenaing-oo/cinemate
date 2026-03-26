@@ -295,6 +295,110 @@ describe("Booking Session Integration Tests", () => {
         expect(heldSeat?.heldTill).not.toBeNull();
     });
 
+    it("should move a checkout session back to seat selection and release held seats", async () => {
+        const now = new Date();
+        const user = await db.user.create({
+            data: {
+                email: "rewind@example.com",
+                firstName: "Rewind",
+                lastName: "User",
+            },
+        });
+
+        const movie = await db.movie.create({
+            data: {
+                title: "Arrival",
+                posterUrl: "https://example.com/arrival.jpg",
+                runtime: 116,
+                tmdbId: 329865,
+                releaseDate: new Date("2016-11-11"),
+            },
+        });
+
+        const showtime = await db.showtime.create({
+            data: {
+                movieId: movie.id,
+                startTime: new Date(now.getTime() + 2 * 60 * 60 * 1000),
+                endTime: new Date(now.getTime() + 4 * 60 * 60 * 1000),
+                price: "13.50",
+            },
+        });
+
+        const seat1 = await db.seat.create({
+            data: { row: 1, number: 1 },
+        });
+        const seat2 = await db.seat.create({
+            data: { row: 1, number: 2 },
+        });
+
+        const session = await db.bookingSession.create({
+            data: {
+                userId: user.id,
+                showtimeId: showtime.id,
+                step: BookingStep.CHECKOUT,
+                ticketCount: 2,
+                expiresAt: new Date(now.getTime() + 10 * 60 * 1000),
+            },
+        });
+
+        const showtimeSeat1 = await db.showtimeSeat.create({
+            data: {
+                showtimeId: showtime.id,
+                seatId: seat1.id,
+                isBooked: false,
+                heldByUserId: user.id,
+                heldTill: new Date(now.getTime() + 5 * 60 * 1000),
+                bookingSessionId: session.id,
+            },
+        });
+
+        const showtimeSeat2 = await db.showtimeSeat.create({
+            data: {
+                showtimeId: showtime.id,
+                seatId: seat2.id,
+                isBooked: false,
+                heldByUserId: user.id,
+                heldTill: new Date(now.getTime() + 5 * 60 * 1000),
+                bookingSessionId: session.id,
+            },
+        });
+
+        const caller = createCaller({
+            headers: new Headers(),
+            db,
+            supabaseUser: null,
+            user,
+        });
+
+        await caller.bookingSession.update({
+            sessionId: session.id,
+            goToStep: BookingStep.SEAT_SELECTION,
+        });
+
+        const updatedSession = await db.bookingSession.findUniqueOrThrow({
+            where: { id: session.id },
+            include: { selectedSeats: true },
+        });
+
+        expect(updatedSession.step).toBe(BookingStep.SEAT_SELECTION);
+        expect(updatedSession.selectedSeats).toHaveLength(0);
+
+        const updatedSeats = await db.showtimeSeat.findMany({
+            where: {
+                id: {
+                    in: [showtimeSeat1.id, showtimeSeat2.id],
+                },
+            },
+        });
+
+        expect(updatedSeats).toHaveLength(2);
+        for (const seat of updatedSeats) {
+            expect(seat.heldByUserId).toBeNull();
+            expect(seat.heldTill).toBeNull();
+            expect(seat.bookingSessionId).toBeNull();
+        }
+    });
+
     it("should cancel a confirmed booking successfully within the allowed cancellation window", async () => {
         const now = new Date();
         const showtimeStart = new Date(now.getTime() + 3 * 60 * 60 * 1000);

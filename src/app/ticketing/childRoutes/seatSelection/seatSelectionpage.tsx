@@ -1,6 +1,7 @@
 "use client";
 
 import { notFound } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
 import {
     formatList,
@@ -10,8 +11,10 @@ import {
 import { $Enums } from "@prisma/client";
 import type { Decimal } from "@prisma/client/runtime/library";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Separator } from "~/components/ui/separator";
 import { Card, CardContent } from "~/components/ui/card";
+import { BackButton } from "~/components/ui/back-button";
 import { MovieDetail } from "~/components/ui/movieDetail";
 import SeatMap from "./seatMapComponents/seatMap";
 import { Button } from "@react-email/components";
@@ -54,6 +57,7 @@ interface SeatSelectionPageProps {
     } & {
         id: string;
         userId: string | null;
+        watchPartyId?: string | null;
         showtimeId: string;
         ticketCount: number | null;
         step: $Enums.BookingStep;
@@ -73,6 +77,7 @@ export default function SeatSelectionPage({
     bookingSession,
     handleUpdateSession,
 }: SeatSelectionPageProps) {
+    const router = useRouter();
     const { data: seatInfo, isLoading } =
         api.showtimeSeats.getByShowtime.useQuery({
             showtimeId: bookingSession.showtimeId,
@@ -88,6 +93,7 @@ export default function SeatSelectionPage({
     const showtimeDate = bookingSession.showtime.startTime;
     const selectedTickets = bookingSession.ticketCount;
     const showtimeId = bookingSession.showtime.id;
+    const watchPartyId = bookingSession.watchPartyId;
 
     const [selectedSeats, setSelectedSeats] = useState<Map<string, string>>(
         new Map()
@@ -104,6 +110,38 @@ export default function SeatSelectionPage({
             ) : (
                 <section className="full-bleed relative -mt-24 min-h-screen overflow-hidden">
                     <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col justify-center px-6 pt-25 pb-20">
+                        <div className="mb-8">
+                            {watchPartyId ? (
+                                <BackButton
+                                    href={`/watch-party/${watchPartyId}`}
+                                >
+                                    Back to party
+                                </BackButton>
+                            ) : (
+                                <BackButton
+                                    onClick={() => {
+                                        void handleUpdateSession(
+                                            bookingSession.id,
+                                            $Enums.BookingStep.TICKET_QUANTITY,
+                                            bookingSession.ticketCount ??
+                                                undefined,
+                                            undefined
+                                        ).catch((error) => {
+                                            const message =
+                                                error instanceof Error
+                                                    ? error.message
+                                                    : "Unable to go back to ticket selection.";
+                                            toast.error(message);
+                                            router.replace("/ticketing");
+                                            router.refresh();
+                                        });
+                                    }}
+                                >
+                                    Back to ticket selection
+                                </BackButton>
+                            )}
+                        </div>
+
                         <div className="grid gap-10 lg:grid-cols-[550px_1fr]">
                             <MovieDetail
                                 props={{
