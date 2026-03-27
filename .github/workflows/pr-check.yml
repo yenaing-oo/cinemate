@@ -105,7 +105,6 @@ jobs:
               with:
                   node-version: ${{ env.NODE_VERSION }}
                   cache: "pnpm"
-            - run: pnpm db:test:prepare
             - run: pnpm install --frozen-lockfile
             - name: Create test env file
               run: |
@@ -114,6 +113,7 @@ jobs:
                   DIRECT_URL=${{ secrets.TEST_DIRECT_URL }}
                   SKIP_ENV_VALIDATION=true
                   EOF
+            - run: pnpm db:test:prepare
             - run: pnpm test:integration -- --run
 
     build:
