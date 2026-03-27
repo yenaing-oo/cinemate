@@ -95,38 +95,33 @@ Supabase is used as the authentication provider for this project. It handles use
     pnpm db:generate
     ```
 
-4. **Generate Test Database**
-    ```bash
-    pnpm db:test:prepare
-    ```
-
-5. **Seed the database with development data**
+4. **Seed the database with development data**
 
     ```bash
     pnpm db:seed --dev
     ```
 
-6. **Sync movies from TMDB**
+5. **Sync movies from TMDB**
 
     ```bash
     pnpm sync:movies
     ```
 
-7. **Start the development server**
+6. **Start the development server**
 
     ```bash
     pnpm dev
     ```
 
-8. **Sign up for a test user**
+7. **Sign up for a test user**
     - Go to [http://localhost:3000/auth/sign-up](http://localhost:3000/auth/sign-up)
     - Use `user@example.com` and any password. Associated seed data exists for this email from step 4.
 
-9. **Confirm your email**
+8. **Confirm your email**
     - Open [http://localhost:54324/](http://localhost:54324/) (Mailpit email server)
     - Find the confirmation email and click the link
 
-10. **Sign in with your test credentials**
+9. **Sign in with your test credentials**
     - `user@example.com` is seeded with sample bookings and tickets
 
 ## Running the Application
@@ -162,11 +157,12 @@ The application will be available at [http://localhost:3000](http://localhost:30
 
 ### Testing
 
+- `pnpm db:test:prepare`: Generate Test Database
+
 - `pnpm test` - Run all Vitest tests.
 - `pnpm test:frontend` - Run frontend tests only.
 - `pnpm test:backend` - Run backend tests only.
 - `pnpm test:integration` - Run integration tests only
-- `pnpm test:mutation` - Run mutation testing with Stryker.
 
 ## Mutation Testing
 
