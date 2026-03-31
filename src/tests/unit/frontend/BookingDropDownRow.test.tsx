@@ -8,7 +8,10 @@ vi.mock("~/env.mjs", () => ({
     },
 }));
 
-import { BookingDropDownRow, isBookingCancellable } from "~/app/bookings/BookingDropDownRow";
+import {
+    BookingDropDownRow,
+    isBookingCancellable,
+} from "~/app/bookings/BookingDropDownRow";
 import { BookingStatus } from "@prisma/client";
 import type { Booking as ComponentBooking } from "~/app/bookings/BookingDropDownRow";
 
