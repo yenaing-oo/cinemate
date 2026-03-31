@@ -25,7 +25,7 @@
         "test:frontend": "vitest --project frontend",
         "test:backend": "vitest --project backend",
         "test:mutation": "stryker run",
-        "test:integration": "pnpm db:test:prepare && vitest --project integration",
+        "test:integration": "vitest --project integration",
         "typecheck": "tsc --noEmit",
         "sync:movies": "pnpm tsx scripts/syncMovies.ts"
     },

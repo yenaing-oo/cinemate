@@ -157,19 +157,25 @@ The application will be available at [http://localhost:3000](http://localhost:30
 
 ### Testing
 
+- `pnpm db:test:prepare`: Generate Test Database
+
 - `pnpm test` - Run all Vitest tests.
 - `pnpm test:frontend` - Run frontend tests only.
 - `pnpm test:backend` - Run backend tests only.
 - `pnpm test:integration` - Run integration tests only
-- `pnpm test:mutation` - Run mutation testing with Stryker.
 
 ## Mutation Testing
 
-Mutation testing is configured with StrykerJS using [`stryker.conf.js`](./stryker.conf.js). The current mutation scope is limited to source files that already have active Vitest coverage.
+Mutation testing is configured with StrykerJS using [`stryker.conf.js`](./stryker.conf.js). The current mutation scope is limited to source files that already have active Vitest coverage. We have implemented this per feature.
 
 ### Commands
 
-- `pnpm test:mutation` - Run the full mutation test suite.
+- `pnpm exec stryker run stryker.feature1.conf.js` - Run mutation tests for Feature 1.
+- `pnpm exec stryker run stryker.feature2.conf.js` - Run mutation tests for Feature 2.
+- `pnpm exec stryker run stryker.feature3.conf.js` - Run mutation tests for Feature 3.
+- `pnpm exec stryker run stryker.feature4.conf.js` - Run mutation tests for Feature 4.
+- `pnpm exec stryker run stryker.feature5.conf.js` - Run mutation tests for Feature 5.
+
 
 ### Reports
 

@@ -53,7 +53,7 @@ function assertWatchPartyInviteEmails(
     }
 }
 
-async function deliverWatchPartyInvitations({
+export async function deliverWatchPartyInvitations({
     emails,
     host,
     inviteCode,
@@ -103,7 +103,7 @@ function queueWatchPartyInvitations({
         });
 }
 
-const generateUniqueCode = async (db: PrismaClient): Promise<string> => {
+export const generateUniqueCode = async (db: PrismaClient): Promise<string> => {
     for (let attempts = 0; attempts < 5; attempts++) {
         const code = generateCode();
         const existing = await db.watchParty.findUnique({
