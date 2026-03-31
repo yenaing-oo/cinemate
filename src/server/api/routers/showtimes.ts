@@ -1,13 +1,9 @@
 import { z } from "zod";
-import {
-    createTRPCRouter,
-    protectedProcedure,
-    publicProcedure,
-} from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
 
 export const showtimesRouter = createTRPCRouter({
-    getByMovie: publicProcedure
+    getByMovie: protectedProcedure
         .input(z.object({ movieId: z.string() }))
         .query(async ({ input }) => {
             const movie = await db.movie.findUnique({
