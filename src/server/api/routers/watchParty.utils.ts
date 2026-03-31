@@ -57,7 +57,7 @@ type WatchPartyDetailRecord = Prisma.WatchPartyGetPayload<{
     include: typeof watchPartyDetailInclude;
 }>;
 
-function getPersonName(person: {
+export function getPersonName(person: {
     firstName: string;
     lastName: string;
     email: string;
@@ -66,7 +66,7 @@ function getPersonName(person: {
     return fullName.length > 0 ? fullName : null;
 }
 
-function getPartyName(party: {
+export function getPartyName(party: {
     name: string | null;
     showtime: {
         movie: {

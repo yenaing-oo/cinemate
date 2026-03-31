@@ -623,7 +623,6 @@ async function completeBooking(db: PrismaClient, session: any) {
             const memberUserById = new Map(
                 memberUsers.map((member) => [member.id, member])
             );
-
             if (uniqueMemberUserIds.length !== sortedShowtimeSeatIds.length) {
                 throw new Error(
                     "Watch party member count does not match selected seat count."
@@ -749,7 +748,7 @@ async function completeBooking(db: PrismaClient, session: any) {
     await sendBookingConfirmationEmails(confirmationEmails);
 }
 
-async function sendBookingConfirmationEmails(
+export async function sendBookingConfirmationEmails(
     confirmationEmails: Array<{
         userEmail: string;
         movieTitle: string;

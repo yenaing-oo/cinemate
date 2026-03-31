@@ -28,9 +28,8 @@ const config = {
         ],
     },
     mutate: [
-        "src/server/api/routers/showtimeSeats.ts",
-        "src/server/api/routers/bookingSession.ts",
-        "src/server/api/routers/bookings.ts",
+        "src/server/api/routers/watchParty.ts",
+        "src/server/api/routers/watchParty.utils.ts",
         "!src/**/*.test.ts",
         "!src/**/*.test.tsx",
     ],
@@ -38,7 +37,7 @@ const config = {
         configFile: "vitest.config.mts",
         related: true,
     },
-    tempDirName: ".stryker-tmp-feature4",
+    tempDirName: ".stryker-tmp-feature5",
 };
 
 export default config;

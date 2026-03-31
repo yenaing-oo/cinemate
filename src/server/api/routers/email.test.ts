@@ -44,6 +44,7 @@ describe("emailRouter (missing RESEND_EMAIL_API_KEY)", () => {
         });
     });
 });
+
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 vi.mock("~/server/db", () => {

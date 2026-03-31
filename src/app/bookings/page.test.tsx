@@ -114,20 +114,29 @@ describe("OrderHistoryPage", () => {
                 totalAmount: "50.00",
             },
         ];
+        const { act } = await import("@testing-library/react");
         render(<OrderHistoryPage />);
         // Expand the details to show the cancel button
         const details = document.querySelector("details");
-        if (details) (details as HTMLDetailsElement).open = true;
+        if (details) {
+            await act(async () => {
+                (details as HTMLDetailsElement).open = true;
+            });
+        }
         // Click the cancel button
         const cancelBtn = screen.getByRole("button", {
             name: /Cancel Booking/i,
         });
-        cancelBtn.click();
+        await act(async () => {
+            cancelBtn.click();
+        });
         // Confirm dialog should appear, click the confirm button
         const confirmBtn = await screen.findByRole("button", {
             name: /Yes, Cancel/i,
         });
-        confirmBtn.click();
+        await act(async () => {
+            confirmBtn.click();
+        });
         // Wait for the mutation to be called
         await Promise.resolve(); // flush microtasks
         expect(cancelResult.mutateAsync).toHaveBeenCalledWith({

@@ -102,20 +102,6 @@ describe("BookingDropDownRow render tests", () => {
         expect(screen.getByText("C5")).toBeInTheDocument();
     });
 
-    //  Test that the cancel button is rendered only if the booking is cancellable
-    it("renders if the booking is cancellable", () => {
-        renderComponent();
-
-        const details = document.querySelector("details");
-        expect(details).not.toBeNull();
-
-        (details as HTMLDetailsElement).open = true;
-
-        expect(
-            screen.getByRole("button", { name: /Cancel Booking/i })
-        ).toBeInTheDocument();
-    });
-
     //  Test that the cancel button is not rendered if the booking is not cancellable
     it("does not render cancel button if the booking is not cancellable", () => {
         render(
