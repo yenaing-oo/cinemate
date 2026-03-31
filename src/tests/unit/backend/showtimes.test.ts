@@ -13,7 +13,7 @@ vi.mock("~/server/db", () => {
     };
 });
 
-import { showtimesRouter } from "./showtimes";
+import { showtimesRouter } from "~/server/api/routers/showtimes";
 import { db } from "~/server/db";
 
 describe("showtimesRouter", () => {

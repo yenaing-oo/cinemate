@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import MovieDetailsPage from "./page";
+import MovieDetailsPage from "../../../app/movies/[movieId]/page";
 
 //Mocking Next.js components and utilities
 vi.mock("next/image", () => ({

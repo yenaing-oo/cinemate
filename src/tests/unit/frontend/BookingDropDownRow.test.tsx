@@ -8,9 +8,9 @@ vi.mock("~/env.mjs", () => ({
     },
 }));
 
-import { BookingDropDownRow, isBookingCancellable } from "./BookingDropDownRow";
+import { BookingDropDownRow, isBookingCancellable } from "~/app/bookings/BookingDropDownRow";
 import { BookingStatus } from "@prisma/client";
-import type { Booking as ComponentBooking } from "./BookingDropDownRow";
+import type { Booking as ComponentBooking } from "~/app/bookings/BookingDropDownRow";
 
 (globalThis as any).env = (globalThis as any).env || {};
 (globalThis as any).env.NEXT_PUBLIC_BOOKING_CANCEL_WINDOW_MINUTES = 60;

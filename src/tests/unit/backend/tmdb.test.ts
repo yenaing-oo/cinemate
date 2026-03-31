@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { fetchNowPlaying, fetchMovieFull } from "./tmdb";
+import { fetchNowPlaying, fetchMovieFull } from "~/server/services/tmdb";
 
 function mockFetchObject(opts: {
     ok?: boolean;
