@@ -42,14 +42,19 @@ vi.mock("~/components/ui/card", () => ({
     ),
 }));
 
-vi.mock("~/lib/utils", () => ({
-    formatRuntime: vi.fn(() => "MOCKED RUNTIME"),
-    formatDate: vi.fn(() => "MOCKED DATE"),
-    formatRating: vi.fn(() => "MOCKED RATING"),
-    formatList: vi.fn((v: string | null) =>
-        v ? v.split(",").map((s) => s.trim()) : []
-    ),
-}));
+vi.mock("~/lib/utils", async (importOriginal) => {
+    const actual = await importOriginal<typeof import("~/lib/utils")>();
+
+    return {
+        ...actual,
+        formatRuntime: vi.fn(() => "MOCKED RUNTIME"),
+        formatDate: vi.fn(() => "MOCKED DATE"),
+        formatRating: vi.fn(() => "MOCKED RATING"),
+        formatList: vi.fn((v: string | null) =>
+            v ? v.split(",").map((s) => s.trim()) : []
+        ),
+    };
+});
 
 //Mocking database access
 const findUniqueMock = vi.fn();
