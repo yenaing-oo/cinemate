@@ -11,8 +11,8 @@ concurrency:
 env:
     NODE_VERSION: 20
     SKIP_ENV_VALIDATION: true
-    DATABASE_URL: ${{ secrets.TEST_DB_URL }}
-    DIRECT_URL: ${{ secrets.TEST_DIRECT_URL }}
+    DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+    DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
 
 jobs:
     typecheck:
@@ -66,7 +66,9 @@ jobs:
               with:
                   node-version: ${{ env.NODE_VERSION }}
                   cache: "pnpm"
+            - uses: supabase/setup-cli@v1
             - run: pnpm install --frozen-lockfile
+            - run: supabase db start
             - run: pnpm prisma validate
             - run: pnpm prisma migrate deploy
 
@@ -109,12 +111,14 @@ jobs:
               with:
                   node-version: ${{ env.NODE_VERSION }}
                   cache: "pnpm"
+            - uses: supabase/setup-cli@v1
             - run: pnpm install --frozen-lockfile
+            - run: supabase db start
             - name: Create test env file
               run: |
                   cat <<'EOF' > .env.test
-                  DATABASE_URL=${{ secrets.TEST_DB_URL }}
-                  DIRECT_URL=${{ secrets.TEST_DIRECT_URL }}
+                  DATABASE_URL=${{ env.DATABASE_URL }}
+                  DIRECT_URL=${{ env.DIRECT_URL }}
                   SKIP_ENV_VALIDATION=true
                   EOF
             - run: pnpm db:test:prepare
