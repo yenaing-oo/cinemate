@@ -17,3 +17,33 @@ export function fetchNowPlaying(baseUrl) {
         },
     });
 }
+
+export function fetchShowtimesByMovie(baseUrl, movieId) {
+    return trpcGet(
+        baseUrl,
+        "showtimes.getByMovie",
+        { movieId },
+        {
+            tags: {
+                area: "movie_showtime_selection",
+                scenario: "showtimes_by_movie",
+                request_type: "read_get",
+                endpoint: "showtimes.getByMovie",
+            },
+        }
+    );
+}
+
+export function getMovieIdFromNowPlayingResponse(response) {
+    try {
+        const movies = response.json("result.data.json");
+        if (!Array.isArray(movies) || movies.length === 0) {
+            return null;
+        }
+
+        const firstMovie = movies.find((movie) => movie?.id);
+        return firstMovie?.id ?? null;
+    } catch {
+        return null;
+    }
+}
