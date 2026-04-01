@@ -3,7 +3,6 @@ import { getRunConfig } from "../lib/config.js";
 import {
     buildOptions,
     runScenario,
-    runShowtimesByMovieScenario,
     setupScenario,
 } from "../features/movie-showtime/scenario.js";
 
@@ -15,10 +14,6 @@ export function setup() {
     return setupScenario(config);
 }
 
-export function movieNowPlayingScenario(data) {
+export function movieShowtimeScenario(data) {
     runScenario(data);
-}
-
-export function movieShowtimesByMovieScenario(data) {
-    runShowtimesByMovieScenario(data);
 }

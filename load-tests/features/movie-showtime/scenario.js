@@ -2,6 +2,7 @@
 import { check, group, sleep } from "k6";
 
 import { asNumber } from "../../lib/config.js";
+
 import {
     fetchNowPlaying,
     fetchShowtimesByMovie,
@@ -17,19 +18,12 @@ export function buildOptions() {
             http_req_duration: ["p(95)<1500"],
         },
         scenarios: {
-            movie_now_playing_read: {
+            movie_showtime_selection: {
                 executor: "constant-vus",
-                exec: "movieNowPlayingScenario",
-                vus: asNumber(__ENV.LOAD_VUS, 20),
-                duration: __ENV.LOAD_DURATION ?? "5m",
-                gracefulStop: __ENV.LOAD_GRACEFUL_STOP ?? "30s",
-            },
-            movie_showtimes_by_movie_read: {
-                executor: "constant-vus",
-                exec: "movieShowtimesByMovieScenario",
-                vus: asNumber(__ENV.LOAD_VUS, 20),
-                duration: __ENV.LOAD_DURATION ?? "5m",
-                gracefulStop: __ENV.LOAD_GRACEFUL_STOP ?? "30s",
+                exec: "movieShowtimeScenario",
+                vus: 20,
+                duration: "5m",
+                gracefulStop: "30s",
             },
         },
     };
@@ -63,6 +57,8 @@ export function setupScenario(config) {
 }
 
 export function runScenario(data) {
+    const iterationStartMs = Date.now();
+
     group("Now Playing Lookup", () => {
         const nowPlaying = fetchNowPlaying(data.baseUrl);
 
@@ -76,12 +72,8 @@ export function runScenario(data) {
                 }
             },
         });
-
-        sleep(data.sleepSeconds);
     });
-}
 
-export function runShowtimesByMovieScenario(data) {
     group("Movie Showtime Lookup", () => {
         const showtimesByMovie = fetchShowtimesByMovie(
             data.baseUrl,
@@ -99,7 +91,15 @@ export function runShowtimesByMovieScenario(data) {
                 }
             },
         });
-
-        sleep(data.sleepSeconds);
     });
+
+    // 20 VUs * 2 requests/iteration * (60 / 12s) ~= 200 requests/min total.
+    const targetIterationSeconds = asNumber(__ENV.ITERATION_SECONDS, 12);
+    const elapsedSeconds = (Date.now() - iterationStartMs) / 1000;
+    const remainingSleepSeconds = Math.max(
+        0,
+        targetIterationSeconds - elapsedSeconds
+    );
+
+    sleep(remainingSleepSeconds);
 }
