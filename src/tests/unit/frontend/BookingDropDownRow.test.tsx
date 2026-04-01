@@ -58,6 +58,8 @@ vi.mock("~/components/ui/button", () => ({
 
 //Test cases for BookingDropDownRow component
 describe("BookingDropDownRow render tests", () => {
+    const cancellableShowtime = new Date(Date.now() + 2 * 60 * 60 * 1000);
+
     const renderComponent = () =>
         render(
             <BookingDropDownRow
@@ -66,7 +68,7 @@ describe("BookingDropDownRow render tests", () => {
                     bookingNumber: 12345,
                     status: BookingStatus.CONFIRMED,
                     showtime: {
-                        startTime: new Date("2026-03-26T19:30:00"),
+                        startTime: cancellableShowtime,
                         movie: {
                             posterUrl: "/posters/test.png",
                             title: "Interstellar",
