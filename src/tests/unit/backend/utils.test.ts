@@ -1,4 +1,4 @@
-import { cn, formatBookingNumber } from "./utils";
+import { cn, formatBookingNumber } from "../../../lib/utils";
 describe("cn", () => {
     it("merges class names", () => {
         expect(cn("foo", "bar")).toContain("foo");
@@ -73,7 +73,7 @@ import {
     formatList,
     formatSeatFromCode,
     formatTime,
-} from "./utils";
+} from "../../../lib/utils";
 import { describe, it, expect, vi } from "vitest";
 
 vi.mock("~/env.mjs", () => ({

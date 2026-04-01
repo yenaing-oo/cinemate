@@ -41,26 +41,26 @@ describe("Showtimes Integration Tests", () => {
             data: [
                 {
                     movieId: movie1Id,
-                    startTime: new Date("2026-04-01T18:00:00Z"),
-                    endTime: new Date("2026-04-01T20:49:00Z"),
+                    startTime: new Date("2026-04-30T18:00:00Z"),
+                    endTime: new Date("2026-04-30T20:49:00Z"),
                     price: "12.50",
                 },
                 {
                     movieId: movie1Id,
-                    startTime: new Date("2026-04-01T21:00:00Z"),
-                    endTime: new Date("2026-04-01T23:49:00Z"),
+                    startTime: new Date("2026-04-30T21:00:00Z"),
+                    endTime: new Date("2026-04-30T23:49:00Z"),
                     price: "12.50",
                 },
                 {
                     movieId: movie1Id,
-                    startTime: new Date("2025-01-01T18:00:00Z"), // past showtime
-                    endTime: new Date("2025-01-01T20:49:00Z"),
+                    startTime: new Date("2025-01-30T18:00:00Z"), // past showtime
+                    endTime: new Date("2025-01-30T20:49:00Z"),
                     price: "12.50",
                 },
                 {
                     movieId: movie2Id,
-                    startTime: new Date("2026-04-01T19:00:00Z"),
-                    endTime: new Date("2026-04-01T21:28:00Z"),
+                    startTime: new Date("2026-04-30T19:00:00Z"),
+                    endTime: new Date("2026-04-30T21:28:00Z"),
                     price: "13.50",
                 },
             ],
@@ -96,10 +96,10 @@ describe("Showtimes Integration Tests", () => {
             new Date(s.startTime).toISOString()
         );
 
-        expect(startTimes).toContain("2026-04-01T18:00:00.000Z");
-        expect(startTimes).toContain("2026-04-01T21:00:00.000Z");
-        expect(startTimes).not.toContain("2026-04-01T19:00:00.000Z");
-        expect(startTimes).not.toContain("2025-01-01T18:00:00.000Z");
+        expect(startTimes).toContain("2026-04-30T18:00:00.000Z");
+        expect(startTimes).toContain("2026-04-30T21:00:00.000Z");
+        expect(startTimes).not.toContain("2026-04-30T19:00:00.000Z");
+        expect(startTimes).not.toContain("2025-01-30T18:00:00.000Z");
 
         for (const showtime of result!.showtimes) {
             expect(showtime.id).toBeDefined();

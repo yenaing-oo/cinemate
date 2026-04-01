@@ -13,11 +13,17 @@ vi.mock("~/server/services/email", () => ({
     sendWatchPartyInvitations: vi.fn(),
 }));
 
-import { watchPartyRouter, deliverWatchPartyInvitations } from "./watchParty";
+import {
+    watchPartyRouter,
+    deliverWatchPartyInvitations,
+} from "~/server/api/routers/watchParty";
 import { sendWatchPartyInvitations } from "~/server/services/email";
-import { getPersonName, getPartyName } from "./watchParty.utils";
-import { generateUniqueCode } from "./watchParty";
-import { mapWatchPartyDetail } from "./watchParty.utils";
+import {
+    getPersonName,
+    getPartyName,
+} from "~/server/api/routers/watchParty.utils";
+import { generateUniqueCode } from "~/server/api/routers/watchParty";
+import { mapWatchPartyDetail } from "~/server/api/routers/watchParty.utils";
 
 describe("watchPartyRouter.join", () => {
     let mockCtx: any;
