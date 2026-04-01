@@ -1,6 +1,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type * as UtilsModule from "~/lib/utils";
 import MovieDetailsPage from "./page";
 
 //Mocking Next.js components and utilities
@@ -42,14 +43,19 @@ vi.mock("~/components/ui/card", () => ({
     ),
 }));
 
-vi.mock("~/lib/utils", () => ({
-    formatRuntime: vi.fn(() => "MOCKED RUNTIME"),
-    formatDate: vi.fn(() => "MOCKED DATE"),
-    formatRating: vi.fn(() => "MOCKED RATING"),
-    formatList: vi.fn((v: string | null) =>
-        v ? v.split(",").map((s) => s.trim()) : []
-    ),
-}));
+vi.mock("~/lib/utils", async (importOriginal) => {
+    const actual = await importOriginal<typeof UtilsModule>();
+
+    return {
+        ...actual,
+        formatRuntime: vi.fn(() => "MOCKED RUNTIME"),
+        formatDate: vi.fn(() => "MOCKED DATE"),
+        formatRating: vi.fn(() => "MOCKED RATING"),
+        formatList: vi.fn((v: string | null) =>
+            v ? v.split(",").map((s) => s.trim()) : []
+        ),
+    };
+});
 
 //Mocking database access
 const findUniqueMock = vi.fn();

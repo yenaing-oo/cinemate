@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Ticket, Users } from "lucide-react";
 import { toast } from "sonner";
+import { BackButton } from "~/components/ui/back-button";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Spinner } from "~/components/ui/spinner";
@@ -92,9 +93,14 @@ export function WatchPartyDetailView({ partyId }: { partyId: string }) {
                             Watch party membership is tied to your account so
                             your leader can keep the group booking accurate.
                         </p>
-                        <Button asChild>
-                            <Link href="/auth/login">Go to login</Link>
-                        </Button>
+                        <div className="flex flex-wrap gap-3">
+                            <Button asChild>
+                                <Link href="/auth/login">Go to login</Link>
+                            </Button>
+                            <BackButton href="/watch-party">
+                                Back to parties
+                            </BackButton>
+                        </div>
                     </CardContent>
                 </Card>
             </section>
@@ -128,9 +134,9 @@ export function WatchPartyDetailView({ partyId }: { partyId: string }) {
                             {watchPartyQuery.error?.message ??
                                 "We could not load this watch party."}
                         </p>
-                        <Button asChild variant="outline">
-                            <Link href="/watch-party">Back to parties</Link>
-                        </Button>
+                        <BackButton href="/watch-party">
+                            Back to parties
+                        </BackButton>
                     </CardContent>
                 </Card>
             </section>
@@ -189,9 +195,7 @@ export function WatchPartyDetailView({ partyId }: { partyId: string }) {
                     >
                         {getWatchPartyStatusLabel(party.status)}
                     </span>
-                    <Button asChild variant="outline">
-                        <Link href="/watch-party">Back to parties</Link>
-                    </Button>
+                    <BackButton href="/watch-party">Back to parties</BackButton>
                 </div>
             </div>
 

@@ -3,6 +3,7 @@ import Link from "next/link";
 import "~/styles/globals.css";
 import { TRPCReactProvider } from "~/trpc/react";
 import { AuthButton } from "~/app/components/AuthButton";
+import MobileMenu from "~/app/MobileMenu";
 import { Toaster } from "@/components/ui/sonner";
 
 export default function RootLayout({
@@ -62,7 +63,10 @@ export default function RootLayout({
 
                                     {/* RIGHT: SIGN IN/OUT */}
                                     <div className="flex justify-end">
-                                        <AuthButton />
+                                        <div className="hidden justify-end md:flex">
+                                            <AuthButton />
+                                        </div>
+                                        <MobileMenu />
                                     </div>
                                 </div>
                             </div>
