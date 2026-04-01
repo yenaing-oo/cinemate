@@ -1,17 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Users } from "lucide-react";
-import { api } from "~/trpc/react";
-import { formatTime } from "~/lib/utils";
 import { $Enums } from "@prisma/client";
+import { Users } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Separator } from "~/components/ui/separator";
+import { formatTime } from "~/lib/utils";
+import { api } from "~/trpc/react";
 
-import TicketSelectionPage from "./childRoutes/ticketSelection/ticketSelectionpage";
-import SeatSelectionPage from "./childRoutes/seatSelection/seatSelectionpage";
 import CheckoutReviewPage from "./childRoutes/checkout/checkoutReviewPage";
+import SeatSelectionPage from "./childRoutes/seatSelection/seatSelectionpage";
+import TicketSelectionPage from "./childRoutes/ticketSelection/ticketSelectionpage";
 
 export default function TicketingPage() {
     const router = useRouter();
@@ -91,25 +91,27 @@ export default function TicketingPage() {
         }) ?? [];
 
     return (
-        <section>
+        <section className="relative">
             {isLoading ? (
                 <p className="text-lg text-gray-600">Loading session…</p>
             ) : session ? (
                 <>
-                    <div className="sticky top-20 z-[9999] float-right mb-6">
-                        <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-slate-950/75 px-3 py-1.5 shadow-lg backdrop-blur-sm">
-                            <span className="text-xs font-semibold text-slate-200">
-                                Time left:
-                            </span>
-                            <span className="font-mono text-sm font-semibold text-red-400">
-                                {timeLeft !== null
-                                    ? formatTime(timeLeft)
-                                    : "00:00"}
-                            </span>
+                    <div className="pointer-events-none fixed inset-x-0 top-0 z-40">
+                        <div className="mx-auto flex w-full max-w-7xl justify-end px-6 pt-22">
+                            <div className="pointer-events-auto inline-flex items-center gap-3 rounded-full border border-white/20 bg-slate-950/75 px-5 py-2.5 shadow-lg backdrop-blur-sm">
+                                <span className="text-sm font-semibold text-slate-200">
+                                    Time left:
+                                </span>
+                                <span className="font-mono text-base font-semibold text-red-400">
+                                    {timeLeft !== null
+                                        ? formatTime(timeLeft)
+                                        : "00:00"}
+                                </span>
+                            </div>
                         </div>
                     </div>
                     {session.watchPartyId ? (
-                        <Alert className="glass-card clear-both mt-0 mb-4 border-cyan-300/20 bg-cyan-300/8 text-slate-100">
+                        <Alert className="glass-card mt-0 mb-4 border-cyan-300/20 bg-cyan-300/8 text-slate-100">
                             <Users className="text-cyan-100" />
                             <AlertTitle className="text-sm font-semibold text-white">
                                 Watch party booking in progress
