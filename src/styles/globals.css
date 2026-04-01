@@ -234,6 +234,44 @@
         background: var(--btn-primary-gradient-hover);
     }
 
+    .app-back-button {
+        @apply text-foreground inline-flex w-fit items-center gap-2 rounded-full px-4 py-2 text-sm font-medium no-underline transition-all;
+        border: 1px solid rgba(122, 206, 255, 0.28);
+        background: linear-gradient(
+            180deg,
+            rgba(10, 20, 36, 0.88),
+            rgba(10, 20, 36, 0.56)
+        );
+        backdrop-filter: blur(var(--panel-blur));
+        box-shadow: 0 12px 32px rgba(4, 9, 18, 0.28);
+    }
+
+    .app-back-button:hover {
+        border-color: rgba(122, 206, 255, 0.48);
+        background: linear-gradient(
+            180deg,
+            rgba(14, 29, 50, 0.94),
+            rgba(10, 20, 36, 0.68)
+        );
+        transform: translateY(-1px);
+    }
+
+    .app-back-button:focus-visible {
+        outline: none;
+        box-shadow:
+            0 0 0 3px rgba(78, 125, 255, 0.24),
+            0 12px 32px rgba(4, 9, 18, 0.28);
+    }
+
+    .app-back-button svg {
+        transition: transform 150ms ease;
+    }
+
+    .app-back-button:hover svg,
+    .app-back-button:focus-visible svg {
+        transform: translateX(-2px);
+    }
+
     .full-bleed {
         position: relative;
         left: 50%;
