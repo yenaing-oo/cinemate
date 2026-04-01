@@ -74,7 +74,7 @@ describe("MovieDetailsPage", () => {
         findUniqueMock.mockReset();
     });
 
-    // Test case: Movie details render correctly
+    // Test case: Movie details rendered correctly
     it("renders movie details correctly", async () => {
         findUniqueMock.mockResolvedValue({
             id: "11",
