@@ -727,7 +727,6 @@ describe("bookingSessionRouter.update", () => {
                 goToStep: BookingStep.TICKET_QUANTITY,
             })
         ).rejects.toThrow(/Watch party booking sessions do not support/);
-        ).resolves.toBeUndefined();
     });
 
     it("should allow moving back from seat selection to ticket quantity for standard bookings", async () => {
