@@ -1,6 +1,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type * as UtilsModule from "~/lib/utils";
 import MovieDetailsPage from "./page";
 
 //Mocking Next.js components and utilities
@@ -43,7 +44,7 @@ vi.mock("~/components/ui/card", () => ({
 }));
 
 vi.mock("~/lib/utils", async (importOriginal) => {
-    const actual = await importOriginal<typeof import("~/lib/utils")>();
+    const actual = await importOriginal<typeof UtilsModule>();
 
     return {
         ...actual,
