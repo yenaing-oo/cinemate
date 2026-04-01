@@ -315,6 +315,17 @@ export const bookingSessionRouter = createTRPCRouter({
                 return;
             } else if (
                 session.step === BookingStep.SEAT_SELECTION &&
+                input.goToStep === BookingStep.TICKET_QUANTITY
+            ) {
+                if (session.watchPartyId) {
+                    throw new Error(
+                        "Watch party booking sessions do not support the ticket quantity step."
+                    );
+                }
+                await goBackToTicketQuantity(ctx.db, session.id);
+                return;
+            } else if (
+                session.step === BookingStep.SEAT_SELECTION &&
                 input.goToStep === BookingStep.CHECKOUT
             ) {
                 if (!input.selectedSeatIds) {
@@ -335,6 +346,12 @@ export const bookingSessionRouter = createTRPCRouter({
                     session.id,
                     now
                 );
+                return;
+            } else if (
+                session.step === BookingStep.CHECKOUT &&
+                input.goToStep === BookingStep.SEAT_SELECTION
+            ) {
+                await goBackToSeatSelection(ctx.db, session);
                 return;
             } else if (
                 session.step === BookingStep.CHECKOUT &&
@@ -398,6 +415,18 @@ export async function setTicketCount(
     });
 }
 
+export async function goBackToTicketQuantity(
+    db: PrismaClient,
+    bookingSessionId: string
+) {
+    await db.bookingSession.update({
+        where: { id: bookingSessionId },
+        data: {
+            step: BookingStep.TICKET_QUANTITY,
+        },
+    });
+}
+
 export async function reserveSeats(
     db: PrismaClient,
     showtimeId: string,
@@ -449,7 +478,39 @@ export async function reserveSeats(
     });
 }
 
-export async function completeBooking(db: PrismaClient, session: any) {
+export async function goBackToSeatSelection(
+    db: PrismaClient,
+    session: {
+        id: string;
+        selectedSeats: { id: string }[];
+    }
+) {
+    await db.$transaction(async (tx) => {
+        if (session.selectedSeats.length > 0) {
+            await tx.showtimeSeat.updateMany({
+                where: {
+                    id: { in: session.selectedSeats.map((seat) => seat.id) },
+                    bookingSessionId: session.id,
+                    isBooked: false,
+                },
+                data: {
+                    heldByUserId: null,
+                    heldTill: null,
+                    bookingSessionId: null,
+                },
+            });
+        }
+
+        await tx.bookingSession.update({
+            where: { id: session.id },
+            data: {
+                step: BookingStep.SEAT_SELECTION,
+            },
+        });
+    });
+}
+
+async function completeBooking(db: PrismaClient, session: any) {
     const confirmationEmails: Array<{
         userEmail: string;
         movieTitle: string;
