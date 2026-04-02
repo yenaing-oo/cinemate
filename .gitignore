@@ -8,6 +8,7 @@
 # testing
 /coverage
 /reports/mutation/
+/load-tests/results/*.html
 /.stryker-tmp/
 .stryker-tmp*
 .stryker-tmp-*
