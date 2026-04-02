@@ -14,8 +14,7 @@ export default defineConfig({
                     environment: "happy-dom",
                     globals: true,
                     include: [
-                        "src/app/**/*.test.{ts,tsx}",
-                        "src/server/emailTemplates/**/*.test.{ts,tsx}",
+                        "src/tests/unit/frontend/**/*.test.tsx",
                     ],
                     setupFiles: "./setupTests.ts",
                 },
@@ -26,8 +25,7 @@ export default defineConfig({
                     name: "backend",
                     environment: "node",
                     include: [
-                        "src/lib/**/*.test.ts",
-                        "src/server/**/*.test.ts",
+                        "src/tests/unit/backend/**/*.test.ts",
                     ],
                 },
             },

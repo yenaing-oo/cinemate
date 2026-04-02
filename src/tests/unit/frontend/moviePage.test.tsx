@@ -2,7 +2,7 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type * as UtilsModule from "~/lib/utils";
-import MovieDetailsPage from "./page";
+import MovieDetailsPage from "~/app/movies/[movieId]/page";
 
 //Mocking Next.js components and utilities
 vi.mock("next/image", () => ({
@@ -56,6 +56,19 @@ vi.mock("~/lib/utils", async (importOriginal) => {
         ),
     };
 });
+vi.mock("~/lib/utils", async (importOriginal) => {
+    const actual = await importOriginal<typeof UtilsModule>();
+
+    return {
+        ...actual,
+        formatRuntime: vi.fn(() => "MOCKED RUNTIME"),
+        formatDate: vi.fn(() => "MOCKED DATE"),
+        formatRating: vi.fn(() => "MOCKED RATING"),
+        formatList: vi.fn((v: string | null) =>
+            v ? v.split(",").map((s) => s.trim()) : []
+        ),
+    };
+});
 
 //Mocking database access
 const findUniqueMock = vi.fn();
@@ -74,7 +87,7 @@ describe("MovieDetailsPage", () => {
         findUniqueMock.mockReset();
     });
 
-    // Test case: Movie details render correctly
+    // Test case: Movie details rendered correctly
     it("renders movie details correctly", async () => {
         findUniqueMock.mockResolvedValue({
             id: "11",

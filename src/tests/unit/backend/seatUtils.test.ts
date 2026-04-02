@@ -1,4 +1,4 @@
-import { isShowtimeSeatAvailable } from "./utils";
+import { isShowtimeSeatAvailable } from "~/server/utils";
 import { describe, it, expect } from "vitest";
 
 //Tests for utility functions in src/server/utils.ts, specifically isShowtimeSeatAvailable

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { bookingsRouter } from "./bookings";
+import { bookingsRouter } from "../../../server/api/routers/bookings";
 import { BookingStatus, TicketStatus } from "@prisma/client";
 
 type EnvModule = {

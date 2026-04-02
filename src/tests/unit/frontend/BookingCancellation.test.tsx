@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import BookingCancellation from "./BookingCancellation";
+import BookingCancellation from "../../../server/emailTemplates/BookingCancellation";
 import { renderToStaticMarkup } from "react-dom/server";
 
 describe("BookingCancellation email template", () => {
