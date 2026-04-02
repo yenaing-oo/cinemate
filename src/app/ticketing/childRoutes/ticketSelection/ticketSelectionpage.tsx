@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { BackButton } from "~/components/ui/back-button";
 import {
     formatList,
     formatShowtimeDate,
@@ -73,13 +74,16 @@ export default function TicketSelectionPage({
     handleUpdateSession,
 }: TicketSelectionPageProps) {
     const movieTitle = bookingSession.showtime.movie.title;
+    const movieId = bookingSession.showtime.movie.id;
     const moviePosterUrl = bookingSession.showtime.movie.posterUrl || "";
     const movieBackdropUrl = bookingSession.showtime.movie.backdropUrl || "";
     const movieLanguages = formatList(bookingSession.showtime.movie?.languages);
     const showtimeDate = bookingSession.showtime.startTime;
     const showtimeId = bookingSession.showtime.id;
 
-    const [ticketCount, setTicketCount] = useState(0);
+    const [ticketCount, setTicketCount] = useState(
+        bookingSession.ticketCount ?? 0
+    );
     const MAX_TICKETS_LIMIT = 10;
     const SEAT_PRICE = bookingSession.showtime.price;
 
@@ -117,6 +121,12 @@ export default function TicketSelectionPage({
             <div className="from-background/95 via-background/70 to-background/10 absolute inset-0 bg-gradient-to-r" />
             <div className="from-background/90 via-background/40 absolute inset-0 bg-gradient-to-t to-transparent" />
             <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col justify-center px-6 pt-25 pb-20">
+                <div className="mb-8">
+                    <BackButton href={`/movies/${movieId}/showtimes`}>
+                        Back to showtimes
+                    </BackButton>
+                </div>
+
                 <div className="grid gap-10 lg:grid-cols-[550px_1fr]">
                     <MovieDetail
                         props={{

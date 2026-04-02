@@ -1,8 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
     bookingSessionRouter,
-    validateSession,
+    goBackToSeatSelection,
+    goBackToTicketQuantity,
     reserveSeats,
+    validateSession,
 } from "./bookingSession";
 import { BookingStep, WatchPartyStatus } from "@prisma/client";
 
@@ -310,6 +312,75 @@ describe("reserveSeats", () => {
     });
 });
 
+describe("goBackToTicketQuantity", () => {
+    it("moves the booking session back to ticket selection", async () => {
+        const db = {
+            bookingSession: {
+                update: vi.fn().mockResolvedValue({}),
+            },
+        };
+
+        await goBackToTicketQuantity(db as any, "session-1");
+
+        expect(db.bookingSession.update).toHaveBeenCalledWith({
+            where: { id: "session-1" },
+            data: {
+                step: BookingStep.TICKET_QUANTITY,
+            },
+        });
+    });
+});
+
+describe("goBackToSeatSelection", () => {
+    it("releases held seats and rewinds checkout to seat selection", async () => {
+        const transactionClient = {
+            showtimeSeat: {
+                updateMany: vi.fn().mockResolvedValue({ count: 2 }),
+            },
+            bookingSession: {
+                update: vi.fn().mockResolvedValue({}),
+            },
+        };
+
+        const db = {
+            $transaction: vi.fn(async (callback: any) =>
+                callback(transactionClient)
+            ),
+        };
+
+        await goBackToSeatSelection(db as any, {
+            id: "session-1",
+            selectedSeats: [
+                { id: "showtime-seat-1" },
+                { id: "showtime-seat-2" },
+            ],
+        });
+
+        expect(transactionClient.showtimeSeat.updateMany).toHaveBeenCalledWith({
+            where: {
+                id: {
+                    in: ["showtime-seat-1", "showtime-seat-2"],
+                },
+                bookingSessionId: "session-1",
+                isBooked: false,
+            },
+            data: {
+                heldByUserId: null,
+                heldTill: null,
+                bookingSessionId: null,
+            },
+        });
+        expect(transactionClient.bookingSession.update).toHaveBeenCalledWith({
+            where: { id: "session-1" },
+            data: {
+                step: BookingStep.SEAT_SELECTION,
+            },
+        });
+    });
+});
+
+// Test for expiry calculation in bookingSessionRouter.create
+
 describe("bookingSessionRouter.create", () => {
     let mockCtx: any;
     beforeEach(() => {
@@ -501,7 +572,7 @@ describe("bookingSessionRouter.update", () => {
         ).rejects.toThrow(/Invalid step transition/);
     });
 
-    it("should throw if trying to complete booking with wrong goToStep", async () => {
+    it("should allow moving back from checkout to seat selection", async () => {
         const session = {
             id: "session-1",
             userId: "user-abc",
@@ -512,13 +583,71 @@ describe("bookingSessionRouter.update", () => {
             selectedSeats: [],
         };
         mockCtx.db.bookingSession.findUniqueOrThrow.mockResolvedValue(session);
+        mockCtx.db.$transaction = vi.fn(async (callback: any) =>
+            callback({
+                showtimeSeat: {
+                    updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+                },
+                bookingSession: {
+                    update: vi.fn().mockResolvedValue({}),
+                },
+            })
+        );
         const caller = bookingSessionRouter.createCaller(mockCtx);
         await expect(
             caller.update({
                 sessionId: "session-1",
                 goToStep: BookingStep.SEAT_SELECTION,
             })
-        ).rejects.toThrow(/Invalid step transition/);
+        ).resolves.toBeUndefined();
+    });
+
+    it("should allow moving back from seat selection to ticket quantity for standard bookings", async () => {
+        const session = {
+            id: "session-1",
+            userId: "user-abc",
+            step: BookingStep.SEAT_SELECTION,
+            showtimeId: "showtime-xyz",
+            ticketCount: 2,
+            watchPartyId: null,
+            expiresAt: new Date(Date.now() + 10000),
+            selectedSeats: [],
+        };
+
+        mockCtx.db.bookingSession.findUniqueOrThrow.mockResolvedValue(session);
+        mockCtx.db.bookingSession.update = vi.fn().mockResolvedValue({});
+
+        const caller = bookingSessionRouter.createCaller(mockCtx);
+        await expect(
+            caller.update({
+                sessionId: "session-1",
+                goToStep: BookingStep.TICKET_QUANTITY,
+            })
+        ).resolves.toBeUndefined();
+    });
+
+    it("should reject moving a watch party session back to ticket quantity", async () => {
+        const session = {
+            id: "session-1",
+            userId: "user-abc",
+            step: BookingStep.SEAT_SELECTION,
+            showtimeId: "showtime-xyz",
+            ticketCount: 2,
+            watchPartyId: "party-1",
+            expiresAt: new Date(Date.now() + 10000),
+            selectedSeats: [],
+        };
+
+        mockCtx.db.bookingSession.findUniqueOrThrow.mockResolvedValue(session);
+        mockCtx.db.bookingSession.update = vi.fn().mockResolvedValue({});
+
+        const caller = bookingSessionRouter.createCaller(mockCtx);
+        await expect(
+            caller.update({
+                sessionId: "session-1",
+                goToStep: BookingStep.TICKET_QUANTITY,
+            })
+        ).rejects.toThrow(/Watch party booking sessions do not support/);
     });
 
     it("should advance from TICKET_QUANTITY to SEAT_SELECTION when ticket count and seats are available", async () => {
