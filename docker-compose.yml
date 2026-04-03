@@ -40,3 +40,28 @@ services:
             - K6_WEB_DASHBOARD_PORT=5665
             - K6_WEB_DASHBOARD_EXPORT=/work/load-tests/results/dashboard-report.html
         command: run load-tests/suites/movie-showtime.js
+
+    k6-booking:
+        image: grafana/k6:latest
+        working_dir: /work
+        volumes:
+            - .:/work
+        env_file:
+            - load-tests/.env
+        command: run load-tests/suites/booking.js
+
+    k6-booking-dashboard:
+        image: grafana/k6:latest
+        working_dir: /work
+        volumes:
+            - .:/work
+        ports:
+            - "5666:5665"
+        env_file:
+            - load-tests/.env
+        environment:
+            - K6_WEB_DASHBOARD=true
+            - K6_WEB_DASHBOARD_HOST=0.0.0.0
+            - K6_WEB_DASHBOARD_PORT=5665
+            - K6_WEB_DASHBOARD_EXPORT=/work/load-tests/results/booking-dashboard-report.html
+        command: run load-tests/suites/booking.js

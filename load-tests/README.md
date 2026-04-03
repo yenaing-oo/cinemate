@@ -1,24 +1,79 @@
 # k6 Load Testing (Feature-Based)
 
-This folder contains the initial k6 setup for feature/scenario load testing.
+This folder contains the k6 setup for feature-level load testing.
 
 Current layout pattern:
 
-- `load-tests/suites/<area>.js` (suite entrypoint used by `pnpm test:load`)
-- `load-tests/features/<area>/scenario.js` (options + scenario flow)
-- `load-tests/features/<area>/requests.js` (endpoint requests)
+- `load-tests/suites/<area>.js` is the suite entrypoint used by the package scripts
+- `load-tests/features/<area>/scenario.js` contains options and scenario flow
+- `load-tests/features/<area>/requests.js` contains request helpers
 
-## Scenario Included
+## Included Suites
 
-1. Movie and Showtime Selection (initial baseline)
+### 1. Movie and Showtime Selection
 
-- GET `/api/trpc/movies.nowPlaying`
+Request paths:
 
-Default requirement profile in this script:
+- `GET /api/trpc/movies.nowPlaying`
+- `GET /api/trpc/showtimes.getByMovie`
 
-- 20 concurrent users (`LOAD_VUS=20`)
-- 5 minute steady run (`LOAD_DURATION=5m`)
-- minimum throughput threshold of 200 requests/minute (`http_reqs rate >= 3.33/sec`)
+Default baseline:
+
+- `20` constant VUs
+- `5m` steady run
+- approximately `200` requests/minute total
+
+Commands:
+
+```bash
+pnpm test:load
+pnpm test:load:dashboard
+```
+
+Dashboard details:
+
+- open `http://localhost:5665`
+- exported report: `load-tests/results/dashboard-report.html`
+
+### 2. Feature 4: Booking
+
+This suite exercises the booking flow only until the checkout review page. It does not confirm the booking.
+
+Request paths used during the main scenario:
+
+- `GET /api/trpc/showtimeSeats.getByShowtime`
+- `POST /api/trpc/bookingSession.update`
+
+Scenario flow:
+
+1. In `setup()`, each configured test user signs in through Supabase.
+2. In `setup()`, a fresh booking session is created for `SHOWTIME_ID` and advanced to `SEAT_SELECTION`.
+3. Each iteration loads the seat map for that user.
+4. Each iteration moves the booking session to `CHECKOUT`.
+5. Each iteration immediately rewinds back to `SEAT_SELECTION` so held seats are released for the next loop.
+
+Default booking baseline:
+
+- `20` constant VUs
+- `4m` steady run
+- `1` ticket per booking session
+- approximately `300` requests/minute total
+
+Why `4m` by default:
+
+- booking sessions currently expire after `5` minutes in the app, so the booking suite stays under that window by default
+
+Commands:
+
+```bash
+pnpm test:load:booking
+pnpm test:load:booking:dashboard
+```
+
+Dashboard details:
+
+- open `http://localhost:5666`
+- exported report: `load-tests/results/booking-dashboard-report.html`
 
 ## Docker-First Setup
 
@@ -32,44 +87,64 @@ cp load-tests/.env.example load-tests/.env
 
 Populate `load-tests/.env` with your values.
 
-Set `BASE_URL` in `load-tests/.env` to control local vs live target.
+If you are targeting a local app:
 
-## Run Commands
+- run your app locally with `pnpm dev`
+- keep `BASE_URL=http://host.docker.internal:3000`
 
-Make sure you have Docker running. If running against a local target, make sure your local server is running (`pnpm dev`) and that `BASE_URL` in `load-tests/.env` is set to `http://host.docker.internal:3000` (or your local IP).
+## Environment Variables
 
-From the project root:
+### Shared target and pacing
 
-```bash
-pnpm test:load
-pnpm test:load:dashboard
-```
+- `BASE_URL`
+  default: `http://host.docker.internal:3000`
+- `SLEEP_SECONDS`
+  optional shared pacing knob
+- `ITERATION_SECONDS`
+  optional shared iteration target, default `12`
 
-`test:load` is a headless run (no live dashboard).
+### Shared load profile
 
-`test:load` runs k6 with live dashboard endpoint and report export enabled:
+- `LOAD_VUS`
+  default: `20`
+- `LOAD_DURATION`
+  shared default for suites that do not override duration
+- `LOAD_GRACEFUL_STOP`
+  default: `30s`
 
-- To access the dashboard, open `http://localhost:5665` in your browser.
-- When the test finishes, a HTML report is exported to `load-tests/results/dashboard-report.html`.
-- This file is overwritten on each run at `load-tests/results/dashboard-report.html`.
+### Movie/showtime suite
 
-## Required/Optional Environment Variables
+- `NOW_PLAYING_LIMIT`
+  optional input for `movies.nowPlaying`
+- `MOVIE_SHOWTIME_LOAD_VUS`
+- `MOVIE_SHOWTIME_LOAD_DURATION`
+- `MOVIE_SHOWTIME_LOAD_GRACEFUL_STOP`
+- `MOVIE_SHOWTIME_ITERATION_SECONDS`
 
-### Base target
+### Booking suite
 
-- `BASE_URL` (optional, default is `http://host.docker.internal:3000`)
-- Use `BASE_URL=https://bookcinemate.me` for live
+- `SHOWTIME_ID`
+  required showtime to create booking sessions against
+- `BOOKING_TICKET_COUNT`
+  optional, default `1`
+- `SUPABASE_URL`
+  required auth endpoint reachable from Docker, usually `http://host.docker.internal:54321`
+- `SUPABASE_PUBLISHABLE_KEY`
+  required local or live publishable key
+- `SUPABASE_COOKIE_NAME`
+  optional override for the auth cookie name; for local Supabase in this repo the expected value is usually `sb-127-auth-token`
+- `TEST_USER_EMAILS`
+  required comma-separated booking load-test users; you need at least as many emails as booking VUs
+- `TEST_USER_PASSWORD`
+  required password shared by those test users
+- `BOOKING_LOAD_VUS`
+- `BOOKING_LOAD_DURATION`
+  default `4m`
+- `BOOKING_LOAD_GRACEFUL_STOP`
+- `BOOKING_ITERATION_SECONDS`
 
-### nowPlaying input
+## Notes
 
-- `NOW_PLAYING_LIMIT` (optional)
-
-## Useful knobs
-
-- `SLEEP_SECONDS` (default: `1`)
-
-Shared load profile overrides:
-
-- `LOAD_VUS` (default: `20`)
-- `LOAD_DURATION` (default: `5m`)
-- `LOAD_GRACEFUL_STOP` (default: `30s`)
+- The booking suite assumes the configured users already exist in Supabase and can sign in.
+- For local runs, keep `SUPABASE_URL` pointed at `host.docker.internal` from Docker, but use `SUPABASE_COOKIE_NAME` if your app’s `NEXT_PUBLIC_SUPABASE_URL` hostname differs.
+- If you increase `BOOKING_TICKET_COUNT` or `BOOKING_LOAD_VUS`, make sure the target showtime has enough available seats to avoid artificial contention.

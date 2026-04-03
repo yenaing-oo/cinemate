@@ -24,6 +24,8 @@
         "test": "vitest",
         "test:load": "docker compose run --rm k6",
         "test:load:dashboard": "docker compose run --rm --service-ports k6-dashboard",
+        "test:load:booking": "docker compose run --rm k6-booking",
+        "test:load:booking:dashboard": "docker compose run --rm --service-ports k6-booking-dashboard",
         "test:frontend": "vitest --project frontend",
         "test:backend": "vitest --project backend",
         "test:mutation": "stryker run",
