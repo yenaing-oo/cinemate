@@ -46,6 +46,15 @@ describe("moviesRouter", () => {
         // Assert (Prisma call shape)
         expect(db.movie.findMany).toHaveBeenCalledTimes(1);
         expect(db.movie.findMany).toHaveBeenCalledWith({
+            where: {
+                showtimes: {
+                    some: {
+                        startTime: {
+                            gte: expect.any(Date),
+                        },
+                    },
+                },
+            },
             select: {
                 id: true,
                 title: true,
@@ -70,6 +79,15 @@ describe("moviesRouter", () => {
         // Assert
         expect(db.movie.findMany).toHaveBeenCalledTimes(1);
         expect(db.movie.findMany).toHaveBeenCalledWith({
+            where: {
+                showtimes: {
+                    some: {
+                        startTime: {
+                            gte: expect.any(Date),
+                        },
+                    },
+                },
+            },
             select: {
                 id: true,
                 title: true,
@@ -93,6 +111,15 @@ describe("moviesRouter", () => {
 
         const callArgs = (db.movie.findMany as any).mock.calls[0][0];
         expect(db.movie.findMany).toHaveBeenCalledWith({
+            where: {
+                showtimes: {
+                    some: {
+                        startTime: {
+                            gte: expect.any(Date),
+                        },
+                    },
+                },
+            },
             select: {
                 id: true,
                 title: true,
