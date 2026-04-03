@@ -14,6 +14,65 @@ import { ZodError } from "zod";
 import { createClient } from "~/lib/supabase/server";
 import { db } from "~/server/db";
 
+const LOAD_TEST_USER_EMAIL_HEADER = "x-load-test-user-email";
+const LOAD_TEST_MODE = process.env.LOAD_TEST_MODE === "true";
+type LoadTestUser = Awaited<ReturnType<typeof db.user.findUnique>>;
+const loadTestUserCache = new Map<string, LoadTestUser>();
+
+async function findLoadTestUserByEmail(email: string) {
+    const cacheKey = `email:${email}`;
+    const cachedUser = loadTestUserCache.get(cacheKey);
+
+    if (cachedUser) {
+        return cachedUser;
+    }
+
+    const user = await db.user.findUnique({
+        where: { email },
+    });
+
+    if (user) {
+        loadTestUserCache.set(cacheKey, user);
+
+        if (user.supabaseId) {
+            loadTestUserCache.set(`supabase:${user.supabaseId}`, user);
+        }
+    }
+
+    return user;
+}
+
+async function getLoadTestContext(headers: Headers) {
+    const requestedEmail =
+        headers.get(LOAD_TEST_USER_EMAIL_HEADER)?.trim() ||
+        process.env.LOAD_TEST_DEFAULT_USER_EMAIL ||
+        "user@example.com";
+
+    if (!requestedEmail) {
+        return {
+            supabaseUser: null,
+            user: null,
+        };
+    }
+
+    const user = await findLoadTestUserByEmail(requestedEmail);
+
+    if (!user) {
+        return {
+            supabaseUser: null,
+            user: null,
+        };
+    }
+
+    return {
+        supabaseUser: {
+            id: user.supabaseId ?? user.id,
+            email: user.email,
+        },
+        user,
+    };
+}
+
 /**
  * 1. CONTEXT
  *
@@ -28,6 +87,16 @@ import { db } from "~/server/db";
  */
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
+    if (LOAD_TEST_MODE) {
+        const loadTestContext = await getLoadTestContext(opts.headers);
+
+        return {
+            db,
+            ...loadTestContext,
+            ...opts,
+        };
+    }
+
     const supabase = await createClient();
     const {
         data: { user: supabaseUser },
@@ -101,7 +170,7 @@ export const createTRPCRouter = t.router;
 const timingMiddleware = t.middleware(async ({ next, path }) => {
     const start = Date.now();
 
-    if (t._config.isDev) {
+    if (t._config.isDev && !LOAD_TEST_MODE) {
         // artificial delay in dev
         const waitMs = Math.floor(Math.random() * 400) + 100;
         await new Promise((resolve) => setTimeout(resolve, waitMs));

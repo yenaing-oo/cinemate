@@ -46,22 +46,23 @@ Request paths used during the main scenario:
 
 Scenario flow:
 
-1. In `setup()`, each configured test user signs in through Supabase.
-2. In `setup()`, a fresh booking session is created for `SHOWTIME_ID` and advanced to `SEAT_SELECTION`.
-3. Each iteration loads the seat map for that user.
-4. Each iteration moves the booking session to `CHECKOUT`.
-5. Each iteration immediately rewinds back to `SEAT_SELECTION` so held seats are released for the next loop.
+1. `setup()` only validates config and starts the suite quickly.
+2. Each VU resolves its assigned seeded load-test user on first use.
+3. Each request carries that user identity in `x-load-test-user-email`.
+4. The app runs with `LOAD_TEST_MODE=true` and treats that seeded user as authenticated.
+5. The suite auto-resolves the first future showtime with enough available seats for the configured booking load.
+6. Each VU creates its own booking session for that target showtime and advances it to `SEAT_SELECTION`.
+7. Each iteration loads the seat map for that user.
+8. Each iteration moves the booking session to `CHECKOUT`.
+9. Each iteration immediately rewinds back to `SEAT_SELECTION` so held seats are released for the next loop.
+10. Long-running VUs recreate their booking session before the app's 5 minute booking-session expiry window.
 
 Default booking baseline:
 
 - `20` constant VUs
-- `4m` steady run
+- `5m` steady run
 - `1` ticket per booking session
 - approximately `300` requests/minute total
-
-Why `4m` by default:
-
-- booking sessions currently expire after `5` minutes in the app, so the booking suite stays under that window by default
 
 Commands:
 
@@ -91,6 +92,30 @@ If you are targeting a local app:
 
 - run your app locally with `pnpm dev`
 - keep `BASE_URL=http://host.docker.internal:3000`
+
+### Booking Quick Start
+
+For someone cloning the branch, the booking suite now has one supported setup:
+
+1. Seed at least as many booking load-test users as `BOOKING_LOAD_VUS`.
+2. Seed at least one future showtime with enough seats for `BOOKING_LOAD_VUS * BOOKING_TICKET_COUNT`.
+3. Set `LOAD_TEST_MODE=true` in the app env before starting the app.
+4. Copy `load-tests/.env.example` to `load-tests/.env`.
+5. Set `TEST_USER_EMAILS` to the seeded user emails.
+6. Adjust `BOOKING_LOAD_VUS` if needed.
+7. Run `pnpm test:load:booking` or `pnpm test:load:booking:dashboard`.
+
+What the booking suite resolves automatically:
+
+- the target showtime id
+- the movie/showtime pair used for the run
+
+What another developer still needs to provide:
+
+- seeded booking users
+- a seeded future showtime with enough seats
+- `LOAD_TEST_MODE=true` in the app env
+- `TEST_USER_EMAILS` in `load-tests/.env`
 
 ## Environment Variables
 
@@ -123,28 +148,24 @@ If you are targeting a local app:
 
 ### Booking suite
 
-- `SHOWTIME_ID`
-  required showtime to create booking sessions against
+- `LOAD_TEST_MODE`
+  required for booking load testing; set it in both the app env and `load-tests/.env`
 - `BOOKING_TICKET_COUNT`
   optional, default `1`
-- `SUPABASE_URL`
-  required auth endpoint reachable from Docker, usually `http://host.docker.internal:54321`
-- `SUPABASE_PUBLISHABLE_KEY`
-  required local or live publishable key
-- `SUPABASE_COOKIE_NAME`
-  optional override for the auth cookie name; for local Supabase in this repo the expected value is usually `sb-127-auth-token`
 - `TEST_USER_EMAILS`
-  required comma-separated booking load-test users; you need at least as many emails as booking VUs
-- `TEST_USER_PASSWORD`
-  required password shared by those test users
+  required comma-separated seeded booking load-test users; you need at least as many emails as booking VUs
 - `BOOKING_LOAD_VUS`
 - `BOOKING_LOAD_DURATION`
-  default `4m`
+  default `5m`
 - `BOOKING_LOAD_GRACEFUL_STOP`
 - `BOOKING_ITERATION_SECONDS`
 
 ## Notes
 
-- The booking suite assumes the configured users already exist in Supabase and can sign in.
-- For local runs, keep `SUPABASE_URL` pointed at `host.docker.internal` from Docker, but use `SUPABASE_COOKIE_NAME` if your app’s `NEXT_PUBLIC_SUPABASE_URL` hostname differs.
+- Seed one database user per booking VU and pass those same emails through `TEST_USER_EMAILS`.
+- Seed at least one future showtime with enough seats for `BOOKING_LOAD_VUS * BOOKING_TICKET_COUNT`.
+- The booking suite always auto-resolves its target showtime from the now-playing and showtimes APIs. There is no manual `SHOWTIME_ID` override anymore.
 - If you increase `BOOKING_TICKET_COUNT` or `BOOKING_LOAD_VUS`, make sure the target showtime has enough available seats to avoid artificial contention.
+- The sample `.env.example` keeps `BOOKING_LOAD_VUS=2` so it works as copied with the sample email list. Raise it to `20` and provide `20` seeded emails for the full baseline.
+- Booking sessions are created per VU during the scenario, not pre-created in `setup()`, to avoid both k6 `setup()` timeouts and the app's 5 minute booking-session expiry.
+- Do not collapse all booking VUs onto one user for this app. Booking sessions are one-per-user and `bookingSession.create` replaces the existing session for that user.

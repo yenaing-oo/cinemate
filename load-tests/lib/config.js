@@ -17,11 +17,6 @@ export function getBaseUrl() {
     return DEFAULT_DOCKER_BASE_URL;
 }
 
-export function getAuthCookieHeader() {
-    const cookie = __ENV.AUTH_COOKIE;
-    return cookie ? { Cookie: cookie } : {};
-}
-
 export function asBoolean(value, fallback = false) {
     if (value === undefined || value === null) {
         return fallback;
@@ -70,29 +65,14 @@ export function getLoadProfile(prefix, defaults = {}) {
     };
 }
 
-export function hasSupabaseCredentials() {
-    return Boolean(
-        __ENV.SUPABASE_URL &&
-        (__ENV.SUPABASE_PUBLISHABLE_KEY || __ENV.SUPABASE_ANON_KEY) &&
-        (__ENV.TEST_USER_EMAIL || __ENV.TEST_USER_EMAILS) &&
-        __ENV.TEST_USER_PASSWORD
-    );
-}
-
 export function getRunConfig() {
     return {
         baseUrl: getBaseUrl(),
+        loadTestMode: asBoolean(__ENV.LOAD_TEST_MODE, false),
         requireWriteSuccess: asBoolean(__ENV.REQUIRE_WRITE_SUCCESS, false),
         sleepSeconds: asNumber(__ENV.SLEEP_SECONDS, 1),
-        showtimeId: __ENV.SHOWTIME_ID,
         watchPartyInviteCode: __ENV.WATCH_PARTY_INVITE_CODE,
         bookingTicketCount: asNumber(__ENV.BOOKING_TICKET_COUNT, 1),
-        supabaseUrl: __ENV.SUPABASE_URL,
-        supabaseAnonKey:
-            __ENV.SUPABASE_PUBLISHABLE_KEY || __ENV.SUPABASE_ANON_KEY,
-        supabaseCookieName: __ENV.SUPABASE_COOKIE_NAME,
         testUserEmails: asCsvArray(__ENV.TEST_USER_EMAILS),
-        testUserPassword: __ENV.TEST_USER_PASSWORD,
-        hasSupabaseCredentials: hasSupabaseCredentials(),
     };
 }
