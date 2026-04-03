@@ -17,13 +17,25 @@ describe("Movies Integration Tests", () => {
 
         await cleanupDb();
 
-        await db.movie.create({
+        const movie = await db.movie.create({
             data: {
                 title: "Movie 1",
                 posterUrl: "https://example.com/poster1.jpg",
                 runtime: 120,
                 tmdbId: 12345,
                 releaseDate: new Date("2024-01-01"),
+            },
+        });
+
+        const startTime = new Date(Date.now() + 60 * 60 * 1000);
+        const endTime = new Date(startTime.getTime() + 120 * 60 * 1000);
+
+        await db.showtime.create({
+            data: {
+                movieId: movie.id,
+                startTime,
+                endTime,
+                price: 15,
             },
         });
     });
