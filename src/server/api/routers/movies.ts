@@ -12,7 +12,17 @@ export const moviesRouter = createTRPCRouter({
         )
         .query(async ({ input }) => {
             const limit = input.limit;
+            const now = new Date();
             return db.movie.findMany({
+                where: {
+                    showtimes: {
+                        some: {
+                            startTime: {
+                                gte: now,
+                            },
+                        },
+                    },
+                },
                 select: {
                     id: true,
                     title: true,
