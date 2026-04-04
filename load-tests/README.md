@@ -85,25 +85,21 @@ Dashboard details:
 
 Use the official `grafana/k6` image. No local k6 install is required.
 
-Create an env file once:
+Create the k6 env file once:
 
 ```bash
 cp load-tests/.env.example load-tests/.env
 ```
 
-Populate `load-tests/.env` with your values.
+Update `load-tests/.env` for the target you want to hit.
 
-Set `BASE_URL` in `load-tests/.env` to control local vs live target.
-
-For booking load testing:
-
-- start the application with `LOAD_TEST_MODE=true`
-- ensure every email in `TEST_USER_EMAILS` exists in the database
-- ensure at least one future showtime exists with enough available seats for the configured booking load so the test can automatically select it
+- local target default: `BASE_URL=http://host.docker.internal:3000`
+- live target example: `BASE_URL=https://bookcinemate.me`
+- Docker now maps `host.docker.internal` for the k6 services, so the same local URL works on macOS, Windows, and Linux dev machines
 
 ## Run Commands
 
-Make sure Docker is running. If running against a local target, make sure the local server is running (`pnpm dev`) and that `BASE_URL` in `load-tests/.env` is set to `http://host.docker.internal:3000` (or the correct local target).
+Make sure Docker is running.
 
 From the project root:
 
@@ -120,6 +116,59 @@ Command behavior:
 - `test:load:dashboard` runs the movie/showtime suite with the live dashboard and report export enabled
 - `test:load:booking` runs the booking suite without a live dashboard
 - `test:load:booking:dashboard` runs the booking suite with the live dashboard and report export enabled
+
+## Booking Setup
+
+The booking suite hits protected tRPC routes. A plain `pnpm dev` session is not enough for local booking load testing because `showtimeSeats.getByShowtime` and the booking session routes require an authenticated user context.
+
+Use this local setup:
+
+1. Copy the env file if you have not already:
+
+```bash
+cp load-tests/.env.example load-tests/.env
+```
+
+2. Keep `BASE_URL=http://host.docker.internal:3000` when running against your local app.
+
+3. Seed dedicated booking load-test data:
+
+```bash
+pnpm db:seed:booking-loadtest
+```
+
+What this seed command does:
+
+- reads both `.env` and `load-tests/.env`
+- creates one booking user per booking VU
+- uses `TEST_USER_EMAILS` if you set it explicitly
+- otherwise generates users from `BOOKING_USER_EMAIL_PREFIX` and `BOOKING_USER_EMAIL_DOMAIN`
+- creates a dedicated future movie and showtimes with a full seat map so the booking suite can auto-resolve a valid showtime
+
+4. Start the app in load-test auth mode:
+
+```bash
+pnpm dev:loadtest
+```
+
+This is the important difference from the old setup. `pnpm dev:loadtest` forces `LOAD_TEST_MODE=true` for the app process in a shell-independent way, so the backend will honor the `x-load-test-user-email` header sent by k6.
+
+5. In a second terminal, run the booking suite:
+
+```bash
+pnpm test:load:booking
+```
+
+Optional dashboard run:
+
+```bash
+pnpm test:load:booking:dashboard
+```
+
+If you see `UNAUTHORIZED` on `showtimeSeats.getByShowtime`, check these two things first:
+
+- the app was started with `pnpm dev:loadtest`
+- the booking users were seeded with `pnpm db:seed:booking-loadtest`
 
 ## Required/Optional Environment Variables
 
@@ -138,13 +187,16 @@ Command behavior:
 
 ### Booking
 
-- `LOAD_TEST_MODE` (required in both the application environment and `load-tests/.env`)
-- `TEST_USER_EMAILS` (required, comma-separated seeded booking users)
+- `LOAD_TEST_MODE` (required for the booking suite; `pnpm dev:loadtest` sets it for the app locally)
+- `TEST_USER_EMAILS` (optional, comma-separated explicit seeded booking users)
+- `BOOKING_USER_EMAIL_PREFIX` (optional, default: `booking-loadtest`)
+- `BOOKING_USER_EMAIL_DOMAIN` (optional, default: `example.com`)
 - `BOOKING_TICKET_COUNT` (optional, default: `1`)
 - `BOOKING_LOAD_VUS` (optional, default: `20`)
 - `BOOKING_LOAD_DURATION` (optional, default: `5m`)
 - `BOOKING_LOAD_GRACEFUL_STOP` (optional, default: `30s`)
 - `BOOKING_ITERATION_SECONDS` (optional)
+- `BOOKING_SHOWTIME_COUNT` (optional, seed-only, default: `6`)
 
 ## Useful Knobs
 
@@ -162,4 +214,4 @@ Shared load profile overrides:
 - The booking suite automatically selects one valid future showtime. There is no manual `SHOWTIME_ID` input.
 - The booking suite stops at checkout review and does not complete payment or final booking confirmation.
 - Rewinding from `CHECKOUT` back to `SEAT_SELECTION` prevents held seats from accumulating across iterations.
-- The sample `.env.example` uses `BOOKING_LOAD_VUS=2` so it remains valid as copied with the sample email list. Increase it to `20` and provide `20` seeded users for the default booking baseline.
+- If `TEST_USER_EMAILS` is omitted, the suite and the seed script both derive the same generated user list from `BOOKING_LOAD_VUS`, `BOOKING_USER_EMAIL_PREFIX`, and `BOOKING_USER_EMAIL_DOMAIN`.

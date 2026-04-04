@@ -54,13 +54,13 @@ export function buildOptions() {
 function validateBookingConfig(config) {
     if (!config.loadTestMode) {
         throw new Error(
-            "Booking load test requires LOAD_TEST_MODE=true in both the app and load-tests/.env"
+            "Booking load test requires LOAD_TEST_MODE=true in load-tests/.env, and the local app should be started with pnpm dev:loadtest"
         );
     }
 
     if (config.testUserEmails.length < loadProfile.vus) {
         throw new Error(
-            `Booking load test requires at least ${loadProfile.vus} TEST_USER_EMAILS`
+            `Booking load test requires at least ${loadProfile.vus} seeded booking users. Set TEST_USER_EMAILS explicitly or let BOOKING_USER_EMAIL_PREFIX/BOOKING_USER_EMAIL_DOMAIN generate them.`
         );
     }
 
@@ -155,6 +155,13 @@ function isRecoverableSessionError(message) {
     );
 }
 
+function getUnauthorizedSetupMessage(email, response) {
+    const errorMessage = getResponseErrorMessage(response);
+    return `showtimeSeats.getByShowtime returned UNAUTHORIZED for ${email}. Start the app with LOAD_TEST_MODE=true (use pnpm dev:loadtest for local runs) and ensure the seeded booking user exists. ${
+        errorMessage ? `Server message: ${errorMessage}` : ""
+    }`.trim();
+}
+
 function shouldRefreshSession(state) {
     return (
         !state ||
@@ -168,6 +175,11 @@ function lookupSeatIds(data, state, rotationOffset) {
         data.showtimeId,
         state.authHeaders
     );
+
+    if (seatLookup.status === 401) {
+        throw new Error(getUnauthorizedSetupMessage(state.email, seatLookup));
+    }
+
     const selectedSeatIds = getAvailableSeatIdsFromResponse(
         seatLookup,
         data.bookingTicketCount,
@@ -315,6 +327,16 @@ function resolveShowtime(config) {
                 showtime.id,
                 authHeaders
             );
+
+            if (seatLookup.status === 401) {
+                throw new Error(
+                    getUnauthorizedSetupMessage(
+                        config.testUserEmails[0],
+                        seatLookup
+                    )
+                );
+            }
+
             const availableSeatCount =
                 getAvailableSeatCountFromResponse(seatLookup);
 
