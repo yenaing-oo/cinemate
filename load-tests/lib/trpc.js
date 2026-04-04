@@ -1,6 +1,12 @@
 // @ts-nocheck
 import http from "k6/http";
 
+function serializeInput(input) {
+    return {
+        json: input ?? null,
+    };
+}
+
 export function trpcPost(baseUrl, procedurePath, input, options = {}) {
     const headers = {
         "Content-Type": "application/json",
@@ -10,7 +16,7 @@ export function trpcPost(baseUrl, procedurePath, input, options = {}) {
 
     return http.post(
         `${baseUrl}/api/trpc/${procedurePath}`,
-        JSON.stringify({ input }),
+        JSON.stringify(serializeInput(input)),
         {
             headers,
             tags: options.tags,
@@ -25,7 +31,7 @@ export function trpcGet(baseUrl, procedurePath, input, options = {}) {
     };
 
     const encodedInput = encodeURIComponent(
-        JSON.stringify({ json: input ?? {} })
+        JSON.stringify(serializeInput(input))
     );
 
     return http.get(
