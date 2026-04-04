@@ -2,6 +2,9 @@
 const DEFAULT_DOCKER_BASE_URL = "http://host.docker.internal:3000";
 const DEFAULT_BOOKING_USER_EMAIL_PREFIX = "booking-loadtest";
 const DEFAULT_BOOKING_USER_EMAIL_DOMAIN = "example.com";
+const DEFAULT_WATCH_PARTY_HOST_EMAIL_PREFIX = "watch-party-host-loadtest";
+const DEFAULT_WATCH_PARTY_PARTICIPANT_EMAIL_PREFIX =
+    "watch-party-participant-loadtest";
 
 function getScopedEnv(prefix, key) {
     if (!prefix) {
@@ -43,7 +46,7 @@ export function asCsvArray(value) {
         .filter(Boolean);
 }
 
-function buildSequentialEmailList(count, options = {}) {
+export function buildSequentialEmailList(count, options = {}) {
     const prefix =
         String(options.prefix ?? DEFAULT_BOOKING_USER_EMAIL_PREFIX).trim() ||
         DEFAULT_BOOKING_USER_EMAIL_PREFIX;
@@ -101,6 +104,26 @@ function getBookingUserEmails() {
     });
 }
 
+function getWatchPartyUserEmails(prefixKey, explicitKey, fallbackPrefix) {
+    const explicitEmails = asCsvArray(__ENV[explicitKey]);
+
+    if (explicitEmails.length > 0) {
+        return explicitEmails;
+    }
+
+    const watchPartyUserCount = asNumber(
+        __ENV.WATCH_PARTY_LOAD_VUS ?? __ENV.LOAD_VUS,
+        10
+    );
+
+    return buildSequentialEmailList(watchPartyUserCount, {
+        prefix: __ENV[prefixKey] ?? fallbackPrefix,
+        domain:
+            __ENV.WATCH_PARTY_USER_EMAIL_DOMAIN ??
+            DEFAULT_BOOKING_USER_EMAIL_DOMAIN,
+    });
+}
+
 export function getRunConfig() {
     return {
         baseUrl: getBaseUrl(),
@@ -110,5 +133,15 @@ export function getRunConfig() {
         watchPartyInviteCode: __ENV.WATCH_PARTY_INVITE_CODE,
         bookingTicketCount: asNumber(__ENV.BOOKING_TICKET_COUNT, 1),
         testUserEmails: getBookingUserEmails(),
+        watchPartyHostEmails: getWatchPartyUserEmails(
+            "WATCH_PARTY_HOST_EMAIL_PREFIX",
+            "WATCH_PARTY_HOST_EMAILS",
+            DEFAULT_WATCH_PARTY_HOST_EMAIL_PREFIX
+        ),
+        watchPartyParticipantEmails: getWatchPartyUserEmails(
+            "WATCH_PARTY_PARTICIPANT_EMAIL_PREFIX",
+            "WATCH_PARTY_PARTICIPANT_EMAILS",
+            DEFAULT_WATCH_PARTY_PARTICIPANT_EMAIL_PREFIX
+        ),
     };
 }

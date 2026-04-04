@@ -114,6 +114,89 @@ Dashboard details:
 - open `http://localhost:5666` in the browser during the run
 - exported report: `load-tests/results/booking-dashboard-report.html`
 
+### Feature 5: Watch Party
+
+This scenario exercises the watch party flow through group booking checkout review. It creates a fresh watch party each iteration, has one invited participant join, starts the host-only booking session, loads the seat map, advances to checkout, and rewinds to release held seats.
+
+Requirement target covered:
+
+- `20` total concurrent users
+- at least `200` total requests per minute
+- implemented as `10` concurrent host/participant pairs, paced to approximately `200` requests/minute overall
+
+Endpoints covered:
+
+- `POST /api/trpc/watchParty.create`
+- `POST /api/trpc/watchParty.join`
+- `GET /api/trpc/watchParty.getById`
+- `POST /api/trpc/bookingSession.createForWatchParty`
+- `GET /api/trpc/showtimeSeats.getByShowtime`
+- `POST /api/trpc/bookingSession.update`
+
+Scenario flow:
+
+1. Automatically select one valid future showtime with enough capacity for all concurrent group bookings.
+2. Assign one seeded host user and one seeded participant user to each virtual user.
+3. Create a watch party as the host and invite that paired participant.
+4. Join the party as the invited participant.
+5. Load the watch party detail as the host.
+6. Start the watch party booking session as the host.
+7. Load the seat map.
+8. Move the session to `CHECKOUT`.
+9. Rewind the session back to `SEAT_SELECTION` so held seats are released before the next iteration.
+
+Authentication behavior:
+
+- watch party routes are protected routes
+- when `LOAD_TEST_MODE=true`, the backend reads a seeded user email from the `x-load-test-user-email` request header
+- this suite uses one host user and one participant user per virtual user
+
+Default requirement profile in this script:
+
+- `20` concurrent users modeled as `10` host/participant pairs (`WATCH_PARTY_LOAD_VUS=10`)
+- `5m` steady run (`WATCH_PARTY_LOAD_DURATION=5m`)
+- one host plus one participant per simulated group
+- minimum throughput threshold of approximately `200` requests/minute (`http_reqs rate >= 3.33/sec`)
+
+Watch party setup for local runs:
+
+Terminal 1:
+
+```bash
+cp load-tests/.env.example load-tests/.env
+pnpm db:seed:watch-party-loadtest
+pnpm dev:loadtest
+```
+
+Terminal 2:
+
+```bash
+pnpm test:load:watch-party
+```
+
+Use this instead if you want the live dashboard:
+
+```bash
+pnpm test:load:watch-party:dashboard
+```
+
+What the setup commands do:
+
+- `pnpm db:seed:watch-party-loadtest` seeds dedicated watch party hosts, participants, a future movie, future showtimes, and showtime seats
+- `pnpm dev:loadtest` starts the local app with `LOAD_TEST_MODE=true` so the suite can authenticate through the `x-load-test-user-email` header
+
+Commands:
+
+```bash
+pnpm test:load:watch-party
+pnpm test:load:watch-party:dashboard
+```
+
+Dashboard details:
+
+- open `http://localhost:5667` in the browser during the run
+- exported report: `load-tests/results/watch-party-dashboard-report.html`
+
 ## Docker-First Setup
 
 Use the official `grafana/k6` image. No local k6 install is required.
@@ -145,6 +228,8 @@ pnpm test:load
 pnpm test:load:dashboard
 pnpm test:load:booking
 pnpm test:load:booking:dashboard
+pnpm test:load:watch-party
+pnpm test:load:watch-party:dashboard
 ```
 
 Command behavior:
@@ -153,6 +238,8 @@ Command behavior:
 - `test:load:dashboard` runs the movie/showtime suite with the live dashboard and report export enabled
 - `test:load:booking` runs the booking suite without a live dashboard
 - `test:load:booking:dashboard` runs the booking suite with the live dashboard and report export enabled
+- `test:load:watch-party` runs the watch party suite without a live dashboard
+- `test:load:watch-party:dashboard` runs the watch party suite with the live dashboard and report export enabled
 
 ## Required/Optional Environment Variables
 
@@ -182,6 +269,19 @@ Command behavior:
 - `BOOKING_ITERATION_SECONDS` (optional)
 - `BOOKING_SHOWTIME_COUNT` (optional, seed-only, default: `6`)
 
+### Watch Party
+
+- `WATCH_PARTY_HOST_EMAILS` (optional, comma-separated explicit seeded host users)
+- `WATCH_PARTY_PARTICIPANT_EMAILS` (optional, comma-separated explicit seeded participant users)
+- `WATCH_PARTY_HOST_EMAIL_PREFIX` (optional, default: `watch-party-host-loadtest`)
+- `WATCH_PARTY_PARTICIPANT_EMAIL_PREFIX` (optional, default: `watch-party-participant-loadtest`)
+- `WATCH_PARTY_USER_EMAIL_DOMAIN` (optional, default: `example.com`)
+- `WATCH_PARTY_LOAD_VUS` (optional, default: `10`; each VU models one host/participant pair)
+- `WATCH_PARTY_LOAD_DURATION` (optional, default: `5m`)
+- `WATCH_PARTY_LOAD_GRACEFUL_STOP` (optional, default: `30s`)
+- `WATCH_PARTY_ITERATION_SECONDS` (optional, default: `21`)
+- `WATCH_PARTY_SHOWTIME_COUNT` (optional, seed-only, default: `6`)
+
 ## Useful Knobs
 
 - `SLEEP_SECONDS` (default: `1`)
@@ -199,3 +299,5 @@ Shared load profile overrides:
 - The booking suite stops at checkout review and does not complete payment or final booking confirmation.
 - Rewinding from `CHECKOUT` back to `SEAT_SELECTION` prevents held seats from accumulating across iterations.
 - If `TEST_USER_EMAILS` is omitted, the suite and the seed script both derive the same generated user list from `BOOKING_LOAD_VUS`, `BOOKING_USER_EMAIL_PREFIX`, and `BOOKING_USER_EMAIL_DOMAIN`.
+- The watch party suite also auto-resolves its showtime and uses the same seat-release rewind pattern after checkout.
+- If `WATCH_PARTY_HOST_EMAILS` or `WATCH_PARTY_PARTICIPANT_EMAILS` are omitted, the suite and seed script derive matching generated email lists from `WATCH_PARTY_LOAD_VUS`, the watch party email prefixes, and `WATCH_PARTY_USER_EMAIL_DOMAIN`.

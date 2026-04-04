@@ -2,10 +2,7 @@
 import { check, group, sleep } from "k6";
 
 import { getLoadProfile } from "../../lib/config.js";
-import {
-    fetchNowPlaying,
-    fetchShowtimesByMovie,
-} from "../movie-showtime/requests.js";
+import { resolveShowtime as resolveShowtimeForCapacity } from "../../lib/showtime-resolution.js";
 import {
     createBookingSession,
     fetchShowtimeSeats,
@@ -255,40 +252,6 @@ function attemptCheckoutTransition(
     };
 }
 
-function getMoviesFromNowPlayingResponse(response) {
-    try {
-        const movies = response.json("result.data.json");
-        return Array.isArray(movies) ? movies.filter((movie) => movie?.id) : [];
-    } catch {
-        return [];
-    }
-}
-
-function getShowtimesFromResponse(response) {
-    try {
-        const showtimes = response.json("result.data.json.showtimes");
-        return Array.isArray(showtimes)
-            ? showtimes.filter((showtime) => showtime?.id)
-            : [];
-    } catch {
-        return [];
-    }
-}
-
-function getAvailableSeatCountFromResponse(response) {
-    try {
-        const seats = response.json("result.data.json");
-
-        if (!Array.isArray(seats)) {
-            return 0;
-        }
-
-        return seats.filter((seat) => seat?.id && !seat?.isBooked).length;
-    } catch {
-        return 0;
-    }
-}
-
 function getRequiredSeatCapacity(config) {
     return Math.max(
         config.bookingTicketCount,
@@ -296,90 +259,21 @@ function getRequiredSeatCapacity(config) {
     );
 }
 
-function resolveShowtime(config) {
-    const requiredSeatCapacity = getRequiredSeatCapacity(config);
-    const authHeaders = buildLoadTestAuthHeaders(config.testUserEmails[0]);
-    const nowPlayingResponse = fetchNowPlaying(config.baseUrl);
-    const movies = getMoviesFromNowPlayingResponse(nowPlayingResponse);
-
-    if (nowPlayingResponse.status !== 200 || movies.length === 0) {
-        throw new Error(
-            "Unable to auto-resolve a booking showtime from movies.nowPlaying"
-        );
-    }
-
-    let bestCandidate = null;
-
-    for (const movie of movies) {
-        const showtimesResponse = fetchShowtimesByMovie(
-            config.baseUrl,
-            movie.id
-        );
-        const showtimes = getShowtimesFromResponse(showtimesResponse);
-
-        if (showtimesResponse.status !== 200 || showtimes.length === 0) {
-            continue;
-        }
-
-        for (const showtime of showtimes) {
-            const seatLookup = fetchShowtimeSeats(
-                config.baseUrl,
-                showtime.id,
-                authHeaders
-            );
-
-            if (seatLookup.status === 401) {
-                throw new Error(
-                    getUnauthorizedSetupMessage(
-                        config.testUserEmails[0],
-                        seatLookup
-                    )
-                );
-            }
-
-            const availableSeatCount =
-                getAvailableSeatCountFromResponse(seatLookup);
-
-            if (seatLookup.status !== 200) {
-                continue;
-            }
-
-            const candidate = {
-                source: "auto",
-                showtimeId: showtime.id,
-                movieTitle: movie.title ?? movie.id,
-                startTime: showtime.startTime ?? null,
-                availableSeatCount,
-            };
-
-            if (availableSeatCount >= requiredSeatCapacity) {
-                return candidate;
-            }
-
-            if (
-                availableSeatCount >= config.bookingTicketCount &&
-                (!bestCandidate ||
-                    availableSeatCount > bestCandidate.availableSeatCount)
-            ) {
-                bestCandidate = candidate;
-            }
-        }
-    }
-
-    if (bestCandidate) {
-        throw new Error(
-            `Unable to auto-resolve a showtime with at least ${requiredSeatCapacity} available seats. Best candidate ${bestCandidate.showtimeId} (${bestCandidate.movieTitle}) had ${bestCandidate.availableSeatCount}. Seed more seats or reduce the booking load.`
-        );
-    }
-
-    throw new Error(
-        "Unable to auto-resolve a booking showtime from now-playing movies with future showtimes"
-    );
+function resolveBookingShowtime(config) {
+    return resolveShowtimeForCapacity({
+        baseUrl: config.baseUrl,
+        authHeaders: buildLoadTestAuthHeaders(config.testUserEmails[0]),
+        authUserLabel: config.testUserEmails[0],
+        requiredSeatCapacity: getRequiredSeatCapacity(config),
+        minimumSeatCount: config.bookingTicketCount,
+        contextLabel: "booking",
+        getUnauthorizedMessage: getUnauthorizedSetupMessage,
+    });
 }
 
 export function setupScenario(config) {
     validateBookingConfig(config);
-    const showtimeResolution = resolveShowtime(config);
+    const showtimeResolution = resolveBookingShowtime(config);
     const resolvedConfig = {
         ...config,
         showtimeId: showtimeResolution.showtimeId,
