@@ -5,7 +5,7 @@ import {
     goBackToTicketQuantity,
     reserveSeats,
     validateSession,
-} from "./bookingSession";
+} from "~/server/api/routers/bookingSession";
 import { BookingStep, WatchPartyStatus } from "@prisma/client";
 
 const sendEmailMock = vi.fn();
@@ -426,7 +426,7 @@ describe("setTicketCount", () => {
         const showtimeId = "showtime-1";
         const userId = "user-1";
         const bookingSessionId = "session-1";
-        const mod = await import("./bookingSession");
+        const mod = await import("~/server/api/routers/bookingSession");
         await mod.setTicketCount(
             db as any,
             ticketCount,
@@ -464,7 +464,7 @@ describe("setTicketCount", () => {
         const userId = "user-1";
         const bookingSessionId = "session-1";
 
-        const mod = await import("./bookingSession");
+        const mod = await import("~/server/api/routers/bookingSession");
 
         await expect(
             mod.setTicketCount(

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { showtimeSeatsRouter } from "./showtimeSeats";
+import { showtimeSeatsRouter } from "~/server/api/routers/showtimeSeats";
 
 vi.mock("~/server/db", () => {
     return {
