@@ -176,7 +176,7 @@ async function main() {
                     firstName: "LoadTest",
                     lastName: `User${String(index + 1).padStart(2, "0")}`,
                     supabaseId: getLoadTestSupabaseId(email, index),
-                    hasPaymentMethod: true,
+                    cardNumber: "4111111111111111",
                 },
             })
         )

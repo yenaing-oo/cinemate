@@ -10,7 +10,7 @@ begin
     "lastName",
     "email",
     "imageURL",
-    "hasPaymentMethod"
+    "cardNumber"
   )
   values (
     gen_random_uuid(),
@@ -20,7 +20,7 @@ begin
     COALESCE(new.raw_user_meta_data->>'last_name', ''),
     new.email,
     null,
-    false
+    null
   )
   on conflict (email) do update
     set 
