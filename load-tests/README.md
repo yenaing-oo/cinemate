@@ -69,6 +69,39 @@ Default requirement profile in this script:
 - `1` ticket per booking session (`BOOKING_TICKET_COUNT=1`)
 - minimum throughput threshold of `300` requests/minute (`http_reqs rate >= 5.00/sec`)
 
+Booking setup for local runs:
+
+Terminal 1:
+
+```bash
+cp load-tests/.env.example load-tests/.env
+pnpm db:seed:booking-loadtest
+pnpm dev:loadtest
+```
+
+Terminal 2:
+
+```bash
+pnpm test:load:booking
+```
+
+Use this instead if you want the live dashboard:
+
+```bash
+pnpm test:load:booking:dashboard
+```
+
+What the setup commands do:
+
+- `cp load-tests/.env.example load-tests/.env` creates the k6 env file
+- `pnpm db:seed:booking-loadtest` seeds the booking users, a dedicated future movie, future showtimes, and showtime seats
+- `pnpm dev:loadtest` starts the local app with `LOAD_TEST_MODE=true` so the booking suite can authenticate through the `x-load-test-user-email` header
+
+If you see `UNAUTHORIZED` on `showtimeSeats.getByShowtime`, check these first:
+
+- the app was started with `pnpm dev:loadtest`
+- the booking users were seeded with `pnpm db:seed:booking-loadtest`
+
 Commands:
 
 ```bash
@@ -85,17 +118,21 @@ Dashboard details:
 
 Use the official `grafana/k6` image. No local k6 install is required.
 
-Create the k6 env file once:
+Create an env file once:
 
 ```bash
 cp load-tests/.env.example load-tests/.env
 ```
 
-Update `load-tests/.env` for the target you want to hit.
+Populate `load-tests/.env` with your values.
+
+Set `BASE_URL` in `load-tests/.env` to control local vs live target.
+
+Target notes:
 
 - local target default: `BASE_URL=http://host.docker.internal:3000`
 - live target example: `BASE_URL=https://bookcinemate.me`
-- Docker now maps `host.docker.internal` for the k6 services, so the same local URL works on macOS, Windows, and Linux dev machines
+- Docker maps `host.docker.internal` for the k6 services, so the same local URL works on macOS, Windows, and Linux dev machines
 
 ## Run Commands
 
@@ -116,59 +153,6 @@ Command behavior:
 - `test:load:dashboard` runs the movie/showtime suite with the live dashboard and report export enabled
 - `test:load:booking` runs the booking suite without a live dashboard
 - `test:load:booking:dashboard` runs the booking suite with the live dashboard and report export enabled
-
-## Booking Setup
-
-The booking suite hits protected tRPC routes. A plain `pnpm dev` session is not enough for local booking load testing because `showtimeSeats.getByShowtime` and the booking session routes require an authenticated user context.
-
-Use this local setup:
-
-1. Copy the env file if you have not already:
-
-```bash
-cp load-tests/.env.example load-tests/.env
-```
-
-2. Keep `BASE_URL=http://host.docker.internal:3000` when running against your local app.
-
-3. Seed dedicated booking load-test data:
-
-```bash
-pnpm db:seed:booking-loadtest
-```
-
-What this seed command does:
-
-- reads both `.env` and `load-tests/.env`
-- creates one booking user per booking VU
-- uses `TEST_USER_EMAILS` if you set it explicitly
-- otherwise generates users from `BOOKING_USER_EMAIL_PREFIX` and `BOOKING_USER_EMAIL_DOMAIN`
-- creates a dedicated future movie and showtimes with a full seat map so the booking suite can auto-resolve a valid showtime
-
-4. Start the app in load-test auth mode:
-
-```bash
-pnpm dev:loadtest
-```
-
-This is the important difference from the old setup. `pnpm dev:loadtest` forces `LOAD_TEST_MODE=true` for the app process in a shell-independent way, so the backend will honor the `x-load-test-user-email` header sent by k6.
-
-5. In a second terminal, run the booking suite:
-
-```bash
-pnpm test:load:booking
-```
-
-Optional dashboard run:
-
-```bash
-pnpm test:load:booking:dashboard
-```
-
-If you see `UNAUTHORIZED` on `showtimeSeats.getByShowtime`, check these two things first:
-
-- the app was started with `pnpm dev:loadtest`
-- the booking users were seeded with `pnpm db:seed:booking-loadtest`
 
 ## Required/Optional Environment Variables
 
