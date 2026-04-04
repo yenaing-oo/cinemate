@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { check, group, sleep } from "k6";
 
-import { getLoadProfile } from "../../lib/config.js";
+import { asNumber } from "../../lib/config.js";
 
 import {
     fetchNowPlaying,
@@ -9,21 +9,11 @@ import {
     getMovieIdFromNowPlayingResponse,
 } from "./requests.js";
 
-const loadProfile = getLoadProfile("MOVIE_SHOWTIME", {
-    vus: 20,
-    duration: "5m",
-    gracefulStop: "30s",
-    iterationSeconds: 12,
-});
-
 export function buildOptions() {
-    const minimumRequestRate =
-        (loadProfile.vus * 2) / loadProfile.iterationSeconds;
-
     return {
         discardResponseBodies: false,
         thresholds: {
-            http_reqs: [`rate>=${minimumRequestRate.toFixed(2)}`],
+            http_reqs: ["rate>=3.33"],
             http_req_failed: ["rate<0.05"],
             http_req_duration: ["p(95)<1500"],
         },
@@ -31,9 +21,9 @@ export function buildOptions() {
             movie_showtime_selection: {
                 executor: "constant-vus",
                 exec: "movieShowtimeScenario",
-                vus: loadProfile.vus,
-                duration: loadProfile.duration,
-                gracefulStop: loadProfile.gracefulStop,
+                vus: 20,
+                duration: "5m",
+                gracefulStop: "30s",
             },
         },
     };
@@ -63,7 +53,6 @@ export function setupScenario(config) {
     return {
         ...config,
         movieId,
-        loadProfile,
     };
 }
 
@@ -105,7 +94,7 @@ export function runScenario(data) {
     });
 
     // 20 VUs * 2 requests/iteration * (60 / 12s) ~= 200 requests/min total.
-    const targetIterationSeconds = data.loadProfile.iterationSeconds;
+    const targetIterationSeconds = asNumber(__ENV.ITERATION_SECONDS, 12);
     const elapsedSeconds = (Date.now() - iterationStartMs) / 1000;
     const remainingSleepSeconds = Math.max(
         0,
