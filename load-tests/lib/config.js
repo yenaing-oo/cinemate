@@ -1,7 +1,7 @@
 // @ts-nocheck
 const DEFAULT_DOCKER_BASE_URL = "http://host.docker.internal:3000";
-const DEFAULT_BOOKING_USER_EMAIL_PREFIX = "booking-loadtest";
-const DEFAULT_BOOKING_USER_EMAIL_DOMAIN = "example.com";
+const DEFAULT_BOOKING_USER_EMAIL_PREFIX = "delivered+";
+const DEFAULT_BOOKING_USER_EMAIL_DOMAIN = "resend.dev";
 
 function getScopedEnv(prefix, key) {
     if (!prefix) {
@@ -55,7 +55,7 @@ function buildSequentialEmailList(count, options = {}) {
 
     return Array.from({ length: safeCount }, (_, index) => {
         const sequence = String(index + 1).padStart(width, "0");
-        return `${prefix}-${sequence}@${domain}`;
+        return `${prefix}loadtest-${sequence}@${domain}`;
     });
 }
 
@@ -77,7 +77,7 @@ export function getLoadProfile(prefix, defaults = {}) {
             "30s",
         iterationSeconds: asNumber(
             getScopedEnv(prefix, "ITERATION_SECONDS") ??
-                __ENV.ITERATION_SECONDS,
+            __ENV.ITERATION_SECONDS,
             defaults.iterationSeconds ?? 12
         ),
     };

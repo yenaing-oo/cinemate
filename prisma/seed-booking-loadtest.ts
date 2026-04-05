@@ -5,8 +5,8 @@ const prisma = new PrismaClient();
 
 const DEFAULT_USER_COUNT = 20;
 const DEFAULT_SHOWTIME_COUNT = 6;
-const DEFAULT_USER_EMAIL_PREFIX = "booking-loadtest";
-const DEFAULT_USER_EMAIL_DOMAIN = "example.com";
+const DEFAULT_USER_EMAIL_PREFIX = "delivered+";
+const DEFAULT_USER_EMAIL_DOMAIN = "resend.dev";
 const LOAD_TEST_MOVIE_TMDB_ID = 550;
 const LOAD_TEST_MOVIE_RELEASE_DATE = new Date("2099-01-01T00:00:00.000Z");
 
@@ -37,7 +37,7 @@ function buildSequentialEmailList(count: number) {
 
     return Array.from({ length: count }, (_, index) => {
         const sequence = String(index + 1).padStart(width, "0");
-        return `${prefix}-${sequence}@${domain}`;
+        return `${prefix}loadtest-${sequence}@${domain}`;
     });
 }
 
@@ -188,6 +188,8 @@ async function main() {
         data: {
             tmdbId: LOAD_TEST_MOVIE_TMDB_ID,
             title: "Booking Load Test Movie",
+            posterUrl:
+                "https://image.tmdb.org/t/p/w500/1E5baAaEse26fej7uHcjOgEE2t2.jpg",
             runtime: 139,
             description: "Dedicated movie for booking load testing.",
             releaseDate: LOAD_TEST_MOVIE_RELEASE_DATE,

@@ -28,6 +28,8 @@
         "test:load:dashboard": "docker compose run --rm --service-ports k6-dashboard",
         "test:load:booking": "docker compose run --rm k6-booking",
         "test:load:booking:dashboard": "docker compose run --rm --service-ports k6-booking-dashboard",
+        "test:load:email": "docker compose run --rm k6-email",
+        "test:load:email:dashboard": "docker compose run --rm --service-ports k6-email-dashboard",
         "test:frontend": "vitest --project frontend",
         "test:backend": "vitest --project backend",
         "test:mutation": "stryker run",

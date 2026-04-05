@@ -35,7 +35,7 @@ export default function TicketConfirmation({
     bookingId,
 }: Props) {
     const ticketQrCode =
-        "https://www.davidleonard.london/wp-content/uploads/2024/05/FI-QRcode-of-URL.png";
+        "https://randomqr.com/assets/images/rickroll-qrcode.webp";
     return (
         <Html>
             <Head />
