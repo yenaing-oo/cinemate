@@ -35,6 +35,7 @@ describe("watchPartyRouter.join", () => {
             user: {
                 id: "user-2",
                 email: "user-2@example.com",
+                cardNumber: "4111111111111111",
             },
             db: {
                 watchParty: {
@@ -141,6 +142,22 @@ describe("watchPartyRouter.join", () => {
             message: "You have already joined this watch party.",
         });
 
+        expect(mockCtx.db.watchParty.update).not.toHaveBeenCalled();
+    });
+
+    it("rejects joining when the user has no saved payment method", async () => {
+        mockCtx.user.cardNumber = null;
+
+        const caller = watchPartyRouter.createCaller(mockCtx);
+
+        await expect(
+            caller.join({ inviteCode: "abc1234" })
+        ).rejects.toMatchObject({
+            code: "BAD_REQUEST",
+            message: "Add a payment method before joining a watch party.",
+        });
+
+        expect(mockCtx.db.watchParty.findUnique).not.toHaveBeenCalled();
         expect(mockCtx.db.watchParty.update).not.toHaveBeenCalled();
     });
 });

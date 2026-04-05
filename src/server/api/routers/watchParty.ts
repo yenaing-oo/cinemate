@@ -185,6 +185,14 @@ export const watchPartyRouter = createTRPCRouter({
             })
         )
         .mutation(async ({ ctx, input }) => {
+            if (!ctx.user.cardNumber) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message:
+                        "Add a payment method before joining a watch party.",
+                });
+            }
+
             const inviteCode = normalizeInviteCode(input.inviteCode);
             const party = await ctx.db.watchParty.findUnique({
                 where: { inviteCode },
