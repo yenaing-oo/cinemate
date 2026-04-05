@@ -35,7 +35,6 @@ export function buildOptions() {
     };
 }
 
-
 function buildLoadTestAuthHeaders(email) {
     return {
         "x-load-test-user-email": email,
@@ -55,7 +54,6 @@ export const cancelBookingSuccess = new Rate("cancel_booking_success");
 
 export const bookingsListDuration = new Trend("bookings_list_duration");
 export const cancelBookingDuration = new Trend("cancel_booking_duration");
-
 
 const ITERATION_PACING_SECONDS = 12;
 
