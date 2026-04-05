@@ -21,10 +21,10 @@ import {
 } from "./requests.js";
 
 const loadProfile = getLoadProfile("WATCH_PARTY", {
-    vus: 10,
+    vus: 20,
     duration: "5m",
     gracefulStop: "30s",
-    iterationSeconds: 21,
+    iterationSeconds: 42,
 });
 
 const WATCH_PARTY_SIZE = 2;
@@ -418,7 +418,7 @@ export function runScenario(data) {
         );
     }
 
-    // 10 VUs * 7 requests/iteration * (60 / 21s) = 200 requests/min total.
+    // 20 VUs * 7 requests/iteration * (60 / 42s) = 200 requests/min total.
     const targetIterationSeconds = data.loadProfile.iterationSeconds;
     const elapsedSeconds = (Date.now() - iterationStartMs) / 1000;
     const remainingSleepSeconds = Math.max(

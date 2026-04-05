@@ -12,7 +12,7 @@ import {
 
 const prisma = new PrismaClient();
 
-const DEFAULT_USER_COUNT = 10;
+const DEFAULT_USER_COUNT = 20;
 const DEFAULT_SHOWTIME_COUNT = 6;
 const DEFAULT_HOST_EMAIL_PREFIX = "watch-party-host-loadtest";
 const DEFAULT_PARTICIPANT_EMAIL_PREFIX = "watch-party-participant-loadtest";

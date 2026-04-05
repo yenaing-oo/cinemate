@@ -122,7 +122,7 @@ Requirement target covered:
 
 - `20` total concurrent users
 - at least `200` total requests per minute
-- implemented as `10` concurrent host/participant pairs, paced to approximately `200` requests/minute overall
+- implemented as `20` concurrent k6 virtual users, paced to approximately `200` requests/minute overall
 
 Endpoints covered:
 
@@ -153,9 +153,11 @@ Authentication behavior:
 
 Default requirement profile in this script:
 
-- `20` concurrent users modeled as `10` host/participant pairs (`WATCH_PARTY_LOAD_VUS=10`)
+- `20` concurrent k6 virtual users (`WATCH_PARTY_LOAD_VUS=20`)
+- `40` total authenticated app users active in the scenario at peak because each VU uses one host plus one participant
 - `5m` steady run (`WATCH_PARTY_LOAD_DURATION=5m`)
 - one host plus one participant per simulated group
+- `42s` target iteration pacing (`WATCH_PARTY_ITERATION_SECONDS=42`)
 - minimum throughput threshold of approximately `200` requests/minute (`http_reqs rate >= 3.33/sec`)
 
 Watch party setup for local runs:
@@ -276,10 +278,10 @@ Command behavior:
 - `WATCH_PARTY_HOST_EMAIL_PREFIX` (optional, default: `watch-party-host-loadtest`)
 - `WATCH_PARTY_PARTICIPANT_EMAIL_PREFIX` (optional, default: `watch-party-participant-loadtest`)
 - `WATCH_PARTY_USER_EMAIL_DOMAIN` (optional, default: `example.com`)
-- `WATCH_PARTY_LOAD_VUS` (optional, default: `10`; each VU models one host/participant pair)
+- `WATCH_PARTY_LOAD_VUS` (optional, default: `20`; each VU models one host/participant pair)
+- `WATCH_PARTY_ITERATION_SECONDS` (optional, default: `42`; paces the suite so `20` VUs stay near `200` total requests/minute)
 - `WATCH_PARTY_LOAD_DURATION` (optional, default: `5m`)
 - `WATCH_PARTY_LOAD_GRACEFUL_STOP` (optional, default: `30s`)
-- `WATCH_PARTY_ITERATION_SECONDS` (optional, default: `21`)
 - `WATCH_PARTY_SHOWTIME_COUNT` (optional, seed-only, default: `6`)
 
 ## Useful Knobs

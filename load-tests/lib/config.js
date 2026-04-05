@@ -113,7 +113,7 @@ function getWatchPartyUserEmails(prefixKey, explicitKey, fallbackPrefix) {
 
     const watchPartyUserCount = asNumber(
         __ENV.WATCH_PARTY_LOAD_VUS ?? __ENV.LOAD_VUS,
-        10
+        20
     );
 
     return buildSequentialEmailList(watchPartyUserCount, {
