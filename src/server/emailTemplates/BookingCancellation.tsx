@@ -24,6 +24,8 @@ interface Props {
     bookingId: string;
     refundMethod?: string;
     refundEta?: string;
+    paymentMethod?: string;
+    refundDateTime?: string;
 }
 
 export default function BookingCancellation({
@@ -37,6 +39,8 @@ export default function BookingCancellation({
     bookingId,
     refundMethod = "Original payment method",
     refundEta = "5-7 business days",
+    paymentMethod = "Original payment method",
+    refundDateTime,
 }: Props) {
     return (
         <Html>
@@ -172,6 +176,34 @@ export default function BookingCancellation({
                                 </Text>
                             </Column>
                         </Row>
+
+                        <Row>
+                            <Column>
+                                <Text style={styles.refundLabel}>
+                                    Original Payment
+                                </Text>
+                            </Column>
+                            <Column align="right">
+                                <Text style={styles.refundValue}>
+                                    {paymentMethod}
+                                </Text>
+                            </Column>
+                        </Row>
+
+                        {refundDateTime ? (
+                            <Row>
+                                <Column>
+                                    <Text style={styles.refundLabel}>
+                                        Refunded At
+                                    </Text>
+                                </Column>
+                                <Column align="right">
+                                    <Text style={styles.refundValue}>
+                                        {refundDateTime}
+                                    </Text>
+                                </Column>
+                            </Row>
+                        ) : null}
 
                         <Row>
                             <Column>

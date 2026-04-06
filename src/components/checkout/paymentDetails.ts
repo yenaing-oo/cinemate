@@ -1,12 +1,24 @@
 "use client";
 
-export interface ConfirmablePaymentDetails {
+export interface NewCardPaymentDetails {
+    source: "new";
     cardholderName: string;
+    cardNumber: string;
     cardLast4: string;
     expiryMonth: number;
     expiryYear: number;
     cardBrand: string;
 }
+
+export interface SavedCardPaymentDetails {
+    source: "saved";
+    cardLast4: string;
+    cardBrand: string;
+}
+
+export type ConfirmablePaymentDetails =
+    | NewCardPaymentDetails
+    | SavedCardPaymentDetails;
 
 export interface PaymentDetailsInput {
     cardholderName: string;

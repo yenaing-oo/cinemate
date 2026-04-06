@@ -87,6 +87,7 @@ describe("Watch Party Integration Tests", () => {
                 email: "participant@example.com",
                 firstName: "Participant",
                 lastName: "User",
+                cardNumber: "4111111111111111",
             },
         });
 
