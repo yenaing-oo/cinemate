@@ -767,6 +767,7 @@ export async function sendBookingConfirmationEmails(
 
     const resend = new Resend(apiKey);
 
+    // sends email to all participates
     for (const confirmationEmail of confirmationEmails) {
         try {
             await resend.emails.send({

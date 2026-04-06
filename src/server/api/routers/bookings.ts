@@ -88,30 +88,36 @@ export const bookingsRouter = createTRPCRouter({
             await ctx.db.$transaction(async (tx) => {
                 const userEmail = ctx.user.email;
 
+                // fetch movie details from the movieID
                 const movieDetails = await tx.movie.findUnique({
                     where: { id: booking.showtime.movieId },
                 });
 
                 if (!movieDetails || !movieDetails.posterUrl) return;
 
+                // fetch showtime seats details from the showtimeSeatID
                 const showtimeSeats = await tx.showtimeSeat.findMany({
                     where: { id: { in: showtimeSeatIds } },
                 });
 
+                // process showtime seats to fetch seatID and store it in an array
                 const seatIds = showtimeSeats.map(
                     (showtimeSeat) => showtimeSeat.seatId
                 );
 
+                // fetch seat details from the seatID
                 const seats = await tx.seat.findMany({
                     where: { id: { in: seatIds } },
                 });
 
+                // return seat lable array [A1, A2, ...] from the seat row and seat number
                 const formattedSeatLabels = seats.map((seat) => {
                     return formatSeatFromCode(seat.row, seat.number);
                 });
 
                 const resend = new Resend(env.RESEND_EMAIL_API_KEY ?? "");
 
+                // sends email using the cancellation email template
                 const { error } = await resend.emails.send({
                     from: "Cinemate <onboarding@bookcinemate.me>",
                     to: userEmail,
