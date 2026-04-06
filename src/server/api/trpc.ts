@@ -15,19 +15,9 @@ import { createClient } from "~/lib/supabase/server";
 import { db } from "~/server/db";
 
 const LOAD_TEST_USER_EMAIL_HEADER = "x-load-test-user-email";
-const LOAD_TEST_SECRET_HEADER = "x-load-test-secret";
 const LOAD_TEST_MODE = process.env.LOAD_TEST_MODE === "true";
-const LOAD_TEST_SECRET = process.env.LOAD_TEST_SECRET?.trim();
-const LOAD_TEST_RUNTIME_FLAG_KEY = "load_test_auth_enabled";
-const LOAD_TEST_RUNTIME_FLAG_CACHE_TTL_MS = 10_000;
 type LoadTestUser = Awaited<ReturnType<typeof db.user.findUnique>>;
 const loadTestUserCache = new Map<string, LoadTestUser>();
-let loadTestRuntimeFlagCache:
-    | {
-          enabled: boolean;
-          expiresAtMs: number;
-      }
-    | undefined;
 
 async function findLoadTestUserByEmail(email: string) {
     const cacheKey = `email:${email}`;
@@ -52,65 +42,11 @@ async function findLoadTestUserByEmail(email: string) {
     return user;
 }
 
-function hasValidLoadTestSecret(headers: Headers) {
-    const requestedSecret = headers.get(LOAD_TEST_SECRET_HEADER)?.trim();
-
-    return Boolean(
-        LOAD_TEST_SECRET &&
-        requestedSecret &&
-        requestedSecret === LOAD_TEST_SECRET
-    );
-}
-
-async function isLoadTestRuntimeFlagEnabled() {
-    const nowMs = Date.now();
-
-    if (
-        loadTestRuntimeFlagCache &&
-        loadTestRuntimeFlagCache.expiresAtMs > nowMs
-    ) {
-        return loadTestRuntimeFlagCache.enabled;
-    }
-
-    const runtimeFlag = await db.appRuntimeFlag.findUnique({
-        where: {
-            key: LOAD_TEST_RUNTIME_FLAG_KEY,
-        },
-        select: {
-            enabled: true,
-        },
-    });
-
-    const enabled = runtimeFlag?.enabled === true;
-    loadTestRuntimeFlagCache = {
-        enabled,
-        expiresAtMs: nowMs + LOAD_TEST_RUNTIME_FLAG_CACHE_TTL_MS,
-    };
-
-    return enabled;
-}
-
-async function getLoadTestContextMode(headers: Headers) {
-    if (LOAD_TEST_MODE) {
-        return "local";
-    }
-
-    if (!hasValidLoadTestSecret(headers)) {
-        return "disabled";
-    }
-
-    return (await isLoadTestRuntimeFlagEnabled()) ? "runtime" : "disabled";
-}
-
-async function getLoadTestContext(
-    headers: Headers,
-    options: { allowDefaultUserEmail?: boolean } = {}
-) {
+async function getLoadTestContext(headers: Headers) {
     const requestedEmail =
         headers.get(LOAD_TEST_USER_EMAIL_HEADER)?.trim() ||
-        (options.allowDefaultUserEmail
-            ? process.env.LOAD_TEST_DEFAULT_USER_EMAIL || "user@example.com"
-            : null);
+        process.env.LOAD_TEST_DEFAULT_USER_EMAIL ||
+        "user@example.com";
 
     if (!requestedEmail) {
         return {
@@ -151,12 +87,8 @@ async function getLoadTestContext(
  */
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-    const loadTestContextMode = await getLoadTestContextMode(opts.headers);
-
-    if (loadTestContextMode !== "disabled") {
-        const loadTestContext = await getLoadTestContext(opts.headers, {
-            allowDefaultUserEmail: loadTestContextMode === "local",
-        });
+    if (LOAD_TEST_MODE) {
+        const loadTestContext = await getLoadTestContext(opts.headers);
 
         return {
             db,
