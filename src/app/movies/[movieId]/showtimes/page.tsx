@@ -20,6 +20,10 @@ interface Showtime {
     price?: number;
 }
 
+/**
+ * Group showtimes by the cinema's local date so the date buttons match what
+ * users expect to see.
+ */
 function groupShowtimesByDate(showtimes: Showtime[]): Map<string, Showtime[]> {
     return showtimes.reduce((map, showtime) => {
         const key = formatShowtimeDate(showtime.startTime);
@@ -69,6 +73,7 @@ function DateList({
             </p>
             <div className="grid gap-3">
                 {availableDates.map((dateKey) => {
+                    // Show the count so users can tell which day has more options.
                     const dayShowtimes = showtimesByDate.get(dateKey) ?? [];
 
                     return (
@@ -115,6 +120,7 @@ function ShowtimePicker({
 
             {showtimes.length > 0 ? (
                 <>
+                    {/* Keep these as buttons so switching times feels quick. */}
                     <div className="flex flex-wrap gap-3">
                         {showtimes.map((showtime) => (
                             <Button
@@ -153,30 +159,42 @@ function MovieShowtimesPageContent({ movieId }: { movieId: string }) {
         movieId,
     });
 
+    // Build this map once per payload so the date sidebar and the time buttons
+    // can read from the same grouped data.
     const showtimesByDate = useMemo(() => {
         const showtimes = payload?.showtimes ?? [];
         return groupShowtimesByDate(showtimes);
     }, [payload?.showtimes]);
+
     const availableDates = Array.from(showtimesByDate.keys());
+
+    // Default to the first available date so the page shows times right away.
     const effectiveDate = selectedDate ?? availableDates[0] ?? null;
     const selectedDayShowtimes = effectiveDate
         ? (showtimesByDate.get(effectiveDate) ?? [])
         : [];
 
+    // Only show 404 after loading finishes. Before that, payload is still empty.
     if (!isLoading && !payload) notFound();
 
     function handleSelectDate(date: string) {
         setSelectedDate(date);
+
+        // Clear the old showtime so we do not keep a time from the wrong day.
         setSelectedShowtime(null);
     }
 
     function handleSelectShowtime(showtime: Showtime) {
         setSelectedShowtime(showtime);
+
+        // Open the dialog right after a time is picked so the next action is clear.
         setDialogOpen(true);
     }
 
     function handleDialogClose() {
         setDialogOpen(false);
+
+        // Reset the picked showtime so the dialog always opens from a fresh state.
         setSelectedShowtime(null);
     }
 
