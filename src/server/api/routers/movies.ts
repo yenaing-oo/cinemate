@@ -15,6 +15,9 @@ export const moviesRouter = createTRPCRouter({
             const now = new Date();
             return db.movie.findMany({
                 where: {
+                    releaseDate: {
+                        lte: now,
+                    },
                     showtimes: {
                         some: {
                             startTime: {
