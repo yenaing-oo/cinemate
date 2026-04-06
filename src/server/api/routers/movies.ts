@@ -3,6 +3,9 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
 
+const INCLUDE_UNRELEASED_LOAD_TEST_HEADER = "x-load-test-include-unreleased";
+const LOAD_TEST_MODE = process.env.LOAD_TEST_MODE === "true";
+
 export const moviesRouter = createTRPCRouter({
     nowPlaying: publicProcedure
         .input(
@@ -10,14 +13,25 @@ export const moviesRouter = createTRPCRouter({
                 limit: z.number().int().positive().optional(),
             })
         )
-        .query(async ({ input }) => {
+        .query(async ({ input, ctx }) => {
             const limit = input.limit;
             const now = new Date();
+            const includeUnreleased =
+                LOAD_TEST_MODE &&
+                ctx.headers
+                    .get(INCLUDE_UNRELEASED_LOAD_TEST_HEADER)
+                    ?.trim()
+                    .toLowerCase() === "true";
+
             return db.movie.findMany({
                 where: {
-                    releaseDate: {
-                        lte: now,
-                    },
+                    ...(includeUnreleased
+                        ? {}
+                        : {
+                              releaseDate: {
+                                  lte: now,
+                              },
+                          }),
                     showtimes: {
                         some: {
                             startTime: {

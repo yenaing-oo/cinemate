@@ -98,6 +98,7 @@ export function setupScenario(config) {
         baseUrl: config.baseUrl,
         authHeaders: buildLoadTestAuthHeaders(hostEmail),
         authUserLabel: hostEmail,
+        includeUnreleasedMoviesForLoadTest: true,
         requiredSeatCapacity: getRequiredSeatCapacity(),
         minimumSeatCount: WATCH_PARTY_SIZE,
         contextLabel: "watch party",
