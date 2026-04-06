@@ -119,8 +119,21 @@ LOAD_TEST_SECRET=cinemate-loadtest-2026
 pnpm test:load:booking
 ```
 
+Create the runtime flag table once in Supabase if it does not already exist:
 
-The Prisma migration creates the `app_runtime_flags` table and seeds the `load_test_auth_enabled` row automatically.
+```sql
+create table if not exists app_runtime_flags (
+  key text primary key,
+  enabled boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+insert into app_runtime_flags (key, enabled)
+values ('load_test_auth_enabled', false)
+on conflict (key) do nothing;
+```
+
 The app caches that flag for 10 seconds, so toggles are not applied strictly instantaneously.
 
 Commands:

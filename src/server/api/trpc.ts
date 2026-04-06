@@ -72,16 +72,24 @@ async function isLoadTestRuntimeFlagEnabled() {
         return loadTestRuntimeFlagCache.enabled;
     }
 
-    const runtimeFlag = await db.appRuntimeFlag.findUnique({
-        where: {
-            key: LOAD_TEST_RUNTIME_FLAG_KEY,
-        },
-        select: {
-            enabled: true,
-        },
-    });
+    let enabled = false;
 
-    const enabled = runtimeFlag?.enabled === true;
+    try {
+        const runtimeFlags = await db.$queryRaw<Array<{ enabled: boolean }>>`
+            SELECT "enabled"
+            FROM "app_runtime_flags"
+            WHERE "key" = ${LOAD_TEST_RUNTIME_FLAG_KEY}
+            LIMIT 1
+        `;
+
+        enabled = runtimeFlags[0]?.enabled === true;
+    } catch (error) {
+        console.error(
+            "Failed to read load test runtime flag from app_runtime_flags.",
+            error
+        );
+    }
+
     loadTestRuntimeFlagCache = {
         enabled,
         expiresAtMs: nowMs + LOAD_TEST_RUNTIME_FLAG_CACHE_TTL_MS,
