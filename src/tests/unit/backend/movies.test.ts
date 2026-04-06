@@ -47,6 +47,9 @@ describe("moviesRouter", () => {
         expect(db.movie.findMany).toHaveBeenCalledTimes(1);
         expect(db.movie.findMany).toHaveBeenCalledWith({
             where: {
+                releaseDate: {
+                    lte: expect.any(Date),
+                },
                 showtimes: {
                     some: {
                         startTime: {
@@ -80,6 +83,9 @@ describe("moviesRouter", () => {
         expect(db.movie.findMany).toHaveBeenCalledTimes(1);
         expect(db.movie.findMany).toHaveBeenCalledWith({
             where: {
+                releaseDate: {
+                    lte: expect.any(Date),
+                },
                 showtimes: {
                     some: {
                         startTime: {
@@ -112,6 +118,9 @@ describe("moviesRouter", () => {
         const callArgs = (db.movie.findMany as any).mock.calls[0][0];
         expect(db.movie.findMany).toHaveBeenCalledWith({
             where: {
+                releaseDate: {
+                    lte: expect.any(Date),
+                },
                 showtimes: {
                     some: {
                         startTime: {
