@@ -12,6 +12,7 @@ import {
     formatShowtimeTime,
 } from "~/lib/utils";
 import { BookingReviewPanel } from "~/components/checkout/bookingReviewPanel";
+import { api } from "~/trpc/react";
 
 interface CheckoutReviewPageProps {
     bookingSession: {
@@ -75,6 +76,7 @@ export default function CheckoutReviewPage({
     isSubmitting,
 }: CheckoutReviewPageProps) {
     const router = useRouter();
+    const savePaymentMethod = api.paymentMethod.save.useMutation();
 
     const movieTitle = bookingSession.showtime.movie.title;
     const moviePosterUrl = bookingSession.showtime.movie.posterUrl;
@@ -104,6 +106,7 @@ export default function CheckoutReviewPage({
     const showDate = formatShowtimeDate(showtimeDate);
     const showTime = formatShowtimeTime(showtimeDate);
     const showtimeLabel = `${showDate} | ${showTime}`;
+    const isConfirming = isSubmitting || savePaymentMethod.isPending;
 
     return (
         <BookingReviewPanel
@@ -135,9 +138,15 @@ export default function CheckoutReviewPage({
             ticketCount={payableTicketCount}
             priceEach={priceEach}
             total={total}
-            isSubmitting={isSubmitting}
-            onConfirm={async (_paymentDetails) => {
+            isSubmitting={isConfirming}
+            onConfirm={async (paymentDetails) => {
                 try {
+                    if (paymentDetails.source === "new") {
+                        await savePaymentMethod.mutateAsync({
+                            cardNumber: paymentDetails.cardNumber,
+                        });
+                    }
+
                     await handleUpdateSession(
                         bookingSession.id,
                         $Enums.BookingStep.COMPLETED

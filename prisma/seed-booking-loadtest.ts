@@ -75,7 +75,7 @@ async function main() {
         idPrefix: "booking-loadtest-user",
         firstName: "LoadTest",
         lastNamePrefix: "User",
-        hasPaymentMethod: true,
+        cardNumber: "4111111111111111",
     });
 
     console.log(`Seeded ${users.length} booking load test users.`);

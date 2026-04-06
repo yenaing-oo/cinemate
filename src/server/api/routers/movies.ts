@@ -23,6 +23,11 @@ export const moviesRouter = createTRPCRouter({
                     ?.trim()
                     .toLowerCase() === "true";
 
+
+            /**
+             * Only return movies that still have an upcoming showtime. That
+             * keeps old titles off pages where users expect to book tickets.
+             */
             return db.movie.findMany({
                 where: {
                     ...(includeUnreleased
@@ -41,6 +46,7 @@ export const moviesRouter = createTRPCRouter({
                     },
                 },
                 select: {
+                    // Only send the fields the movie pages actually use.
                     id: true,
                     title: true,
                     description: true,
@@ -49,7 +55,10 @@ export const moviesRouter = createTRPCRouter({
                     posterUrl: true,
                     backdropUrl: true,
                 },
+                // Newer releases go first in the now playing views.
                 orderBy: { releaseDate: "desc" },
+                // Some pages need the full list, but the home page only needs a
+                // short slice.
                 ...(typeof limit === "number" ? { take: limit } : {}),
             });
         }),

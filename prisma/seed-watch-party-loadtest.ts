@@ -101,14 +101,14 @@ async function main() {
             idPrefix: "watch-party-host-loadtest-user",
             firstName: "WatchParty",
             lastNamePrefix: "Host",
-            hasPaymentMethod: true,
+            cardNumber: "4111111111111111",
         }),
         createLoadTestUsers(prisma, {
             emails: participantEmails,
             idPrefix: "watch-party-participant-loadtest-user",
             firstName: "WatchParty",
             lastNamePrefix: "Participant",
-            hasPaymentMethod: false,
+            cardNumber: "4111111111111111",
         }),
     ]);
 
