@@ -13,6 +13,7 @@
         "db:seed": "pnpm tsx prisma/seed.ts",
         "db:seed:booking-loadtest": "dotenv -e .env -e load-tests/.env -- pnpm tsx prisma/seed-booking-loadtest.ts",
         "db:seed:orderhistory-loadtest": "dotenv -e .env -e load-tests/.env -- pnpm tsx prisma/seed-orderhistory-loadtest.ts",
+        "db:seed:watch-party-loadtest": "dotenv -e .env -e load-tests/.env -- pnpm tsx prisma/seed-watch-party-loadtest.ts",
         "db:studio": "prisma studio",
         "db:test:prepare": "dotenv -e .env.test -- prisma db push --force-reset --skip-generate",
         "dev": "next dev --turbo",
