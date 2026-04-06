@@ -5,8 +5,8 @@ const prisma = new PrismaClient();
 
 const DEFAULT_USER_COUNT = 20;
 const DEFAULT_SHOWTIME_COUNT = 6;
-const DEFAULT_USER_EMAIL_PREFIX = "delivered+";
-const DEFAULT_USER_EMAIL_DOMAIN = "resend.dev";
+const DEFAULT_USER_EMAIL_PREFIX = "booking-loadtest";
+const DEFAULT_USER_EMAIL_DOMAIN = "example.com";
 const LOAD_TEST_MOVIE_TMDB_ID = 550;
 const LOAD_TEST_MOVIE_RELEASE_DATE = new Date("2099-01-01T00:00:00.000Z");
 
@@ -37,7 +37,7 @@ function buildSequentialEmailList(count: number) {
 
     return Array.from({ length: count }, (_, index) => {
         const sequence = String(index + 1).padStart(width, "0");
-        return `${prefix}loadtest-${sequence}@${domain}`;
+        return `${prefix}-${sequence}@${domain}`;
     });
 }
 
