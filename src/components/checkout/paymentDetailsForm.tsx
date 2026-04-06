@@ -104,7 +104,6 @@ export function PaymentDetailsForm({
                                 markTouched("cardholderName");
                             }}
                             onBlur={() => markTouched("cardholderName")}
-                            placeholder="Jane Doe"
                             aria-invalid={Boolean(showError("cardholderName"))}
                             className="bg-[#0b2340]/60"
                         />
@@ -127,7 +126,6 @@ export function PaymentDetailsForm({
                                 markTouched("cardNumber");
                             }}
                             onBlur={() => markTouched("cardNumber")}
-                            placeholder="1234 5678 9012 3456"
                             aria-invalid={Boolean(showError("cardNumber"))}
                             className="bg-[#0b2340]/60"
                         />
@@ -184,7 +182,6 @@ export function PaymentDetailsForm({
                                 markTouched("cvv");
                             }}
                             onBlur={() => markTouched("cvv")}
-                            placeholder="123"
                             aria-invalid={Boolean(showError("cvv"))}
                             className="bg-[#0b2340]/60"
                         />
