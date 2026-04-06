@@ -10,11 +10,13 @@ import { api } from "~/trpc/react";
 export default function NowPlaying() {
     const [search, setSearch] = useState("");
 
+    // This page always reads from the same now-playing endpoint.
     const nowPlayingQuery = api.movies.nowPlaying.useQuery({});
     const movies = nowPlayingQuery.data ?? [];
     const isLoading = nowPlayingQuery.isLoading;
     const hasError = nowPlayingQuery.isError;
 
+    // This list is small, so filtering on the client is simple and fast.
     const filteredMovies = movies.filter((movie) =>
         movie.title.toLowerCase().includes(search.toLowerCase())
     );
@@ -44,6 +46,7 @@ export default function NowPlaying() {
             ) : (
                 <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
                     {filteredMovies.map((movie) => {
+                        // Format these once here so the card markup stays clean.
                         const genres = formatList(movie.genres);
                         const genre =
                             genres.length > 0
