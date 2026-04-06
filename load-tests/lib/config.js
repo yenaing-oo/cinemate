@@ -77,7 +77,7 @@ export function getLoadProfile(prefix, defaults = {}) {
             "30s",
         iterationSeconds: asNumber(
             getScopedEnv(prefix, "ITERATION_SECONDS") ??
-            __ENV.ITERATION_SECONDS,
+                __ENV.ITERATION_SECONDS,
             defaults.iterationSeconds ?? 12
         ),
     };

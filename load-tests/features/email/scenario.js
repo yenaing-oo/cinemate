@@ -73,7 +73,6 @@ function validateBookingConfig(config) {
     }
 }
 
-
 function getMoviesFromNowPlayingResponse(response) {
     try {
         const movies = response.json("result.data.json");
@@ -262,8 +261,9 @@ function attemptCheckoutTransition(
 
 function getUnauthorizedSetupMessage(email, response) {
     const errorMessage = getResponseErrorMessage(response);
-    return `showtimeSeats.getByShowtime returned UNAUTHORIZED for ${email}. Start the app with LOAD_TEST_MODE=true (use pnpm dev:loadtest for local runs) and ensure the seeded booking user exists. ${errorMessage ? `Server message: ${errorMessage}` : ""
-        }`.trim();
+    return `showtimeSeats.getByShowtime returned UNAUTHORIZED for ${email}. Start the app with LOAD_TEST_MODE=true (use pnpm dev:loadtest for local runs) and ensure the seeded booking user exists. ${
+        errorMessage ? `Server message: ${errorMessage}` : ""
+    }`.trim();
 }
 
 function lookupSeatIds(data, state, rotationOffset) {
@@ -318,9 +318,6 @@ function buildLoadTestAuthHeaders(email) {
 }
 
 function runBookingCycle(data, email, rotationOffset) {
-
-    console.log(`- Called by VU ${__VU}, eamail is: ${email}, rorating offset: ${rotationOffset}`);
-
     const authHeaders = buildLoadTestAuthHeaders(email);
 
     const createResponse = createBookingSession(
@@ -338,7 +335,8 @@ function runBookingCycle(data, email, rotationOffset) {
 
     if (createResponse.status !== 200 || !sessionId) {
         throw new Error(
-            `Unable to create booking session for ${email}: ${createErrorMessage ?? `status ${createResponse.status}`
+            `Unable to create booking session for ${email}: ${
+                createErrorMessage ?? `status ${createResponse.status}`
             }`
         );
     }
@@ -359,8 +357,9 @@ function runBookingCycle(data, email, rotationOffset) {
 
     if (ticketCountResponse.status !== 200) {
         throw new Error(
-            `Unable to move booking session to seat selection for ${email}: ${ticketCountErrorMessage ??
-            `status ${ticketCountResponse.status}`
+            `Unable to move booking session to seat selection for ${email}: ${
+                ticketCountErrorMessage ??
+                `status ${ticketCountResponse.status}`
             }`
         );
     }
@@ -398,10 +397,8 @@ function runBookingCycle(data, email, rotationOffset) {
         const response = sendConfirmationEmail(
             data.baseUrl,
             state.sessionId,
-            state.authHeaders,
+            state.authHeaders
         );
-
-        console.log(`VU${__VU} status=${response.status} body=${response.body}`);
 
         check(response, {
             "email.sendConfirmation POST status is 200": (r) =>
@@ -433,7 +430,7 @@ function getAssignedUserEmail(data) {
 function initiateBookingCycle(data, rotationOffset) {
     const email = getAssignedUserEmail(data);
 
-    return runBookingCycle(data, email, rotationOffset)
+    return runBookingCycle(data, email, rotationOffset);
 }
 
 export function runScenario(data) {
@@ -444,7 +441,7 @@ export function runScenario(data) {
 
     do {
         cycleResult = initiateBookingCycle(data, rotationOffset);
-    } while (!cycleResult.ok)
+    } while (!cycleResult.ok);
 
     const targetIterationSeconds = data.loadProfile.iterationSeconds;
     const elapsedSeconds = (Date.now() - iterationStartMs) / 1000;
