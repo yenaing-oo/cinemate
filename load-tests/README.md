@@ -58,8 +58,7 @@ Scenario flow:
 Authentication behavior:
 
 - booking routes are protected routes
-- for local runs, when `LOAD_TEST_MODE=true`, the backend reads a seeded user email from the `x-load-test-user-email` request header
-- for staging/production runs, the backend accepts the load test header only when `x-load-test-secret` matches `LOAD_TEST_SECRET` and the Supabase runtime flag `load_test_auth_enabled` is enabled
+- when `LOAD_TEST_MODE=true`, the backend reads a seeded user email from the `x-load-test-user-email` request header
 - if that user exists in the database, the backend injects that user into the tRPC auth context for the request
 - one seeded user is required per booking virtual user because the application allows one active booking session per user
 
@@ -95,46 +94,13 @@ pnpm test:load:booking:dashboard
 What the setup commands do:
 
 - `cp load-tests/.env.example load-tests/.env` creates the k6 env file
-- `pnpm db:seed:booking-loadtest` seeds the booking users used by the load test
+- `pnpm db:seed:booking-loadtest` seeds the booking users, a dedicated future movie, future showtimes, and showtime seats
 - `pnpm dev:loadtest` starts the local app with `LOAD_TEST_MODE=true` so the booking suite can authenticate through the `x-load-test-user-email` header
 
 If you see `UNAUTHORIZED` on `showtimeSeats.getByShowtime`, check these first:
 
 - the app was started with `pnpm dev:loadtest`
 - the booking users were seeded with `pnpm db:seed:booking-loadtest`
-
-Booking setup for staging/production with runtime switch:
-
-1. In Render, add a permanent environment variable:
-
-```text
-LOAD_TEST_SECRET=cinemate-loadtest-2026
-```
-
-2. In `load-tests/.env`, set the same value and point `BASE_URL` at the deployed app.
-3. In Supabase, enable the runtime flag `Load_test_auth_enabled` before the test
-4. Run the booking suite:
-
-```bash
-pnpm test:load:booking
-```
-
-Create the runtime flag table once in Supabase if it does not already exist:
-
-```sql
-create table if not exists app_runtime_flags (
-  key text primary key,
-  enabled boolean not null default false,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
-insert into app_runtime_flags (key, enabled)
-values ('load_test_auth_enabled', false)
-on conflict (key) do nothing;
-```
-
-The app caches that flag for 10 seconds, so toggles are not applied strictly instantaneously.
 
 Commands:
 
@@ -205,8 +171,7 @@ Command behavior:
 
 ### Booking
 
-- `LOAD_TEST_MODE` (optional k6 opt-in for local runs; `pnpm dev:loadtest` sets it for the app locally)
-- `LOAD_TEST_SECRET` (optional for staging/production runtime-switch flow; must match the app environment)
+- `LOAD_TEST_MODE` (required for the booking suite; `pnpm dev:loadtest` sets it for the app locally)
 - `TEST_USER_EMAILS` (optional, comma-separated explicit seeded booking users)
 - `BOOKING_USER_EMAIL_PREFIX` (optional, default: `booking-loadtest`)
 - `BOOKING_USER_EMAIL_DOMAIN` (optional, default: `example.com`)
@@ -215,6 +180,7 @@ Command behavior:
 - `BOOKING_LOAD_DURATION` (optional, default: `5m`)
 - `BOOKING_LOAD_GRACEFUL_STOP` (optional, default: `30s`)
 - `BOOKING_ITERATION_SECONDS` (optional)
+- `BOOKING_SHOWTIME_COUNT` (optional, seed-only, default: `6`)
 
 ## Useful Knobs
 
@@ -230,7 +196,6 @@ Shared load profile overrides:
 ## Notes
 
 - The booking suite automatically selects one valid future showtime. There is no manual `SHOWTIME_ID` input.
-- The booking seed script only creates the load test users. It does not create movies, showtimes, or seats.
 - The booking suite stops at checkout review and does not complete payment or final booking confirmation.
 - Rewinding from `CHECKOUT` back to `SEAT_SELECTION` prevents held seats from accumulating across iterations.
 - If `TEST_USER_EMAILS` is omitted, the suite and the seed script both derive the same generated user list from `BOOKING_LOAD_VUS`, `BOOKING_USER_EMAIL_PREFIX`, and `BOOKING_USER_EMAIL_DOMAIN`.
