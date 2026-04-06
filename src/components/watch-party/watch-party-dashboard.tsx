@@ -11,6 +11,9 @@ import {
 import { PartySection } from "~/components/watch-party/party-section";
 import { Spinner } from "~/components/ui/spinner";
 import { Card, CardContent } from "~/components/ui/card";
+import { Button } from "~/components/ui/button";
+import { PaymentDetailsForm } from "~/components/checkout/paymentDetailsForm";
+import type { NewCardPaymentDetails } from "~/components/checkout/paymentDetails";
 import { useAuthSession } from "~/lib/hooks/use-auth-session";
 import { WATCH_PARTY_INVITE_CODE_LENGTH } from "~/lib/watch-party/invite";
 import { api } from "~/trpc/react";
@@ -23,6 +26,19 @@ export function WatchPartyDashboard() {
     const [inviteCodeMessage, setInviteCodeMessage] = useState<string | null>(
         null
     );
+    const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+    const [pendingInviteCode, setPendingInviteCode] = useState<string | null>(
+        null
+    );
+    const [paymentDetails, setPaymentDetails] =
+        useState<NewCardPaymentDetails | null>(null);
+    const [paymentDialogMessage, setPaymentDialogMessage] = useState<
+        string | null
+    >(null);
+
+    const savedPaymentQuery = api.paymentMethod.getSaved.useQuery(undefined, {
+        enabled: isAuthenticated === true,
+    });
 
     const watchPartiesQuery = api.watchParty.listMine.useQuery(undefined, {
         enabled: isAuthenticated === true,
@@ -48,9 +64,54 @@ export function WatchPartyDashboard() {
         },
     });
 
+    const savePaymentMethod = api.paymentMethod.save.useMutation({
+        onSuccess: async () => {
+            await utils.paymentMethod.getSaved.invalidate();
+        },
+    });
+
     const createdParties = watchPartiesQuery.data?.createdParties ?? [];
     const isWatchPartyListLoading =
         isAuthenticated === true && watchPartiesQuery.isLoading;
+
+    const joinPartyWithInviteCode = async (normalizedInviteCode: string) => {
+        await joinWatchParty
+            .mutateAsync({
+                inviteCode: normalizedInviteCode,
+            })
+            .catch(() => {
+                // The mutation's onError handler already sets the user-facing message.
+            });
+    };
+
+    const handleSavePaymentAndJoin = async () => {
+        if (!paymentDetails || !pendingInviteCode) {
+            setPaymentDialogMessage("Enter valid payment details to continue.");
+            return;
+        }
+
+        setPaymentDialogMessage(null);
+
+        try {
+            await savePaymentMethod.mutateAsync({
+                cardNumber: paymentDetails.cardNumber,
+            });
+
+            const inviteCodeToJoin = pendingInviteCode;
+            setPendingInviteCode(null);
+            setPaymentDetails(null);
+            setIsPaymentDialogOpen(false);
+            toast.success("Payment method saved.");
+
+            await joinPartyWithInviteCode(inviteCodeToJoin);
+        } catch (error) {
+            setPaymentDialogMessage(
+                error instanceof Error
+                    ? error.message
+                    : "Unable to save payment details right now."
+            );
+        }
+    };
 
     const handleJoinParty = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -75,13 +136,19 @@ export function WatchPartyDashboard() {
 
         setInviteCodeMessage(null);
 
-        await joinWatchParty
-            .mutateAsync({
-                inviteCode: normalizedInviteCode,
-            })
-            .catch(() => {
-                // The mutation's onError handler already sets the user-facing message.
-            });
+        if (savedPaymentQuery.isLoading) {
+            setInviteCodeMessage("Checking your saved payment method...");
+            return;
+        }
+
+        if (!savedPaymentQuery.data?.hasSavedCard) {
+            setPendingInviteCode(normalizedInviteCode);
+            setPaymentDetails(null);
+            setIsPaymentDialogOpen(true);
+            return;
+        }
+
+        await joinPartyWithInviteCode(normalizedInviteCode);
     };
 
     return (
@@ -178,6 +245,65 @@ export function WatchPartyDashboard() {
                     </CardContent>
                 </Card>
             </motion.div>
+
+            {isPaymentDialogOpen ? (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
+                    <Card className="glass-panel w-full max-w-2xl rounded-3xl border border-[#2b74c6]/52 bg-[#0a1e39]/90 shadow-xl shadow-slate-950/40">
+                        <CardContent className="space-y-5 p-6">
+                            <div className="space-y-2">
+                                <h2 className="text-2xl font-bold tracking-tight text-white">
+                                    Add a payment method
+                                </h2>
+                                <p className="text-muted-foreground text-sm">
+                                    You need a saved card on file before joining
+                                    a watch party.
+                                </p>
+                                {paymentDialogMessage ? (
+                                    <p className="text-sm text-red-300">
+                                        {paymentDialogMessage}
+                                    </p>
+                                ) : null}
+                            </div>
+
+                            <PaymentDetailsForm
+                                onValidPaymentChange={setPaymentDetails}
+                            />
+
+                            <div className="flex justify-end gap-3">
+                                <Button
+                                    variant="outline"
+                                    disabled={
+                                        savePaymentMethod.isPending ||
+                                        joinWatchParty.isPending
+                                    }
+                                    onClick={() => {
+                                        setIsPaymentDialogOpen(false);
+                                        setPendingInviteCode(null);
+                                        setPaymentDetails(null);
+                                        setPaymentDialogMessage(null);
+                                    }}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    disabled={
+                                        savePaymentMethod.isPending ||
+                                        joinWatchParty.isPending ||
+                                        paymentDetails === null
+                                    }
+                                    onClick={() => {
+                                        void handleSavePaymentAndJoin();
+                                    }}
+                                >
+                                    {savePaymentMethod.isPending
+                                        ? "Saving card..."
+                                        : "Save and join"}
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            ) : null}
         </section>
     );
 }

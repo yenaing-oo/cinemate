@@ -13,14 +13,14 @@ begin
     "supabaseId",
     "email",
     "imageURL",
-    "hasPaymentMethod"
+    "cardNumber"
   )
   values (
     gen_random_uuid(),
     new.id,
     new.email,
     null, -- Profile image can be set from metadata if needed
-    false
+    null
   )
   on conflict (email) do update
     set "supabaseId" = excluded."supabaseId";

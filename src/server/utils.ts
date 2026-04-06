@@ -17,3 +17,23 @@ export function isShowtimeSeatAvailable(
     }
     return false;
 }
+
+const PAYMENT_DATETIME_FORMATTER = new Intl.DateTimeFormat("en-US", {
+    month: "numeric",
+    day: "numeric",
+    year: "2-digit",
+    hour: "numeric",
+    minute: "2-digit",
+});
+
+export function formatPaymentDateTime(date: Date): string {
+    return PAYMENT_DATETIME_FORMATTER.format(date);
+}
+
+export function maskCardNumber(cardNumber: string | null | undefined): string {
+    if (!cardNumber || cardNumber.length < 4) {
+        return "Original payment method";
+    }
+
+    return `••••${cardNumber.slice(-4)}`;
+}
