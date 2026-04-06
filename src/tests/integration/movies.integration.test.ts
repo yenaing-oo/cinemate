@@ -38,6 +38,25 @@ describe("Movies Integration Tests", () => {
                 price: 15,
             },
         });
+
+        const unreleasedMovie = await db.movie.create({
+            data: {
+                title: "Load Test Movie",
+                posterUrl: "https://example.com/poster-load-test.jpg",
+                runtime: 120,
+                tmdbId: 99999,
+                releaseDate: new Date("2099-01-01"),
+            },
+        });
+
+        await db.showtime.create({
+            data: {
+                movieId: unreleasedMovie.id,
+                startTime,
+                endTime,
+                price: 15,
+            },
+        });
     });
 
     afterEach(async () => {
@@ -57,6 +76,9 @@ describe("Movies Integration Tests", () => {
         expect(movies[0]?.title).toBe("Movie 1");
         expect(movies[0]?.posterUrl).toBe("https://example.com/poster1.jpg");
         expect(movies[0]?.runtime).toBe(120);
+        expect(movies.map((movie) => movie.title)).not.toContain(
+            "Load Test Movie"
+        );
     });
 
     it("should return an empty array when no movies exist", async () => {

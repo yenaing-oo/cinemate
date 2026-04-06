@@ -1,5 +1,14 @@
-import { Prisma, PrismaClient } from "@prisma/client";
-import seatMap from "./fixtures/seatMap.json";
+import { PrismaClient } from "@prisma/client";
+import {
+    asCsvArray,
+    asNumber,
+    buildSequentialEmailList as buildSequentialEmailListHelper,
+    createDedicatedLoadTestMovie,
+    createLoadTestUsers,
+    ensureSeatMap,
+    resetLoadTestData,
+    seedShowtimeSeats,
+} from "./load-test-data";
 
 const prisma = new PrismaClient();
 
@@ -8,36 +17,15 @@ const DEFAULT_SHOWTIME_COUNT = 6;
 const DEFAULT_USER_EMAIL_PREFIX = "booking-loadtest";
 const DEFAULT_USER_EMAIL_DOMAIN = "example.com";
 const LOAD_TEST_MOVIE_TMDB_ID = 550;
-const LOAD_TEST_MOVIE_RELEASE_DATE = new Date("2099-01-01T00:00:00.000Z");
-
-function asNumber(value: string | undefined, fallback: number) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function asCsvArray(value: string | undefined) {
-    if (!value) {
-        return [];
-    }
-
-    return value
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean);
-}
 
 function buildSequentialEmailList(count: number) {
-    const prefix =
-        process.env.BOOKING_USER_EMAIL_PREFIX?.trim() ||
-        DEFAULT_USER_EMAIL_PREFIX;
-    const domain =
-        process.env.BOOKING_USER_EMAIL_DOMAIN?.trim() ||
-        DEFAULT_USER_EMAIL_DOMAIN;
-    const width = Math.max(2, String(Math.max(count, 1)).length);
-
-    return Array.from({ length: count }, (_, index) => {
-        const sequence = String(index + 1).padStart(width, "0");
-        return `${prefix}-${sequence}@${domain}`;
+    return buildSequentialEmailListHelper(count, {
+        prefix:
+            process.env.BOOKING_USER_EMAIL_PREFIX?.trim() ||
+            DEFAULT_USER_EMAIL_PREFIX,
+        domain:
+            process.env.BOOKING_USER_EMAIL_DOMAIN?.trim() ||
+            DEFAULT_USER_EMAIL_DOMAIN,
     });
 }
 
@@ -59,17 +47,6 @@ function getLoadTestUserEmails() {
     return buildSequentialEmailList(userCount);
 }
 
-function getLoadTestSupabaseId(email: string, index: number) {
-    const localPart = email.split("@")[0] ?? `user-${index + 1}`;
-    const normalizedLocalPart = localPart
-        .toLowerCase()
-        .replace(/[^a-z0-9-]/g, "-")
-        .replace(/-+/g, "-")
-        .replace(/^-|-$/g, "");
-
-    return `booking-loadtest-user-${normalizedLocalPart || index + 1}`;
-}
-
 async function main() {
     const loadTestUserEmails = getLoadTestUserEmails();
     const showtimeCount = Math.max(
@@ -84,153 +61,42 @@ async function main() {
         `Using ${loadTestUserEmails.length} load test users and ${showtimeCount} showtimes.`
     );
 
-    const existingMovie = await prisma.movie.findUnique({
-        where: { tmdbId: LOAD_TEST_MOVIE_TMDB_ID },
-        select: { id: true },
+    await resetLoadTestData(prisma, {
+        userEmails: loadTestUserEmails,
+        movieTmdbId: LOAD_TEST_MOVIE_TMDB_ID,
     });
 
-    const bookingCleanupFilters: Prisma.BookingWhereInput[] = [
-        {
-            user: {
-                email: {
-                    in: loadTestUserEmails,
-                },
-            },
-        },
-    ];
-    const bookingSessionCleanupFilters: Prisma.BookingSessionWhereInput[] = [
-        {
-            user: {
-                email: {
-                    in: loadTestUserEmails,
-                },
-            },
-        },
-    ];
-
-    if (existingMovie?.id) {
-        bookingCleanupFilters.push({ showtime: { movieId: existingMovie.id } });
-        bookingSessionCleanupFilters.push({
-            showtime: { movieId: existingMovie.id },
-        });
-    }
-
-    await prisma.bookingSession.deleteMany({
-        where: {
-            OR: bookingSessionCleanupFilters,
-        },
-    });
-
-    await prisma.ticket.deleteMany({
-        where: {
-            booking: {
-                OR: bookingCleanupFilters,
-            },
-        },
-    });
-
-    await prisma.booking.deleteMany({
-        where: {
-            OR: bookingCleanupFilters,
-        },
-    });
-
-    if (existingMovie?.id) {
-        await prisma.showtime.deleteMany({
-            where: { movieId: existingMovie.id },
-        });
-
-        await prisma.movie.delete({
-            where: { id: existingMovie.id },
-        });
-    }
-
-    await prisma.user.deleteMany({
-        where: {
-            email: {
-                in: loadTestUserEmails,
-            },
-        },
-    });
-
-    await prisma.seat.createMany({
-        data: seatMap.seats,
-        skipDuplicates: true,
-    });
-
-    const seats = await prisma.seat.findMany({
-        orderBy: [{ row: "asc" }, { number: "asc" }],
-    });
-
-    if (seats.length === 0) {
-        throw new Error("No seats were available after seeding the seat map.");
-    }
+    const seats = await ensureSeatMap(prisma);
 
     console.log(`Seat map ready with ${seats.length} seats.`);
 
-    const users = await Promise.all(
-        loadTestUserEmails.map((email, index) =>
-            prisma.user.create({
-                data: {
-                    email,
-                    firstName: "LoadTest",
-                    lastName: `User${String(index + 1).padStart(2, "0")}`,
-                    supabaseId: getLoadTestSupabaseId(email, index),
-                    hasPaymentMethod: true,
-                },
-            })
-        )
-    );
+    const users = await createLoadTestUsers(prisma, {
+        emails: loadTestUserEmails,
+        idPrefix: "booking-loadtest-user",
+        firstName: "LoadTest",
+        lastNamePrefix: "User",
+        hasPaymentMethod: true,
+    });
 
     console.log(`Seeded ${users.length} booking load test users.`);
 
-    const movie = await prisma.movie.create({
-        data: {
-            tmdbId: LOAD_TEST_MOVIE_TMDB_ID,
-            title: "Booking Load Test Movie",
-            runtime: 139,
-            description: "Dedicated movie for booking load testing.",
-            releaseDate: LOAD_TEST_MOVIE_RELEASE_DATE,
-        },
+    const showtimes = await createDedicatedLoadTestMovie(prisma, {
+        tmdbId: LOAD_TEST_MOVIE_TMDB_ID,
+        title: "Booking Load Test Movie",
+        runtime: 139,
+        description: "Dedicated movie for booking load testing.",
+        price: 15,
+        showtimeCount,
     });
 
-    const baseDate = new Date();
-    baseDate.setDate(baseDate.getDate() + 1);
-    baseDate.setHours(10, 0, 0, 0);
-
-    const showtimeData = Array.from({ length: showtimeCount }, (_, index) => {
-        const startTime = new Date(
-            baseDate.getTime() + index * 3 * 60 * 60 * 1000
-        );
-
-        return {
-            movieId: movie.id,
-            startTime,
-            endTime: new Date(startTime.getTime() + movie.runtime * 60 * 1000),
-            price: new Prisma.Decimal(15),
-        };
-    });
-
-    await prisma.showtime.createMany({
-        data: showtimeData,
-    });
-
-    const showtimes = await prisma.showtime.findMany({
-        where: { movieId: movie.id },
-        orderBy: { startTime: "asc" },
-    });
-
-    await prisma.showtimeSeat.createMany({
-        data: showtimes.flatMap((showtime) =>
-            seats.map((seat) => ({
-                showtimeId: showtime.id,
-                seatId: seat.id,
-            }))
-        ),
-    });
+    await seedShowtimeSeats(
+        prisma,
+        showtimes.map((showtime) => showtime.id),
+        seats.map((seat) => seat.id)
+    );
 
     console.log(
-        `Seeded movie "${movie.title}" with ${showtimes.length} future showtimes.`
+        `Seeded movie "Booking Load Test Movie" with ${showtimes.length} future showtimes.`
     );
     console.log(
         `Booking load test data is ready for: ${loadTestUserEmails.join(", ")}`
