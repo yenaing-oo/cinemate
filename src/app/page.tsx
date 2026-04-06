@@ -6,13 +6,21 @@ import { formatRuntime, formatList } from "~/lib/utils";
 import { api, HydrateClient } from "~/trpc/server";
 
 export default async function Home() {
+    // Pull a slightly bigger list so the page can fill both the hero and grid.
     const nowPlayingRaw = await api.movies.nowPlaying({ limit: 8 });
+
+    /**
+     * Clean up the movie data here so the hero and the grid can share the same
+     * fallback values.
+     */
     const movies = nowPlayingRaw.map((movie) => {
         const genres = formatList(movie.genres);
         return {
             id: movie.id,
             title: movie.title,
             description:
+                // Keep the hero text filled even if a movie does not have a
+                // good overview yet.
                 movie.description?.trim() ||
                 "Reserve seats, split payments, and get everyone into the same show without the group-chat chaos.",
             genre:
@@ -27,6 +35,9 @@ export default async function Home() {
                 "/posters/placeholder.png",
         };
     });
+
+    // Use one list for the hero and the grid so we do not need another query.
+    // The first few cards stay on the page while the next ones can rotate above.
     const nowPlaying = movies.slice(0, 4);
     const featuredMovies =
         movies.length > 4 ? movies.slice(4, 8) : movies.slice(0, 4);

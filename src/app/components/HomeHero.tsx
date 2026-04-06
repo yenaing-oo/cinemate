@@ -26,6 +26,7 @@ export default function HomeHero({ movies }: HomeHeroProps) {
     const [activeIndex, setActiveIndex] = useState(0);
 
     useEffect(() => {
+        // No need to start the timer if there is only one movie.
         if (movies.length < 2) {
             return;
         }
@@ -40,6 +41,7 @@ export default function HomeHero({ movies }: HomeHeroProps) {
     if (movies.length === 0) {
         return (
             <section className="full-bleed -mt-24 bg-black pt-24">
+                {/* Show a quiet fallback hero while the movie catalog is empty. */}
                 <div className="relative overflow-hidden bg-[radial-gradient(circle_at_18%_20%,rgba(32,201,255,0.22),transparent_38%),radial-gradient(circle_at_82%_8%,rgba(255,181,92,0.18),transparent_32%),linear-gradient(180deg,rgba(7,13,24,0.75),rgba(7,13,24,0.97))]">
                     <div className="mx-auto flex min-h-[260px] w-full max-w-7xl items-end px-6 py-10 md:min-h-[340px]">
                         <div className="max-w-2xl space-y-4">
@@ -76,6 +78,7 @@ export default function HomeHero({ movies }: HomeHeroProps) {
         );
     }
 
+    // Use the latest list length in case the movie list gets shorter later.
     const safeActiveIndex = activeIndex % movies.length;
     const activeMovie = movies[safeActiveIndex]!;
 
@@ -178,6 +181,7 @@ export default function HomeHero({ movies }: HomeHeroProps) {
                     </div>
                 </div>
 
+                {/* Keep manual controls here so users do not need to wait for the auto rotation. */}
                 <div className="mt-8 flex flex-wrap items-center gap-3 md:mt-10">
                     <button
                         type="button"

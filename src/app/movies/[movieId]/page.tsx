@@ -18,6 +18,7 @@ interface MovieDetailsPageProps {
     params: Promise<{ movieId: string }>;
 }
 
+// Reuse the same small detail section for genres, languages, cast, and directors.
 const DetailBlock = ({
     label,
     items,
@@ -54,6 +55,8 @@ export default async function MovieDetailsPage({
     params,
 }: MovieDetailsPageProps) {
     const { movieId } = await params;
+
+    // The page is server-rendered, so load the movie directly from the database.
     const movie = await db.movie.findUnique({
         where: { id: movieId },
     });
@@ -62,6 +65,10 @@ export default async function MovieDetailsPage({
         notFound();
     }
 
+    /**
+     * Turn nullable database fields into safe display values here so the JSX
+     * below stays easier to read.
+     */
     const {
         title,
         description,
@@ -94,6 +101,8 @@ export default async function MovieDetailsPage({
         <section className="full-bleed relative -mt-24 min-h-screen overflow-hidden">
             <div className="absolute inset-0">
                 {backdropUrl || posterUrl ? (
+                    // Prefer the backdrop for the page background, but fall back
+                    // to the poster if that is all we have.
                     <Image
                         src={backdropUrl || posterUrl}
                         alt=""
@@ -173,6 +182,7 @@ export default async function MovieDetailsPage({
                                     Get Tickets
                                 </Link>
                             </Button>
+                            {/* Only show this button when there is actually a trailer link. */}
                             {trailerUrl ? (
                                 <Button asChild variant="outline" size="lg">
                                     <a
