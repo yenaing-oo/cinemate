@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { Resend } from "resend";
 import TicketConfirmation from "~/server/emailTemplates/TicketConfirmation";
+import { formatPaymentDateTime, maskCardNumber } from "~/server/utils";
 
 export const emailRouter = createTRPCRouter({
     sendConfirmation: protectedProcedure
@@ -49,6 +50,8 @@ export const emailRouter = createTRPCRouter({
                     seatLabelList: input.seatLabelList,
                     totalPrice: input.totalPrice,
                     bookingId: input.bookingId,
+                    paymentMethod: maskCardNumber(user.cardNumber),
+                    paymentDateTime: formatPaymentDateTime(new Date()),
                 }),
             });
 

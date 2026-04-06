@@ -11,6 +11,7 @@ import {
 } from "~/lib/utils";
 import { Resend } from "resend";
 import BookingCancellation from "~/server/emailTemplates/BookingCancellation";
+import { formatPaymentDateTime, maskCardNumber } from "~/server/utils";
 
 const MILLISECONDS_IN_MINUTE = 60 * 1000;
 const CANCELLATION_WINDOW =
@@ -131,6 +132,8 @@ export const bookingsRouter = createTRPCRouter({
                         seatLabelList: formattedSeatLabels,
                         refundAmount: formatCad(Number(booking.totalAmount)),
                         bookingId: formatBookingNumber(booking.bookingNumber),
+                        paymentMethod: maskCardNumber(ctx.user.cardNumber),
+                        refundDateTime: formatPaymentDateTime(new Date()),
                     }),
                 });
 

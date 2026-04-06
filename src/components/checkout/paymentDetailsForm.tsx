@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { FormField } from "~/components/ui/form-field";
 import { Input } from "~/components/ui/input";
-import { PaymentSecurityNote } from "~/components/checkout/paymentSecurityNote";
 import {
     formatCardNumber,
     formatExpiry,
@@ -11,11 +10,11 @@ import {
     getPaymentDetailsErrors,
     ONLY_DIGITS,
     parseExpiry,
-    type ConfirmablePaymentDetails,
+    type NewCardPaymentDetails,
 } from "~/components/checkout/paymentDetails";
 
 interface PaymentDetailsFormProps {
-    onValidPaymentChange: (details: ConfirmablePaymentDetails | null) => void;
+    onValidPaymentChange: (details: NewCardPaymentDetails | null) => void;
 }
 
 export function PaymentDetailsForm({
@@ -57,7 +56,9 @@ export function PaymentDetailsForm({
             return;
         }
         onValidPaymentChange({
+            source: "new",
             cardholderName: cardholderName.trim(),
+            cardNumber: cardDigits,
             cardLast4: cardDigits.slice(-4),
             expiryMonth: parsedExpiry.month,
             expiryYear: parsedExpiry.year,
@@ -86,7 +87,6 @@ export function PaymentDetailsForm({
 
     return (
         <div className="space-y-4">
-            <PaymentSecurityNote />
             <div className="glass-card space-y-4 rounded-2xl border border-white/10 p-4">
                 <div className="grid gap-3 sm:grid-cols-2">
                     <FormField
@@ -104,7 +104,6 @@ export function PaymentDetailsForm({
                                 markTouched("cardholderName");
                             }}
                             onBlur={() => markTouched("cardholderName")}
-                            placeholder="Jane Doe"
                             aria-invalid={Boolean(showError("cardholderName"))}
                             className="bg-[#0b2340]/60"
                         />
@@ -127,7 +126,6 @@ export function PaymentDetailsForm({
                                 markTouched("cardNumber");
                             }}
                             onBlur={() => markTouched("cardNumber")}
-                            placeholder="1234 5678 9012 3456"
                             aria-invalid={Boolean(showError("cardNumber"))}
                             className="bg-[#0b2340]/60"
                         />
@@ -184,7 +182,6 @@ export function PaymentDetailsForm({
                                 markTouched("cvv");
                             }}
                             onBlur={() => markTouched("cvv")}
-                            placeholder="123"
                             aria-invalid={Boolean(showError("cvv"))}
                             className="bg-[#0b2340]/60"
                         />

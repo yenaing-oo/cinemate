@@ -20,6 +20,7 @@ import {
     formatShowtimeDate,
     formatShowtimeTime,
 } from "~/lib/utils";
+import { formatPaymentDateTime, maskCardNumber } from "~/server/utils";
 
 export const bookingSessionRouter = createTRPCRouter({
     create: protectedProcedure
@@ -520,6 +521,8 @@ async function completeBooking(db: PrismaClient, session: any) {
         seatLabelList: string[];
         totalPrice: string;
         bookingId: string;
+        paymentMethod: string;
+        paymentDateTime: string;
     }> = [];
 
     await db.$transaction(async (tx) => {
@@ -618,6 +621,7 @@ async function completeBooking(db: PrismaClient, session: any) {
                 select: {
                     id: true,
                     email: true,
+                    cardNumber: true,
                 },
             });
             const memberUserById = new Map(
@@ -664,6 +668,10 @@ async function completeBooking(db: PrismaClient, session: any) {
                         seatLabelList: [seatLabel],
                         totalPrice: formatCad(Number(showtime.price)),
                         bookingId: formatBookingNumber(booking.bookingNumber),
+                        paymentMethod: maskCardNumber(memberUser.cardNumber),
+                        paymentDateTime: formatPaymentDateTime(
+                            booking.createdAt
+                        ),
                     });
                 }
 
@@ -696,6 +704,7 @@ async function completeBooking(db: PrismaClient, session: any) {
                 },
                 select: {
                     email: true,
+                    cardNumber: true,
                 },
             });
             if (user?.email && showtime.movie.posterUrl) {
@@ -712,6 +721,8 @@ async function completeBooking(db: PrismaClient, session: any) {
                         .filter((label): label is string => Boolean(label)),
                     totalPrice: formatCad(Number(totalAmount)),
                     bookingId: formatBookingNumber(booking.bookingNumber),
+                    paymentMethod: maskCardNumber(user.cardNumber),
+                    paymentDateTime: formatPaymentDateTime(booking.createdAt),
                 });
             }
 
@@ -758,6 +769,8 @@ export async function sendBookingConfirmationEmails(
         seatLabelList: string[];
         totalPrice: string;
         bookingId: string;
+        paymentMethod: string;
+        paymentDateTime: string;
     }>
 ) {
     const apiKey = process.env.RESEND_EMAIL_API_KEY;
@@ -783,6 +796,8 @@ export async function sendBookingConfirmationEmails(
                     seatLabelList: confirmationEmail.seatLabelList,
                     totalPrice: confirmationEmail.totalPrice,
                     bookingId: confirmationEmail.bookingId,
+                    paymentMethod: confirmationEmail.paymentMethod,
+                    paymentDateTime: confirmationEmail.paymentDateTime,
                 }),
             });
         } catch (error) {
