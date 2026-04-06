@@ -76,7 +76,7 @@ This guide will help you set up the development environment for Cinemate, a T3 s
 Supabase is used as the authentication provider for this project. It handles user sign-up, sign-in, password reset, and email confirmation flows. All transactional emails (such as confirmation and password reset) are sent via Supabase, and for local development, these emails are intercepted by the Mailpit email server running at http://localhost:54324/.
 
 1. **Start Supabase local development environment**
-    
+
     Make sure you have Docker running, then start Supabase:
 
     ```bash
@@ -164,6 +164,15 @@ The application will be available at [http://localhost:3000](http://localhost:30
 - `pnpm test:backend` - Run backend tests only.
 - `pnpm test:integration` - Run integration tests only
 
+### Load Testing
+
+- `pnpm db:seed:booking-loadtest` - Seed dedicated booking load-test users and showtimes.
+- `pnpm db:seed:watch-party-loadtest` - Seed dedicated watch party host and participant users plus showtimes.
+- `pnpm test:load` - Run the movie/showtime k6 suite.
+- `pnpm test:load:booking` - Run the booking k6 suite.
+- `pnpm test:load:watch-party` - Run the watch party k6 suite.
+- See [`load-tests/README.md`](./load-tests/README.md) for env vars, dashboard commands, and scenario details.
+
 ## Mutation Testing
 
 Mutation testing is configured with StrykerJS using [`stryker.conf.js`](./stryker.conf.js). The current mutation scope is limited to source files that already have active Vitest coverage. We have implemented this per feature.
@@ -175,7 +184,6 @@ Mutation testing is configured with StrykerJS using [`stryker.conf.js`](./stryke
 - `pnpm exec stryker run stryker.feature3.conf.js` - Run mutation tests for Feature 3.
 - `pnpm exec stryker run stryker.feature4.conf.js` - Run mutation tests for Feature 4.
 - `pnpm exec stryker run stryker.feature5.conf.js` - Run mutation tests for Feature 5.
-
 
 ### Reports
 
