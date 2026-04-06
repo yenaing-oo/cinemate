@@ -26,6 +26,7 @@ const loadProfile = getLoadProfile("BOOKING", {
 
 const BOOKING_SESSION_REFRESH_MS = 4 * 60 * 1000;
 const LOAD_TEST_USER_EMAIL_HEADER = "x-load-test-user-email";
+const LOAD_TEST_SECRET_HEADER = "x-load-test-secret";
 let assignedUserState = null;
 
 export function buildOptions() {
@@ -52,9 +53,9 @@ export function buildOptions() {
 }
 
 function validateBookingConfig(config) {
-    if (!config.loadTestMode) {
+    if (!config.loadTestMode && !config.loadTestSecret) {
         throw new Error(
-            "Booking load test requires LOAD_TEST_MODE=true in load-tests/.env, and the local app should be started with pnpm dev:loadtest"
+            "Booking load test requires either LOAD_TEST_MODE=true for local runs or LOAD_TEST_SECRET for the runtime-switch flow in staging/production."
         );
     }
 
@@ -71,14 +72,20 @@ function validateBookingConfig(config) {
     }
 }
 
-function buildLoadTestAuthHeaders(email) {
-    return {
+function buildLoadTestAuthHeaders(email, config) {
+    const headers = {
         [LOAD_TEST_USER_EMAIL_HEADER]: email,
     };
+
+    if (config.loadTestSecret) {
+        headers[LOAD_TEST_SECRET_HEADER] = config.loadTestSecret;
+    }
+
+    return headers;
 }
 
 function prepareUserSession(data, email) {
-    const authHeaders = buildLoadTestAuthHeaders(email);
+    const authHeaders = buildLoadTestAuthHeaders(email, data);
 
     const createResponse = createBookingSession(
         data.baseUrl,
@@ -157,7 +164,7 @@ function isRecoverableSessionError(message) {
 
 function getUnauthorizedSetupMessage(email, response) {
     const errorMessage = getResponseErrorMessage(response);
-    return `showtimeSeats.getByShowtime returned UNAUTHORIZED for ${email}. Start the app with LOAD_TEST_MODE=true (use pnpm dev:loadtest for local runs) and ensure the seeded booking user exists. ${
+    return `showtimeSeats.getByShowtime returned UNAUTHORIZED for ${email}. For local runs, start the app with pnpm dev:loadtest. For staging/production, configure LOAD_TEST_SECRET on the app and in load-tests/.env, enable the Supabase runtime flag load_test_auth_enabled, and ensure the seeded booking user exists. ${
         errorMessage ? `Server message: ${errorMessage}` : ""
     }`.trim();
 }
@@ -298,7 +305,10 @@ function getRequiredSeatCapacity(config) {
 
 function resolveShowtime(config) {
     const requiredSeatCapacity = getRequiredSeatCapacity(config);
-    const authHeaders = buildLoadTestAuthHeaders(config.testUserEmails[0]);
+    const authHeaders = buildLoadTestAuthHeaders(
+        config.testUserEmails[0],
+        config
+    );
     const nowPlayingResponse = fetchNowPlaying(config.baseUrl);
     const movies = getMoviesFromNowPlayingResponse(nowPlayingResponse);
 
