@@ -43,6 +43,15 @@ export function asCsvArray(value) {
         .filter(Boolean);
 }
 
+function asTrimmedString(value) {
+    if (value === undefined || value === null) {
+        return undefined;
+    }
+
+    const normalizedValue = String(value).trim();
+    return normalizedValue === "" ? undefined : normalizedValue;
+}
+
 function buildSequentialEmailList(count, options = {}) {
     const prefix =
         String(options.prefix ?? DEFAULT_BOOKING_USER_EMAIL_PREFIX).trim() ||
@@ -105,6 +114,7 @@ export function getRunConfig() {
     return {
         baseUrl: getBaseUrl(),
         loadTestMode: asBoolean(__ENV.LOAD_TEST_MODE, false),
+        loadTestSecret: asTrimmedString(__ENV.LOAD_TEST_SECRET),
         requireWriteSuccess: asBoolean(__ENV.REQUIRE_WRITE_SUCCESS, false),
         sleepSeconds: asNumber(__ENV.SLEEP_SECONDS, 1),
         watchPartyInviteCode: __ENV.WATCH_PARTY_INVITE_CODE,
