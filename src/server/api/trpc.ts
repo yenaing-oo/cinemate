@@ -56,7 +56,9 @@ function hasValidLoadTestSecret(headers: Headers) {
     const requestedSecret = headers.get(LOAD_TEST_SECRET_HEADER)?.trim();
 
     return Boolean(
-        LOAD_TEST_SECRET && requestedSecret && requestedSecret === LOAD_TEST_SECRET
+        LOAD_TEST_SECRET &&
+        requestedSecret &&
+        requestedSecret === LOAD_TEST_SECRET
     );
 }
 

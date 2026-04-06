@@ -305,7 +305,10 @@ function getRequiredSeatCapacity(config) {
 
 function resolveShowtime(config) {
     const requiredSeatCapacity = getRequiredSeatCapacity(config);
-    const authHeaders = buildLoadTestAuthHeaders(config.testUserEmails[0], config);
+    const authHeaders = buildLoadTestAuthHeaders(
+        config.testUserEmails[0],
+        config
+    );
     const nowPlayingResponse = fetchNowPlaying(config.baseUrl);
     const movies = getMoviesFromNowPlayingResponse(nowPlayingResponse);
 
