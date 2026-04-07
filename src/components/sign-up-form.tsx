@@ -35,6 +35,9 @@ export function SignUpForm({
         const supabase = createClient();
         setIsLoading(true);
         setError(null);
+        const normalizedFirstName = firstName.trim();
+        const normalizedLastName = lastName.trim();
+        const normalizedEmail = email.trim().toLowerCase();
 
         if (password !== repeatPassword) {
             setError("Passwords do not match");
@@ -42,19 +45,40 @@ export function SignUpForm({
             return;
         }
 
+        if (!normalizedFirstName || !normalizedLastName) {
+            setError("First and last name are required");
+            setIsLoading(false);
+            return;
+        }
+
         try {
-            const { error } = await supabase.auth.signUp({
-                email,
+            const emailRedirectTo = new URL(
+                "/auth/login?verified=true",
+                window.location.origin
+            ).toString();
+            const { data, error } = await supabase.auth.signUp({
+                email: normalizedEmail,
                 password,
                 options: {
                     data: {
-                        first_name: firstName,
-                        last_name: lastName,
+                        first_name: normalizedFirstName,
+                        last_name: normalizedLastName,
                     },
-                    emailRedirectTo: `${window.location.origin}/auth/login?verified=true`,
+                    emailRedirectTo,
                 },
             });
             if (error) throw error;
+
+            if (
+                Array.isArray(data.user?.identities) &&
+                data.user.identities.length === 0
+            ) {
+                setError(
+                    "This email is already registered. Check your inbox for the original confirmation email, or sign in instead."
+                );
+                return;
+            }
+
             router.push("/auth/sign-up-success");
         } catch (error: unknown) {
             setError(
@@ -83,6 +107,7 @@ export function SignUpForm({
                                     <Input
                                         id="first-name"
                                         required
+                                        autoComplete="given-name"
                                         value={firstName}
                                         onChange={(e) =>
                                             setFirstName(e.target.value)
@@ -94,6 +119,7 @@ export function SignUpForm({
                                     <Input
                                         id="last-name"
                                         required
+                                        autoComplete="family-name"
                                         value={lastName}
                                         onChange={(e) =>
                                             setLastName(e.target.value)
@@ -107,6 +133,7 @@ export function SignUpForm({
                                     id="email"
                                     type="email"
                                     required
+                                    autoComplete="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                 />
@@ -119,6 +146,7 @@ export function SignUpForm({
                                     id="password"
                                     type="password"
                                     required
+                                    autoComplete="new-password"
                                     value={password}
                                     onChange={(e) =>
                                         setPassword(e.target.value)
@@ -135,6 +163,7 @@ export function SignUpForm({
                                     id="repeat-password"
                                     type="password"
                                     required
+                                    autoComplete="new-password"
                                     value={repeatPassword}
                                     onChange={(e) =>
                                         setRepeatPassword(e.target.value)

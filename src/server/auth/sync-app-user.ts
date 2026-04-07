@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+import { Prisma, type PrismaClient } from "@prisma/client";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 function readMetadataString(value: unknown) {
@@ -58,6 +58,19 @@ function getProfileNames(supabaseUser: SupabaseUser, email: string) {
     };
 }
 
+function isUniqueConstraintError(error: unknown) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        return error.code === "P2002";
+    }
+
+    return (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        error.code === "P2002"
+    );
+}
+
 export async function syncSupabaseUserToAppUser({
     db,
     supabaseUser,
@@ -72,6 +85,12 @@ export async function syncSupabaseUserToAppUser({
     }
 
     const { firstName, lastName } = getProfileNames(supabaseUser, email);
+    const userData = {
+        supabaseId: supabaseUser.id,
+        firstName,
+        lastName,
+        email,
+    };
 
     const existingBySupabaseId = await db.user.findUnique({
         where: { supabaseId: supabaseUser.id },
@@ -80,6 +99,7 @@ export async function syncSupabaseUserToAppUser({
     if (existingBySupabaseId) {
         if (
             existingBySupabaseId.email === email &&
+            existingBySupabaseId.supabaseId === supabaseUser.id &&
             existingBySupabaseId.firstName === firstName &&
             existingBySupabaseId.lastName === lastName
         ) {
@@ -88,35 +108,55 @@ export async function syncSupabaseUserToAppUser({
 
         return db.user.update({
             where: { id: existingBySupabaseId.id },
-            data: {
-                email,
-                firstName,
-                lastName,
-            },
+            data: userData,
         });
     }
 
-    const existingByEmail = await db.user.findUnique({
-        where: { email },
-    });
-
-    if (existingByEmail) {
-        return db.user.update({
-            where: { id: existingByEmail.id },
-            data: {
-                supabaseId: supabaseUser.id,
-                firstName,
-                lastName,
-            },
+    try {
+        return await db.user.upsert({
+            where: { email },
+            update: userData,
+            create: userData,
         });
+    } catch (error) {
+        if (!isUniqueConstraintError(error)) {
+            throw error;
+        }
     }
 
-    return db.user.create({
-        data: {
-            supabaseId: supabaseUser.id,
-            firstName,
-            lastName,
-            email,
-        },
+    const recoveredUser =
+        (await db.user.findUnique({
+            where: { supabaseId: supabaseUser.id },
+        })) ??
+        (await db.user.findUnique({
+            where: { email },
+        }));
+
+    if (!recoveredUser) {
+        throw new Error("Unable to sync the authenticated user.");
+    }
+
+    if (
+        recoveredUser.email === email &&
+        recoveredUser.supabaseId === supabaseUser.id &&
+        recoveredUser.firstName === firstName &&
+        recoveredUser.lastName === lastName
+    ) {
+        return recoveredUser;
+    }
+
+    if (
+        recoveredUser.email === email &&
+        recoveredUser.supabaseId &&
+        recoveredUser.supabaseId !== supabaseUser.id
+    ) {
+        throw new Error(
+            "Unable to sync the authenticated user due to a conflicting user record."
+        );
+    }
+
+    return db.user.update({
+        where: { id: recoveredUser.id },
+        data: userData,
     });
 }
