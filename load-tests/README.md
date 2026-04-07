@@ -35,6 +35,70 @@ Dashboard details:
 - open `http://localhost:5665` in the browser during the run
 - exported report: `load-tests/results/dashboard-report.html`
 
+### Feature 3: Email
+
+This scenario exercises end to end booking flow to make sure confirmation email is being sent to the user when booking is successful.
+
+Endpoints covered:
+
+- `POST /api/trpc/bookingSession.update`
+
+Scenario flow:
+
+1. Automatically select one valid future showtime from the available movie and showtime data.
+2. Assign one seeded booking user to each virtual user.
+3. Create a booking session for that user.
+4. Move the session to `SEAT_SELECTION`.
+5. Load the seat map.
+6. Move the session to `CHECKOUT`.
+7. `COMPLETE` the session by confirming the movie.
+
+Authentication behavior:
+
+- booking completion routes are protected routes
+- when `LOAD_TEST_MODE=true`, the backend reads a seeded user email from the `x-load-test-user-email` request header
+- the test uses 20 virtual users and each of them runs entire booking scenario.
+
+Default requirement profile in this script:
+
+- `20` concurrent users (`BOOKING_LOAD_VUS=20`)
+- `5m` steady run (`BOOKING_LOAD_DURATION=5m`)
+- `1` ticket per booking session (`BOOKING_TICKET_COUNT=1`)
+- minimum throughput threshold of `200` requests/minute (`http_reqs rate >= 3.33/sec`)
+
+Booking setup for local runs:
+
+Terminal 1:
+
+```bash
+cp load-tests/.env.example load-tests/.env
+pnpm db:seed:booking-loadtest
+pnpm dev:loadtest
+```
+
+Terminal 2:
+
+```bash
+pnpm test:load:email
+```
+
+Use this instead if you want the live dashboard:
+
+```bash
+pnpm test:load:email:dashboard
+```
+
+What the setup commands do:
+
+- `cp load-tests/.env.example load-tests/.env` creates the k6 env file
+- `pnpm db:seed:booking-loadtest` seeds the booking users, a dedicated future movie, future showtimes, and showtime seats
+- `pnpm dev:loadtest` starts the local app with `LOAD_TEST_MODE=true` so the booking suite can authenticate through the `x-load-test-user-email` header
+
+If you see `UNAUTHORIZED` on `showtimeSeats.getByShowtime`, check these first:
+
+- the app was started with `pnpm dev:loadtest`
+- the booking users were seeded with `pnpm db:seed:booking-loadtest`
+
 ### Feature 4: Booking
 
 This scenario exercises the booking flow up to the checkout review page. It does not confirm payment or complete the booking.
