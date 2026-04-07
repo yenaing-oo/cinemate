@@ -145,6 +145,7 @@ export default function HomeHero({ movies }: HomeHeroProps) {
                             <Button asChild size="lg" className="font-semibold">
                                 <Link
                                     href={`/movies/${activeMovie.id}/showtimes`}
+                                    prefetch={false}
                                 >
                                     Get Tickets
                                 </Link>

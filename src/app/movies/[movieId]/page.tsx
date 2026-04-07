@@ -178,7 +178,10 @@ export default async function MovieDetailsPage({
 
                         <div className="flex flex-wrap gap-3">
                             <Button asChild size="lg" className="font-semibold">
-                                <Link href={`/movies/${movieId}/showtimes`}>
+                                <Link
+                                    href={`/movies/${movieId}/showtimes`}
+                                    prefetch={false}
+                                >
                                     Get Tickets
                                 </Link>
                             </Button>

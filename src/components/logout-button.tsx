@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 import { createClient } from "~/lib/supabase/client";
+import { clearServerSession } from "~/lib/supabase/browser-session-sync";
 import { Button } from "~/components/ui/button";
 
 type LogoutButtonProps = Omit<
@@ -21,7 +21,6 @@ export function LogoutButton({
     redirectTo = "/auth/login",
     ...buttonProps
 }: LogoutButtonProps) {
-    const router = useRouter();
     const [isSigningOut, setIsSigningOut] = useState(false);
 
     const logout = async () => {
@@ -31,18 +30,20 @@ export function LogoutButton({
 
         setIsSigningOut(true);
         const supabase = createClient();
-        const { error } = await supabase.auth.signOut();
-
-        if (error) {
-            setIsSigningOut(false);
-            return;
-        }
+        await Promise.allSettled([
+            clearServerSession(),
+            supabase.auth.signOut().then(({ error }) => {
+                if (error) {
+                    throw error;
+                }
+            }),
+        ]);
 
         onLoggedOut?.();
 
-        // Refresh after sign out so server pages drop user data right away.
-        router.replace(redirectTo);
-        router.refresh();
+        // Force a full reload so protected pages and middleware immediately
+        // see the signed-out cookie state.
+        window.location.assign(redirectTo);
     };
 
     return (

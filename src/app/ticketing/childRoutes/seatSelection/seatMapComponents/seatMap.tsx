@@ -25,6 +25,7 @@ interface SeatMapProps {
         setSelectedSeats: React.Dispatch<
             React.SetStateAction<Map<string, string>>
         >;
+        seatInfoReady: boolean;
         selectedTicketCount: number;
         totalSeatRows: number;
         seatPerRow: number;
@@ -43,14 +44,22 @@ const SEAT_SHAPE_WIDTH = 91.25;
 const SEAT_SHAPE_HEIGHT = 93.66;
 
 const SeatMap = ({ props }: SeatMapProps) => {
+    const hasAutoSuggestedRef = useRef(false);
+    const {
+        selectedSeats,
+        setSelectedSeats,
+        seatInfoReady,
+        selectedTicketCount,
+        totalSeatRows,
+        seatPerRow,
+        seatInfo,
+    } = props;
     const bookedSeats = useMemo(
         () =>
             new Set<string>(
-                props.seatInfo
-                    ?.filter((seat) => seat.isBooked)
-                    .map((seat) => seat.id)
+                seatInfo?.filter((seat) => seat.isBooked).map((seat) => seat.id)
             ),
-        [props.seatInfo]
+        [seatInfo]
     );
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -64,22 +73,16 @@ const SeatMap = ({ props }: SeatMapProps) => {
             calculateSeatLayout(
                 stageSize.width,
                 stageSize.height,
-                props.totalSeatRows,
-                props.seatPerRow,
-                props.seatInfo
+                totalSeatRows,
+                seatPerRow,
+                seatInfo
             ),
-        [
-            stageSize.width,
-            stageSize.height,
-            props.totalSeatRows,
-            props.seatPerRow,
-            props.seatInfo,
-        ]
+        [stageSize.width, stageSize.height, totalSeatRows, seatPerRow, seatInfo]
     );
 
     const seatInfoById = useMemo(
-        () => new Map(props.seatInfo?.map((seat) => [seat.id, seat]) ?? []),
-        [props.seatInfo]
+        () => new Map(seatInfo?.map((seat) => [seat.id, seat]) ?? []),
+        [seatInfo]
     );
 
     const screenCurve = useMemo(
@@ -136,7 +139,7 @@ const SeatMap = ({ props }: SeatMapProps) => {
 
     const rowLabels = useMemo(
         () =>
-            Array.from({ length: props.totalSeatRows }, (_, index) => {
+            Array.from({ length: totalSeatRows }, (_, index) => {
                 const row = index + 1;
                 const rowSeats = seats.filter((seat) => seat.row === row);
 
@@ -164,14 +167,14 @@ const SeatMap = ({ props }: SeatMapProps) => {
                     y: number;
                 } => rowLabel !== null
             ),
-        [props.totalSeatRows, seats]
+        [totalSeatRows, seats]
     );
 
     useEffect(() => {
         const findConnectedSeats = (rowSeats: SeatPosition[]) => {
             const selected: [string, string][] = [];
 
-            if (props.selectedTicketCount === 1 && rowSeats[0]) {
+            if (selectedTicketCount === 1 && rowSeats[0]) {
                 selected.push([rowSeats[0].seatId, rowSeats[0].seatLable]);
                 return selected;
             }
@@ -209,45 +212,65 @@ const SeatMap = ({ props }: SeatMapProps) => {
                     }
 
                     requiredSeatsFound =
-                        selected.length === props.selectedTicketCount;
+                        selected.length === selectedTicketCount;
                 } else {
                     selected.splice(0, selected.length);
 
                     const remainingSeats = rowSeats.slice(index);
                     matchPossible =
-                        remainingSeats.length >= props.selectedTicketCount;
+                        remainingSeats.length >= selectedTicketCount;
                 }
             }
 
             return selected;
         };
 
-        if (props.selectedSeats.size === 0 && props.selectedTicketCount > 0) {
-            let found = false;
-            let selected: [string, string][] = [];
-
-            for (let row = 1; row <= props.totalSeatRows && !found; row++) {
-                const rowSeats = seats.filter(
-                    (seat) => seat.row === row && !bookedSeats.has(seat.seatId)
-                );
-
-                if (rowSeats.length >= props.selectedTicketCount) {
-                    selected = findConnectedSeats(rowSeats);
-                    found = selected.length > 0;
-                }
-            }
-
-            if (!found) {
-                selected = seats
-                    .filter((seat) => !bookedSeats.has(seat.seatId))
-                    .slice(0, props.selectedTicketCount)
-                    .map((seat) => [seat.seatId, seat.seatLable]);
-            }
-
-            props.setSelectedSeats(new Map(selected));
+        if (
+            !seatInfoReady ||
+            hasAutoSuggestedRef.current ||
+            selectedSeats.size > 0 ||
+            selectedTicketCount <= 0 ||
+            seats.length === 0 ||
+            stageSize.width <= 0 ||
+            stageSize.height <= 0
+        ) {
+            return;
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+
+        let found = false;
+        let selected: [string, string][] = [];
+
+        for (let row = 1; row <= totalSeatRows && !found; row++) {
+            const rowSeats = seats.filter(
+                (seat) => seat.row === row && !bookedSeats.has(seat.seatId)
+            );
+
+            if (rowSeats.length >= selectedTicketCount) {
+                selected = findConnectedSeats(rowSeats);
+                found = selected.length > 0;
+            }
+        }
+
+        if (!found) {
+            selected = seats
+                .filter((seat) => !bookedSeats.has(seat.seatId))
+                .slice(0, selectedTicketCount)
+                .map((seat) => [seat.seatId, seat.seatLable]);
+        }
+
+        hasAutoSuggestedRef.current = true;
+        setSelectedSeats(new Map(selected));
+    }, [
+        bookedSeats,
+        seatInfoReady,
+        selectedSeats.size,
+        selectedTicketCount,
+        setSelectedSeats,
+        totalSeatRows,
+        seats,
+        stageSize.height,
+        stageSize.width,
+    ]);
 
     const toggleSeat = (seatId: string, seatLabel: string) => {
         if (bookedSeats.has(seatId)) return;

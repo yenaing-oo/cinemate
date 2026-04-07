@@ -95,7 +95,12 @@ export function WatchPartyDetailView({ partyId }: { partyId: string }) {
                         </p>
                         <div className="flex flex-wrap gap-3">
                             <Button asChild>
-                                <Link href="/auth/login">Go to login</Link>
+                                <Link
+                                    href={`/auth/login?next=${encodeURIComponent(`/watch-party/${partyId}`)}`}
+                                    prefetch={false}
+                                >
+                                    Go to login
+                                </Link>
                             </Button>
                             <BackButton href="/watch-party">
                                 Back to parties

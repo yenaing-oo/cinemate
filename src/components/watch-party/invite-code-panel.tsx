@@ -57,7 +57,11 @@ export function InviteCodePanel({
                             <p className="text-muted-foreground leading-7">
                                 Invitation codes are linked to your account.
                             </p>
-                            <Link href="/auth/login" className="btn-primary">
+                            <Link
+                                href="/auth/login?next=/watch-party"
+                                prefetch={false}
+                                className="btn-primary"
+                            >
                                 Go to login
                             </Link>
                         </div>

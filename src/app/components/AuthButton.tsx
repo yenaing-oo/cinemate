@@ -217,7 +217,7 @@ export function AuthButton({ onNavigate }: AuthButtonProps) {
                 aria-haspopup="menu"
                 aria-expanded={isMenuOpen}
                 aria-label="Open user menu"
-                className="h-11 rounded-full border px-2.5 shadow-[0_14px_32px_rgba(2,6,23,0.34)] transition-transform hover:-translate-y-0.5"
+                className="h-10 rounded-full border px-2 shadow-[0_14px_32px_rgba(2,6,23,0.34)] transition-transform hover:-translate-y-0.5"
                 style={{
                     backgroundColor: "rgba(11, 16, 26, 0.94)",
                     backgroundImage: profileTheme.shell,
@@ -226,7 +226,7 @@ export function AuthButton({ onNavigate }: AuthButtonProps) {
                 onClick={() => setIsMenuOpen((prev) => !prev)}
             >
                 <span
-                    className="flex size-8 items-center justify-center rounded-full border text-xs font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]"
+                    className="flex size-7 items-center justify-center rounded-full border text-[11px] font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]"
                     style={{
                         background: profileTheme.avatar,
                         borderColor: profileTheme.avatarBorder,
@@ -237,7 +237,7 @@ export function AuthButton({ onNavigate }: AuthButtonProps) {
                 </span>
                 <ChevronDown
                     className={cn(
-                        "size-4 text-slate-200 transition-transform",
+                        "size-3.5 text-slate-200 transition-transform",
                         isMenuOpen && "rotate-180"
                     )}
                 />
