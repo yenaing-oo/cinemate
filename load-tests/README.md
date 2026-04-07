@@ -8,6 +8,8 @@ Current layout pattern:
 - `load-tests/features/<area>/scenario.js` (options + scenario flow)
 - `load-tests/features/<area>/requests.js` (endpoint requests)
 
+## Important Note:
+
 ## Features Included
 
 ### Feature 1: Movie and Showtime Selection
@@ -68,7 +70,10 @@ Terminal 1:
 
 ```bash
 cp load-tests/.env.example load-tests/.env
+supabase db reset
+pnpm db:generate
 pnpm db:seed:orderhistory-loadtest
+pnpm sync:movies
 pnpm dev:loadtest
 ```
 
@@ -139,7 +144,10 @@ Terminal 1:
 
 ```bash
 cp load-tests/.env.example load-tests/.env
+supabase db reset 
+pnpm db:generate
 pnpm db:seed:booking-loadtest
+pnpm sync:movies
 pnpm dev:loadtest
 ```
 
@@ -206,7 +214,10 @@ Terminal 1:
 
 ```bash
 cp load-tests/.env.example load-tests/.env
+supabase db reset
+pnpm db:generate
 pnpm db:seed:booking-loadtest
+pnpm sync:movies
 pnpm dev:loadtest
 ```
 
@@ -297,7 +308,10 @@ Terminal 1:
 
 ```bash
 cp load-tests/.env.example load-tests/.env
+supabase db reset
+pnpm db:generate
 pnpm db:seed:watch-party-loadtest
+pnpm sync:movies
 pnpm dev:loadtest
 ```
 
@@ -443,6 +457,8 @@ Shared load profile overrides:
 
 ## Notes
 
+- Please note that out Load tests are currently running on local, and we will be implementing the load testing to the live server later on. 
+- The device used to test was: MacBook pro, M4 chip and 16 GB RAM.
 - The booking suite automatically selects one valid future showtime. There is no manual `SHOWTIME_ID` input.
 - The booking suite stops at checkout review and does not complete payment or final booking confirmation.
 - Rewinding from `CHECKOUT` back to `SEAT_SELECTION` prevents held seats from accumulating across iterations.
