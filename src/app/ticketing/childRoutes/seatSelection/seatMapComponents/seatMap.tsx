@@ -77,13 +77,7 @@ const SeatMap = ({ props }: SeatMapProps) => {
                 seatPerRow,
                 seatInfo
             ),
-        [
-            stageSize.width,
-            stageSize.height,
-            totalSeatRows,
-            seatPerRow,
-            seatInfo,
-        ]
+        [stageSize.width, stageSize.height, totalSeatRows, seatPerRow, seatInfo]
     );
 
     const seatInfoById = useMemo(

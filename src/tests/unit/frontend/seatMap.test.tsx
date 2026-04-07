@@ -76,10 +76,7 @@ describe("SeatMap", () => {
         ];
 
         const { rerender } = render(
-            <SeatMapHarness
-                seatInfo={cachedSeatInfo}
-                seatInfoReady={false}
-            />
+            <SeatMapHarness seatInfo={cachedSeatInfo} seatInfoReady={false} />
         );
 
         await waitFor(() => {

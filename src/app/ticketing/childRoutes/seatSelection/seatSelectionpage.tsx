@@ -78,10 +78,13 @@ export default function SeatSelectionPage({
     handleUpdateSession,
 }: SeatSelectionPageProps) {
     const router = useRouter();
-    const { data: seatInfo, isLoading, isFetching } =
-        api.showtimeSeats.getByShowtime.useQuery({
-            showtimeId: bookingSession.showtimeId,
-        });
+    const {
+        data: seatInfo,
+        isLoading,
+        isFetching,
+    } = api.showtimeSeats.getByShowtime.useQuery({
+        showtimeId: bookingSession.showtimeId,
+    });
 
     if (!isLoading && (!seatInfo || seatInfo === undefined)) {
         notFound();

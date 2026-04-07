@@ -27,30 +27,30 @@ export default function RootLayout({
                 <TRPCReactProvider>
                     {/* GLOBAL HEADER */}
                     <header className="fixed inset-x-0 top-0 z-30">
-                        <div className="mx-auto w-full max-w-7xl px-6 py-3">
-                            <div className="glass-panel rounded-2xl px-4 py-2">
-                                <div className="grid grid-cols-2 items-center gap-4 md:grid-cols-3">
+                        <div className="mx-auto w-full max-w-7xl px-6 py-2.5">
+                            <div className="glass-panel rounded-2xl px-4 py-1.5 md:px-5">
+                                <div className="grid grid-cols-2 items-center gap-3 md:grid-cols-3 md:gap-4">
                                     {/* LEFT: LOGO */}
                                     <div className="flex items-center gap-2">
                                         <Link
                                             href="/"
-                                            className="text-foreground flex items-center gap-2 no-underline"
+                                            className="text-foreground flex items-center gap-2.5 no-underline"
                                         >
                                             <Image
                                                 src="/favicon.png"
                                                 alt="Cinemate logo"
-                                                width={80}
-                                                height={80}
-                                                className="rounded-md"
+                                                width={56}
+                                                height={56}
+                                                className="size-12 rounded-md md:size-14"
                                             />
-                                            <h1 className="text-base font-semibold">
+                                            <h1 className="text-sm font-semibold md:text-base">
                                                 Cinemate
                                             </h1>
                                         </Link>
                                     </div>
 
                                     {/* CENTER: NAV */}
-                                    <nav className="text-muted-foreground hidden items-center justify-center gap-6 text-sm font-medium md:flex">
+                                    <nav className="text-muted-foreground hidden items-center justify-center gap-5 text-sm font-medium md:flex">
                                         <Link
                                             href="/movies"
                                             className="hover:text-foreground transition"
@@ -78,7 +78,7 @@ export default function RootLayout({
                                                 fallback={
                                                     <div
                                                         aria-hidden="true"
-                                                        className="h-11 w-24 rounded-full border border-white/12 bg-white/5"
+                                                        className="h-10 w-24 rounded-full border border-white/12 bg-white/5"
                                                     />
                                                 }
                                             >
