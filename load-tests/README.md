@@ -8,6 +8,8 @@ Current layout pattern:
 - `load-tests/features/<area>/scenario.js` (options + scenario flow)
 - `load-tests/features/<area>/requests.js` (endpoint requests)
 
+## Important Note:
+
 ## Features Included
 
 ### Feature 1: Movie and Showtime Selection
@@ -34,6 +36,76 @@ Dashboard details:
 
 - open `http://localhost:5665` in the browser during the run
 - exported report: `load-tests/results/dashboard-report.html`
+
+### Feature 2: Order History and Cancellation
+
+This scenario exercises order history retrieval and cancellation for authenticated users.
+
+Endpoints covered:
+
+- `GET /api/trpc/bookings.list`
+- `POST /api/trpc/bookings.cancel`
+
+Scenario flow:
+
+1. Assign one seeded booking user to each virtual user.
+2. Fetch that user's booking history.
+3. Extract one booking id from the response.
+4. Cancel that booking.
+
+Authentication behavior:
+
+- order history and cancellation routes are protected routes
+- when `LOAD_TEST_MODE=true`, the backend reads a seeded user email from the `x-load-test-user-email` request header
+
+Default requirement profile in this script:
+
+- `20` concurrent users (`ORDER_HISTORY_LOAD_VUS=20`)
+- `5m` steady run (`ORDER_HISTORY_LOAD_DURATION=5m`)
+- minimum throughput threshold of approximately `200` requests/minute (`http_reqs rate >= 3.33/sec`)
+
+Order history setup for local runs:
+
+Terminal 1:
+
+```bash
+cp load-tests/.env.example load-tests/.env
+supabase db reset
+pnpm db:generate
+pnpm db:seed:orderhistory-loadtest
+pnpm sync:movies
+pnpm dev:loadtest
+```
+
+Terminal 2:
+
+```bash
+pnpm test:load:orderhistory
+```
+
+Use this instead if you want the live dashboard:
+
+```bash
+pnpm test:load:orderhistory:dashboard
+```
+
+What the setup commands do:
+
+- `cp load-tests/.env.example load-tests/.env` creates the k6 env file
+- `pnpm db:seed:orderhistory-loadtest` seeds users and cancellable bookings for the order history suite
+- `pnpm dev:loadtest` starts the local app with `LOAD_TEST_MODE=true` so the suite can authenticate through the `x-load-test-user-email` header
+
+Commands:
+
+```bash
+pnpm test:load:orderhistory
+pnpm test:load:orderhistory:dashboard
+```
+
+Dashboard details:
+
+- open `http://localhost:5667` in the browser during the run
+- exported report: `load-tests/results/orderhistory-dashboard-report.html`
 
 ### Feature 3: Email
 
@@ -72,7 +144,10 @@ Terminal 1:
 
 ```bash
 cp load-tests/.env.example load-tests/.env
+supabase db reset 
+pnpm db:generate
 pnpm db:seed:booking-loadtest
+pnpm sync:movies
 pnpm dev:loadtest
 ```
 
@@ -139,7 +214,10 @@ Terminal 1:
 
 ```bash
 cp load-tests/.env.example load-tests/.env
+supabase db reset
+pnpm db:generate
 pnpm db:seed:booking-loadtest
+pnpm sync:movies
 pnpm dev:loadtest
 ```
 
@@ -230,7 +308,10 @@ Terminal 1:
 
 ```bash
 cp load-tests/.env.example load-tests/.env
+supabase db reset
+pnpm db:generate
 pnpm db:seed:watch-party-loadtest
+pnpm sync:movies
 pnpm dev:loadtest
 ```
 
@@ -292,6 +373,8 @@ From the project root:
 ```bash
 pnpm test:load
 pnpm test:load:dashboard
+pnpm test:load:orderhistory
+pnpm test:load:orderhistory:dashboard
 pnpm test:load:booking
 pnpm test:load:booking:dashboard
 pnpm test:load:watch-party
@@ -302,6 +385,8 @@ Command behavior:
 
 - `test:load` runs the movie/showtime suite without a live dashboard
 - `test:load:dashboard` runs the movie/showtime suite with the live dashboard and report export enabled
+- `test:load:orderhistory` runs the order history suite without a live dashboard
+- `test:load:orderhistory:dashboard` runs the order history suite with the live dashboard and report export enabled
 - `test:load:booking` runs the booking suite without a live dashboard
 - `test:load:booking:dashboard` runs the booking suite with the live dashboard and report export enabled
 - `test:load:watch-party` runs the watch party suite without a live dashboard
@@ -321,6 +406,17 @@ Command behavior:
 - `MOVIE_SHOWTIME_LOAD_DURATION` (optional)
 - `MOVIE_SHOWTIME_LOAD_GRACEFUL_STOP` (optional)
 - `MOVIE_SHOWTIME_ITERATION_SECONDS` (optional)
+
+### Order History and Cancellation
+
+- `LOAD_TEST_MODE` (required for protected order history routes; `pnpm dev:loadtest` sets it for the app locally)
+- `TEST_USER_EMAILS` (optional, comma-separated explicit seeded booking users)
+- `BOOKING_USER_EMAIL_PREFIX` (optional, default: `booking-loadtest`)
+- `BOOKING_USER_EMAIL_DOMAIN` (optional, default: `example.com`)
+- `ORDER_HISTORY_LOAD_VUS` (optional, default: `20`)
+- `ORDER_HISTORY_LOAD_DURATION` (optional, default: `5m`)
+- `ORDER_HISTORY_LOAD_GRACEFUL_STOP` (optional, default: `30s`)
+- `ORDER_HISTORY_ITERATION_SECONDS` (optional)
 
 ### Booking
 
@@ -361,6 +457,8 @@ Shared load profile overrides:
 
 ## Notes
 
+- Please note that out Load tests are currently running on local, and we will be implementing the load testing to the live server later on. 
+- The device used to test was: MacBook pro, M4 chip and 16 GB RAM.
 - The booking suite automatically selects one valid future showtime. There is no manual `SHOWTIME_ID` input.
 - The booking suite stops at checkout review and does not complete payment or final booking confirmation.
 - Rewinding from `CHECKOUT` back to `SEAT_SELECTION` prevents held seats from accumulating across iterations.
