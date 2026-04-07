@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { $Enums } from "@prisma/client";
 import type { Decimal } from "@prisma/client/runtime/library";
 import { toast } from "sonner";
-import { BackButton } from "~/components/ui/back-button";
 import {
     formatCad,
     formatSeatFromCode,
@@ -110,27 +109,6 @@ export default function CheckoutReviewPage({
 
     return (
         <BookingReviewPanel
-            backButton={
-                <BackButton
-                    disabled={isSubmitting}
-                    onClick={() => {
-                        void handleUpdateSession(
-                            bookingSession.id,
-                            $Enums.BookingStep.SEAT_SELECTION
-                        ).catch((error) => {
-                            const message =
-                                error instanceof Error
-                                    ? error.message
-                                    : "Unable to go back to seat selection.";
-                            toast.error(message);
-                            router.replace("/ticketing");
-                            router.refresh();
-                        });
-                    }}
-                >
-                    Back to seats
-                </BackButton>
-            }
             movieTitle={movieTitle}
             showtimeLabel={showtimeLabel}
             posterUrl={moviePosterUrl}
