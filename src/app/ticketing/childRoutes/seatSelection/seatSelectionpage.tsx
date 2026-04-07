@@ -78,7 +78,7 @@ export default function SeatSelectionPage({
     handleUpdateSession,
 }: SeatSelectionPageProps) {
     const router = useRouter();
-    const { data: seatInfo, isLoading } =
+    const { data: seatInfo, isLoading, isFetching } =
         api.showtimeSeats.getByShowtime.useQuery({
             showtimeId: bookingSession.showtimeId,
         });
@@ -241,6 +241,7 @@ export default function SeatSelectionPage({
                                     </div>
                                 </div>
                                 <SeatMap
+                                    key={`${bookingSession.id}:${bookingSession.ticketCount ?? 0}`}
                                     props={{
                                         selectedSeats: selectedSeats,
                                         setSelectedSeats: setSelectedSeats,
@@ -249,6 +250,8 @@ export default function SeatSelectionPage({
                                         totalSeatRows: 7,
                                         seatPerRow: 15,
                                         seatInfo: seatInfo,
+                                        seatInfoReady:
+                                            !isLoading && !isFetching,
                                     }}
                                 />
                             </div>
