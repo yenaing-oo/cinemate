@@ -44,6 +44,7 @@ const SEAT_SHAPE_WIDTH = 91.25;
 const SEAT_SHAPE_HEIGHT = 93.66;
 
 const SeatMap = ({ props }: SeatMapProps) => {
+    // Prevent auto-suggestion from overriding manual changes after initial fill.
     const hasAutoSuggestedRef = useRef(false);
     const {
         selectedSeats,
@@ -240,6 +241,8 @@ const SeatMap = ({ props }: SeatMapProps) => {
         let found = false;
         let selected: [string, string][] = [];
 
+        // Prefer adjacent seats in the same row before falling back to any
+        // available seats when perfect grouping is impossible.
         for (let row = 1; row <= totalSeatRows && !found; row++) {
             const rowSeats = seats.filter(
                 (seat) => seat.row === row && !bookedSeats.has(seat.seatId)
@@ -281,6 +284,8 @@ const SeatMap = ({ props }: SeatMapProps) => {
             if (updatedSeats.has(seatId)) {
                 updatedSeats.delete(seatId);
             } else {
+                // Enforce ticket-count cap in the selector itself so rapid taps
+                // cannot temporarily exceed the intended seat quantity.
                 if (updatedSeats.size === props.selectedTicketCount) {
                     return updatedSeats;
                 }

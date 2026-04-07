@@ -12,6 +12,9 @@ export const showtimeSeatsRouter = createTRPCRouter({
                 where: { showtimeId: input.showtimeId },
                 include: { seat: true },
             });
+
+            // Seat map consumes a simple isBooked flag; reuse the shared
+            // availability helper so hold rules stay consistent across APIs.
             return showtimeSeats.map((s) => ({
                 id: s.seatId,
                 row: s.seat.row,

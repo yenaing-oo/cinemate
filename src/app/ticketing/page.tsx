@@ -58,6 +58,8 @@ export default function TicketingPage() {
     ) => {
         const isCompletingBooking = goToStep === $Enums.BookingStep.COMPLETED;
 
+        // Once completion succeeds, bookingSession.get returns null and this flag
+        // steers the fallback redirect to bookings instead of home.
         if (isCompletingBooking) {
             setShouldRedirectToBookings(true);
         }
@@ -70,6 +72,7 @@ export default function TicketingPage() {
                 selectedSeatIds: selectedShowtimeSeatIds,
             });
         } catch (error) {
+            // Reset redirect intent if completion fails so users stay in flow.
             if (isCompletingBooking) {
                 setShouldRedirectToBookings(false);
             }
