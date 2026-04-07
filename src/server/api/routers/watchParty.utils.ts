@@ -14,6 +14,8 @@ const watchPartyUserSelect = Prisma.validator<Prisma.UserSelect>()({
 
 export const watchPartyListInclude =
     Prisma.validator<Prisma.WatchPartyInclude>()({
+        // Keep list queries narrow because dashboard cards do not need the full
+        // participant roster.
         hostUser: {
             select: watchPartyUserSelect,
         },
@@ -40,6 +42,8 @@ export const watchPartyDetailInclude =
     Prisma.validator<Prisma.WatchPartyInclude>()({
         ...watchPartyListInclude,
         participants: {
+            // A stable participant order keeps detail rendering and ticket
+            // assignment logic aligned across requests.
             orderBy: [
                 { firstName: "asc" },
                 { lastName: "asc" },
@@ -57,6 +61,10 @@ type WatchPartyDetailRecord = Prisma.WatchPartyGetPayload<{
     include: typeof watchPartyDetailInclude;
 }>;
 
+/**
+ * Prefers a human-readable full name but falls back to null so calling code can
+ * decide whether to display the email address instead.
+ */
 export function getPersonName(person: {
     firstName: string;
     lastName: string;
@@ -66,6 +74,10 @@ export function getPersonName(person: {
     return fullName.length > 0 ? fullName : null;
 }
 
+/**
+ * Returns the custom watch party name when present, otherwise derives a stable
+ * fallback from the showtime's movie title.
+ */
 export function getPartyName(party: {
     name: string | null;
     showtime: {
@@ -80,11 +92,17 @@ export function getPartyName(party: {
         return trimmedName;
     }
 
+    // Falling back to the movie title keeps list and detail views stable even
+    // when the host skips the optional custom party name.
     return party.showtime
         ? `${party.showtime.movie.title} Watch Party`
         : "Watch Party";
 }
 
+/**
+ * Maps a user record into the shared watch party person shape used by list and
+ * detail responses.
+ */
 function mapPartyPerson(person: {
     id: string;
     email: string;
@@ -94,14 +112,23 @@ function mapPartyPerson(person: {
     return {
         id: person.id,
         email: person.email,
+        // Preserve null when no real name exists so the UI can intentionally
+        // fall back to email instead of showing an empty string.
         name: getPersonName(person),
     };
 }
 
+/**
+ * Canonicalizes invite codes so lookups do not depend on UI casing or
+ * accidental surrounding whitespace.
+ */
 export function normalizeInviteCode(inviteCode: string) {
     return inviteCode.trim().toUpperCase();
 }
 
+/**
+ * Checks whether the given user is already connected as a participant.
+ */
 export function isWatchPartyParticipant(
     party: {
         participants: {
@@ -113,10 +140,18 @@ export function isWatchPartyParticipant(
     return party.participants.some((participant) => participant.id === userId);
 }
 
+/**
+ * New participants can only join while the party is still open. Closed and
+ * confirmed parties have already locked their booking state.
+ */
 export function isWatchPartyJoinable(status: WatchPartyStatus) {
     return status === WatchPartyStatus.OPEN;
 }
 
+/**
+ * Maps the database record into the lighter list payload consumed by dashboard
+ * cards and other summary views.
+ */
 export function mapWatchPartyListItem(
     party: WatchPartyListRecord
 ): WatchPartyListItem {
@@ -126,6 +161,8 @@ export function mapWatchPartyListItem(
 
     return {
         id: party.id,
+        // Derived naming keeps list rows readable even when the optional custom
+        // party name is omitted at creation time.
         name: getPartyName(party),
         inviteCode: party.inviteCode,
         status: party.status,
@@ -144,6 +181,10 @@ export function mapWatchPartyListItem(
     };
 }
 
+/**
+ * Extends the summary payload with participant details and the viewer role used
+ * to gate host-only actions in the UI.
+ */
 export function mapWatchPartyDetail(
     party: WatchPartyDetailRecord,
     viewerId: string
@@ -152,6 +193,8 @@ export function mapWatchPartyDetail(
 
     return {
         ...listItem,
+        // The host is not included in Prisma's participant count, but the UI
+        // needs the total headcount for booking and summary copy.
         memberCount: party._count.participants + 1,
         participants: party.participants.map((participant) => ({
             ...mapPartyPerson(participant),

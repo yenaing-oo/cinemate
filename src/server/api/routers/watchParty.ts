@@ -41,6 +41,11 @@ type WatchPartyInvitationEmailData = {
     } | null;
 };
 
+/**
+ * Rejects invite payloads that would send the host an invitation for their own
+ * party. The create flow treats self-invites as invalid input instead of
+ * silently filtering them out so the user can correct the list explicitly.
+ */
 function assertWatchPartyInviteEmails(
     emails: string[],
     userEmail: string
@@ -53,6 +58,11 @@ function assertWatchPartyInviteEmails(
     }
 }
 
+/**
+ * Sends watch party invitations only when the supporting host and showtime
+ * records are still available. Missing relational data means there is no
+ * reliable email payload to construct.
+ */
 export async function deliverWatchPartyInvitations({
     emails,
     host,
@@ -81,6 +91,11 @@ export async function deliverWatchPartyInvitations({
     });
 }
 
+/**
+ * Kicks off invitation delivery without blocking the mutation response.
+ * Creation succeeds even if email delivery later fails, because the persisted
+ * party and invite code remain the source of truth.
+ */
 function queueWatchPartyInvitations({
     emails,
     inviteCode,
@@ -90,6 +105,8 @@ function queueWatchPartyInvitations({
     inviteCode: string;
     loadInvitationData: () => Promise<WatchPartyInvitationEmailData>;
 }) {
+    // Invitation delivery stays out of the request path so party creation does
+    // not fail after the record is already persisted.
     void loadInvitationData()
         .then((invitationData) =>
             deliverWatchPartyInvitations({
@@ -103,7 +120,14 @@ function queueWatchPartyInvitations({
         });
 }
 
+/**
+ * Generates a short invite code and verifies uniqueness against persisted
+ * watch parties. The alphabet intentionally avoids ambiguous characters to
+ * reduce copy and read errors in the UI.
+ */
 export const generateUniqueCode = async (db: PrismaClient): Promise<string> => {
+    // A short bounded retry loop keeps invite codes human-friendly without
+    // risking an unbounded collision check if the namespace gets crowded.
     for (let attempts = 0; attempts < 5; attempts++) {
         const code = generateCode();
         const existing = await db.watchParty.findUnique({
@@ -127,6 +151,8 @@ export const watchPartyRouter = createTRPCRouter({
             })
         )
         .mutation(async ({ ctx, input }) => {
+            // Validate invite recipients before persisting the party so the
+            // request fails as a clean input error instead of after creation.
             assertWatchPartyInviteEmails(input.emails, ctx.user.email);
             const inviteCode = await generateUniqueCode(ctx.db);
 
@@ -143,6 +169,8 @@ export const watchPartyRouter = createTRPCRouter({
                 emails: input.emails,
                 inviteCode,
                 loadInvitationData: async () => {
+                    // Fetching after creation ensures the email reflects the
+                    // persisted invite code and current host/showtime data.
                     const [showtime, host] = await Promise.all([
                         ctx.db.showtime.findUnique({
                             where: { id: input.showtimeId },
@@ -193,6 +221,8 @@ export const watchPartyRouter = createTRPCRouter({
                 });
             }
 
+            // Normalize before lookup so manual entry, pasted input, and stored
+            // codes all resolve through the same canonical representation.
             const inviteCode = normalizeInviteCode(input.inviteCode);
             const party = await ctx.db.watchParty.findUnique({
                 where: { inviteCode },
@@ -206,12 +236,15 @@ export const watchPartyRouter = createTRPCRouter({
                 });
             }
 
+            // The host is already implicitly part of the party and should not
+            // re-enter through the participant join path.
             if (party.hostUserId === ctx.user.id) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     message: "You cannot join your own watch party.",
                 });
             }
+
             const hasJoined = isWatchPartyParticipant(party, ctx.user.id);
 
             if (hasJoined) {
@@ -232,6 +265,8 @@ export const watchPartyRouter = createTRPCRouter({
             await ctx.db.watchParty.update({
                 where: { id: party.id },
                 data: {
+                    // Joining only mutates membership; host, showtime, and code
+                    // remain immutable identifiers for the party.
                     participants: {
                         connect: {
                             id: ctx.user.id,
@@ -305,6 +340,8 @@ export const watchPartyRouter = createTRPCRouter({
                 include: watchPartyDetailInclude,
             });
 
+            // Access is limited to the host and joined participants so invite
+            // codes alone do not expose party details to arbitrary users.
             if (!party) {
                 throw new TRPCError({
                     code: "NOT_FOUND",
