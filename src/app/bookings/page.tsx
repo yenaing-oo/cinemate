@@ -4,7 +4,10 @@ import { api } from "~/trpc/react";
 import { BookingDropDownRow } from "~/app/bookings/BookingDropDownRow";
 
 export default function OrderHistoryPage() {
+    // Loads all bookings for the authenticated user.
     const bookingsQuery = api.bookings.list.useQuery();
+
+    // After cancellation, refresh the list so UI stays in sync.
     const cancelMutation = api.bookings.cancel.useMutation({
         onSuccess: () => {
             bookingsQuery.refetch();
@@ -22,11 +25,13 @@ export default function OrderHistoryPage() {
             <div>
                 <h3 className="mb-6 text-2xl font-bold">Your Bookings</h3>
                 {bookings.length === 0 ? (
+                    // Empty state when the user has no booking history.
                     <p className="text-muted-foreground">
                         You&apos;ve not booked any tickets yet.
                     </p>
                 ) : (
                     <div className="space-y-4">
+                        {/* Render one expandable row per booking. */}
                         {bookings.map((b) => {
                             return (
                                 <BookingDropDownRow

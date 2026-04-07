@@ -17,7 +17,9 @@ const MILLISECONDS_IN_MINUTE = 60 * 1000;
 const CANCELLATION_WINDOW =
     env.BOOKING_CANCEL_WINDOW_MINUTES * MILLISECONDS_IN_MINUTE;
 
+// Booking APIs for listing user bookings and cancelling eligible bookings.
 export const bookingsRouter = createTRPCRouter({
+    // Returns the user's bookings, newest first, with showtime/movie/ticket details.
     list: protectedProcedure.query(async ({ ctx }) => {
         const bookings = await ctx.db.booking.findMany({
             where: { userId: ctx.user.id },
@@ -41,6 +43,7 @@ export const bookingsRouter = createTRPCRouter({
         });
         return bookings;
     }),
+    // Cancels a booking if it's still outside the configured cancellation window.
     cancel: protectedProcedure
         .input(z.object({ bookingId: z.string() }))
         .mutation(async ({ ctx, input }) => {
@@ -56,6 +59,8 @@ export const bookingsRouter = createTRPCRouter({
             const now = new Date();
             const timeDifference =
                 booking.showtime.startTime.getTime() - now.getTime();
+
+            // Reject cancellation once the booking is inside the no-cancel window.
             if (timeDifference < CANCELLATION_WINDOW) {
                 throw new Error(
                     `Cannot cancel booking less than ${env.BOOKING_CANCEL_WINDOW_MINUTES} minutes before showtime or after showtime has started`
@@ -86,39 +91,40 @@ export const bookingsRouter = createTRPCRouter({
                 });
             });
 
+            // Build cancellation email details after DB state has been updated.
             await ctx.db.$transaction(async (tx) => {
                 const userEmail = ctx.user.email;
 
-                // fetch movie details from the movieID
+                // Fetch movie details for cancellation email content.
                 const movieDetails = await tx.movie.findUnique({
                     where: { id: booking.showtime.movieId },
                 });
 
                 if (!movieDetails || !movieDetails.posterUrl) return;
 
-                // fetch showtime seats details from the showtimeSeatID
+                // Fetch seats tied to the cancelled tickets.
                 const showtimeSeats = await tx.showtimeSeat.findMany({
                     where: { id: { in: showtimeSeatIds } },
                 });
 
-                // process showtime seats to fetch seatID and store it in an array
+                // Resolve physical seat ids from showtime-seat rows.
                 const seatIds = showtimeSeats.map(
                     (showtimeSeat) => showtimeSeat.seatId
                 );
 
-                // fetch seat details from the seatID
+                // Load seat metadata to format human-readable labels.
                 const seats = await tx.seat.findMany({
                     where: { id: { in: seatIds } },
                 });
 
-                // return seat lable array [A1, A2, ...] from the seat row and seat number
+                // e.g. A1, A2, B4
                 const formattedSeatLabels = seats.map((seat) => {
                     return formatSeatFromCode(seat.row, seat.number);
                 });
 
                 const resend = new Resend(env.RESEND_EMAIL_API_KEY ?? "");
 
-                // sends email using the cancellation email template
+                // Send cancellation confirmation.
                 const { error } = await resend.emails.send({
                     from: "Cinemate <onboarding@bookcinemate.me>",
                     to: userEmail,
@@ -144,6 +150,7 @@ export const bookingsRouter = createTRPCRouter({
 
             return { success: true };
         }),
+    // Returns only the latest booking for the authenticated user.
     latestBookingDetails: protectedProcedure.mutation(async ({ ctx }) => {
         const bookings = await ctx.db.booking.findFirst({
             where: { userId: ctx.user.id },

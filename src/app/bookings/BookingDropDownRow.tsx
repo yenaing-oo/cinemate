@@ -33,6 +33,7 @@ export interface Booking {
     totalAmount: number;
 }
 
+// A booking is cancellable only while it's confirmed and outside the cutoff window.
 export function isBookingCancellable(booking: Booking): boolean {
     const now = new Date();
     const showtimeDate = new Date(booking.showtime.startTime);
@@ -45,9 +46,11 @@ export function isBookingCancellable(booking: Booking): boolean {
 }
 
 export function BookingDropDownRow(props: BookingDropdownRowProps) {
+    // UI state for the confirmation dialog and in-flight cancel request.
     const [dialogOpen, setDialogOpen] = useState(false);
     const [loading, setLoading] = useState(false);
 
+    // Pre-format values once for display in both collapsed and expanded sections.
     const formattedTime = formatShowtimeTime(props.booking.showtime.startTime);
     const formattedDate = formatShowtimeDate(props.booking.showtime.startTime);
     const formattedBookingNumber = formatBookingNumber(
@@ -60,6 +63,7 @@ export function BookingDropDownRow(props: BookingDropdownRowProps) {
 
     const canCancel = isBookingCancellable(props.booking);
 
+    // Run optional parent cancel action and keep feedback/dialog behavior consistent.
     const handleCancel = async () => {
         setLoading(true);
         try {
@@ -77,6 +81,7 @@ export function BookingDropDownRow(props: BookingDropdownRowProps) {
         <Card className="border-border/60 bg-card/60 rounded-xl border p-1">
             <CardContent className="p-2">
                 <details className="group">
+                    {/* Summary row shown before expanding booking details. */}
                     <summary className="hover:bg-card/80 cursor-pointer list-none rounded-xl px-4 py-4 transition select-none">
                         <div className="flex items-center gap-4">
                             <div className="relative h-16 w-12 shrink-0 overflow-hidden rounded-md">
@@ -150,6 +155,7 @@ export function BookingDropDownRow(props: BookingDropdownRowProps) {
                 <ConfirmDialog
                     open={dialogOpen}
                     title="Cancel Booking"
+                    // Keep messaging explicit because cancellation cannot be reversed.
                     description="Are you sure you want to cancel this booking? This action cannot be undone."
                     confirmText={
                         <span className="flex items-center gap-2">
