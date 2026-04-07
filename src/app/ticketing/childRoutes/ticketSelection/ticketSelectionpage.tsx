@@ -152,12 +152,13 @@ export default function TicketSelectionPage({
                                                 Choose your tickets
                                             </h2>
                                             <p className="text-muted-foreground mt-1 text-sm">
-                                                Select how many seats you want before moving to the map.
+                                                Select how many seats you want
+                                                before moving to the map.
                                             </p>
                                         </div>
                                         <div className="grid grid-cols-1 gap-3 md:min-w-40">
                                             <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-center">
-                                                <p className="text-muted-foreground text-xs uppercase tracking-[0.2em]">
+                                                <p className="text-muted-foreground text-xs tracking-[0.2em] uppercase">
                                                     Price
                                                 </p>
                                                 <p className="mt-1.5 text-lg font-semibold text-white">
@@ -172,11 +173,14 @@ export default function TicketSelectionPage({
                                     <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] px-5 py-4">
                                         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                                             <div>
-                                                <p className="text-white text-[1.7rem] font-semibold leading-none">
+                                                <p className="text-[1.7rem] leading-none font-semibold text-white">
                                                     General Admission
                                                 </p>
                                                 <p className="text-muted-foreground mt-1 text-sm">
-                                                    Up to {currentMaxTicketLimit} tickets can be selected for this showtime.
+                                                    Up to{" "}
+                                                    {currentMaxTicketLimit}{" "}
+                                                    tickets can be selected for
+                                                    this showtime.
                                                 </p>
                                             </div>
 
@@ -204,10 +208,10 @@ export default function TicketSelectionPage({
                                                 </button>
 
                                                 <div className="min-w-24 rounded-2xl border border-cyan-300/20 bg-cyan-400/8 px-4 py-2 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-                                                    <p className="text-muted-foreground text-xs uppercase tracking-[0.2em]">
+                                                    <p className="text-muted-foreground text-xs tracking-[0.2em] uppercase">
                                                         Tickets
                                                     </p>
-                                                    <p className="mt-1 text-[1.8rem] font-semibold text-white tabular-nums leading-none">
+                                                    <p className="mt-1 text-[1.8rem] leading-none font-semibold text-white tabular-nums">
                                                         {ticketCount}
                                                     </p>
                                                 </div>
@@ -253,7 +257,8 @@ export default function TicketSelectionPage({
                                         Your selection
                                     </h3>
                                     <p className="text-muted-foreground mt-2 text-sm leading-6">
-                                        Check your ticket count, then continue to choose your seats.
+                                        Check your ticket count, then continue
+                                        to choose your seats.
                                     </p>
                                 </div>
 
@@ -290,14 +295,14 @@ export default function TicketSelectionPage({
                                 <div className="rounded-[24px] border border-cyan-300/15 bg-[linear-gradient(180deg,rgba(32,201,255,0.12),rgba(255,255,255,0.03))] p-5">
                                     <div className="flex items-end justify-between gap-4">
                                         <div>
-                                            <p className="text-muted-foreground text-xs uppercase tracking-[0.24em]">
+                                            <p className="text-muted-foreground text-xs tracking-[0.24em] uppercase">
                                                 Total
                                             </p>
                                             <p className="mt-2 text-4xl font-semibold text-white tabular-nums">
                                                 ${subtotal}
                                             </p>
                                         </div>
-                                        <p className="text-muted-foreground text-sm text-right">
+                                        <p className="text-muted-foreground text-right text-sm">
                                             {ticketCount === 1
                                                 ? "1 ticket selected"
                                                 : `${ticketCount} tickets selected`}
