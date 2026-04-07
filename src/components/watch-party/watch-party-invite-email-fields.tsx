@@ -17,6 +17,9 @@ type WatchPartyInviteEmailFieldsProps = {
     recipientInput: string;
 };
 
+/**
+ * Shows the email input and the list of people the host plans to invite.
+ */
 export function WatchPartyInviteEmailFields({
     addRowError,
     inputId,
@@ -46,6 +49,8 @@ export function WatchPartyInviteEmailFields({
                         }
                         onKeyDown={(event) => {
                             if (event.key === "Enter") {
+                                // Enter adds the email instead of submitting
+                                // the whole dialog too early.
                                 event.preventDefault();
                                 onAddInviteEmail();
                             }
@@ -61,6 +66,7 @@ export function WatchPartyInviteEmailFields({
                         className="shrink-0"
                         onClick={onAddInviteEmail}
                         disabled={
+                            // Stop extra rows once the invite limit is reached.
                             inviteEmails.length >= MAX_WATCH_PARTY_INVITES
                         }
                         aria-label="Add recipient"
@@ -84,6 +90,8 @@ export function WatchPartyInviteEmailFields({
                             <span className="text-sm">{email}</span>
                             <button
                                 type="button"
+                                // Remove by index so repeated emails with
+                                // different casing still remove the right row.
                                 onClick={() => onRemoveInviteEmail(index)}
                                 className="text-muted-foreground hover:text-foreground inline-flex h-5 w-5 items-center justify-center rounded-sm"
                                 aria-label={`Remove ${email}`}

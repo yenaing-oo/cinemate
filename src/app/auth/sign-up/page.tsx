@@ -1,3 +1,4 @@
+// Sign-up page route.
 import { SignUpForm } from "~/components/sign-up-form";
 import { AuthPageShell } from "../_components/auth-page-shell";
 

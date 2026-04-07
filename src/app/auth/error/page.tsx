@@ -1,3 +1,4 @@
+// Shows auth-related errors returned through the auth flow.
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { AuthPageShell } from "../_components/auth-page-shell";
 

@@ -1,3 +1,4 @@
+// Shows one small number or text value inside the checkout summary.
 import { cn } from "~/lib/utils";
 
 interface CheckoutSummaryMetricProps {

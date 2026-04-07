@@ -18,6 +18,10 @@ import { useAuthSession } from "~/lib/hooks/use-auth-session";
 import { WATCH_PARTY_INVITE_CODE_LENGTH } from "~/lib/watch-party/invite";
 import { api } from "~/trpc/react";
 
+/**
+ * Renders the watch party dashboard and coordinates the invite-code join flow,
+ * including the payment-method gate required before a participant can join.
+ */
 export function WatchPartyDashboard() {
     const router = useRouter();
     const utils = api.useUtils();
@@ -46,6 +50,8 @@ export function WatchPartyDashboard() {
 
     const joinWatchParty = api.watchParty.join.useMutation({
         onSuccess: async (result) => {
+            // Refresh the dashboard lists before routing so the next visit shows
+            // the newly joined party in the correct section.
             await utils.watchParty.listMine.invalidate();
             setInviteCode("");
             setInviteCodeMessage(null);
@@ -66,6 +72,7 @@ export function WatchPartyDashboard() {
 
     const savePaymentMethod = api.paymentMethod.save.useMutation({
         onSuccess: async () => {
+            // The join flow checks this cache immediately after saving.
             await utils.paymentMethod.getSaved.invalidate();
         },
     });
@@ -74,6 +81,9 @@ export function WatchPartyDashboard() {
     const isWatchPartyListLoading =
         isAuthenticated === true && watchPartiesQuery.isLoading;
 
+    /**
+     * Wraps the join mutation so the submit path can stay focused on prechecks.
+     */
     const joinPartyWithInviteCode = async (normalizedInviteCode: string) => {
         await joinWatchParty
             .mutateAsync({
@@ -84,6 +94,10 @@ export function WatchPartyDashboard() {
             });
     };
 
+    /**
+     * Saves the participant's payment method first, then continues the pending
+     * join attempt with the validated invite code.
+     */
     const handleSavePaymentAndJoin = async () => {
         if (!paymentDetails || !pendingInviteCode) {
             setPaymentDialogMessage("Enter valid payment details to continue.");
@@ -97,6 +111,7 @@ export function WatchPartyDashboard() {
                 cardNumber: paymentDetails.cardNumber,
             });
 
+            // Snapshot the pending code before clearing dialog state.
             const inviteCodeToJoin = pendingInviteCode;
             setPendingInviteCode(null);
             setPaymentDetails(null);
@@ -113,6 +128,10 @@ export function WatchPartyDashboard() {
         }
     };
 
+    /**
+     * Validates the invite code locally, checks the saved-card prerequisite, and
+     * then attempts to join the referenced watch party.
+     */
     const handleJoinParty = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
@@ -122,6 +141,8 @@ export function WatchPartyDashboard() {
             return;
         }
 
+        // Joining by code is account-bound so the host can rely on stable user
+        // identities when completing the group booking later.
         if (isAuthenticated !== true) {
             setInviteCodeMessage("Sign in to open a watch party.");
             return;
@@ -141,7 +162,10 @@ export function WatchPartyDashboard() {
             return;
         }
 
+        // The join action pauses here and resumes after the card is saved.
         if (!savedPaymentQuery.data?.hasSavedCard) {
+            // Joining is blocked until a card exists because the host can later
+            // finalize the booking on behalf of every confirmed participant.
             setPendingInviteCode(normalizedInviteCode);
             setPaymentDetails(null);
             setIsPaymentDialogOpen(true);
@@ -170,6 +194,7 @@ export function WatchPartyDashboard() {
                         isPending={joinWatchParty.isPending}
                         isUnauthorized={isAuthenticated === false}
                         onInviteCodeChange={(value) => {
+                            // Clear stale validation once the user edits again.
                             setInviteCode(value);
                             setInviteCodeMessage(null);
                         }}

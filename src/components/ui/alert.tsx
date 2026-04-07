@@ -1,3 +1,4 @@
+// Shared alert styles for inline success, info, and error messages.
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 

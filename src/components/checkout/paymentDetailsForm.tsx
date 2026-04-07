@@ -1,5 +1,6 @@
 "use client";
 
+// Collects and validates new card details before checkout can continue.
 import { useEffect, useMemo, useState } from "react";
 import { FormField } from "~/components/ui/form-field";
 import { Input } from "~/components/ui/input";

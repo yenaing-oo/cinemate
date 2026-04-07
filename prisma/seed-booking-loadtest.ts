@@ -1,3 +1,4 @@
+// Seeds dedicated data for the booking load-test flow.
 import { PrismaClient } from "@prisma/client";
 import {
     asCsvArray,

@@ -8,6 +8,10 @@ import {
     WATCH_PARTY_DUPLICATE_EMAIL_MESSAGE,
 } from "~/lib/watch-party/invite";
 
+/**
+ * Centralizes invite-email entry state so the dialog and field components share
+ * one validation flow and one source of truth for added recipients.
+ */
 export function useWatchPartyInviteEmails() {
     const [inviteEmails, setInviteEmails] = useState<string[]>([]);
     const [recipientInput, setRecipientInput] = useState("");
@@ -18,11 +22,16 @@ export function useWatchPartyInviteEmails() {
         setAddRowError(undefined);
     }
 
+    /**
+     * Validates and appends the current email input to the invite list.
+     */
     function handleAddInviteEmail() {
         if (inviteEmails.length >= MAX_WATCH_PARTY_INVITES) {
             return;
         }
 
+        // Reuse the shared schema so client-side validation matches the API
+        // exactly, including trimming behavior and email error messages.
         const parsedEmail = watchPartyInviteEmailSchema.safeParse(
             recipientInput.trim()
         );
@@ -37,6 +46,8 @@ export function useWatchPartyInviteEmails() {
             return;
         }
 
+        // Preserve the parsed value so the stored list matches schema-trimmed
+        // output instead of whatever spacing the user typed.
         setInviteEmails((currentEmails) => [
             ...currentEmails,
             parsedEmail.data,
@@ -52,6 +63,9 @@ export function useWatchPartyInviteEmails() {
         setAddRowError(undefined);
     }
 
+    /**
+     * Clears all invite-entry state when the dialog closes or restarts.
+     */
     function resetInviteEmails() {
         setInviteEmails([]);
         setRecipientInput("");

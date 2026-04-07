@@ -1,3 +1,4 @@
+// Shared styles for the booking cancellation email template.
 export const styles = {
     body: {
         backgroundColor: "#0f172a",

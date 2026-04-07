@@ -142,7 +142,8 @@ export const bookingSessionRouter = createTRPCRouter({
                     where: { userId: ctx.user.id },
                 });
 
-                // Mark the watch party as CLOSED when starting a booking session
+                // Closing the party prevents late joins after the host has
+                // locked the group size used to reserve seats.
                 if (watchParty.status === WatchPartyStatus.OPEN) {
                     await tx.watchParty.update({
                         where: { id: input.watchPartyId },
@@ -385,6 +386,10 @@ export function validateSession(session: any, userId: string, now: Date) {
     }
 }
 
+/**
+ * Validates ticket quantity against currently available inventory before
+ * moving a standard booking session into seat selection.
+ */
 export async function setTicketCount(
     db: PrismaClient,
     ticketCount: number,
@@ -432,6 +437,10 @@ export async function goBackToTicketQuantity(
     });
 }
 
+/**
+ * Reserves all requested seats atomically so checkout never proceeds with a
+ * partially-held group of seats.
+ */
 export async function reserveSeats(
     db: PrismaClient,
     showtimeId: string,
@@ -479,6 +488,8 @@ export async function reserveSeats(
         await tx.bookingSession.update({
             where: { id: bookingSessionId },
             data: {
+                // Advancing the step here keeps the session and held-seat state
+                // in sync inside the same transaction.
                 step: BookingStep.CHECKOUT,
                 selectedSeats: {
                     connect: showtimeSeatIds.map((s) => ({ id: s.id })),
@@ -488,6 +499,10 @@ export async function reserveSeats(
     });
 }
 
+/**
+ * Rewinds checkout back to seat selection and releases any unbooked holds
+ * owned by this session.
+ */
 export async function goBackToSeatSelection(
     db: PrismaClient,
     session: {
@@ -521,6 +536,10 @@ export async function goBackToSeatSelection(
     });
 }
 
+/**
+ * Finalizes the booking session, creates bookings and tickets, and updates
+ * watch party state when the session belongs to a coordinated group purchase.
+ */
 async function completeBooking(db: PrismaClient, session: any) {
     const confirmationEmails: Array<{
         userEmail: string;
@@ -541,6 +560,8 @@ async function completeBooking(db: PrismaClient, session: any) {
             process.env.LOAD_TEST_MODE === undefined ||
             process.env.LOAD_TEST_MODE === "false"
         ) {
+            // Load tests skip the booking write path so repeated runs do not
+            // permanently consume seeded inventory.
             const count = await tx.showtimeSeat.updateMany({
                 where: {
                     id: { in: session.selectedSeats.map((s: any) => s.id) },
@@ -574,6 +595,8 @@ async function completeBooking(db: PrismaClient, session: any) {
                 },
             },
         });
+        // Sorting by persisted showtimeSeat id keeps watch party ticket
+        // assignment deterministic across retries and test runs.
         const sortedShowtimeSeatIds = [...session.selectedSeats]
             .map((showtimeSeat: any) => showtimeSeat.id)
             .sort((a: string, b: string) => a.localeCompare(b));
@@ -594,6 +617,8 @@ async function completeBooking(db: PrismaClient, session: any) {
         const seatLabelByShowtimeSeatId = new Map(
             showtimeSeats.map((showtimeSeat) => [
                 showtimeSeat.id,
+                // Seat labels are precomputed once so both booking branches can
+                // build email payloads without duplicating formatting logic.
                 formatSeatFromCode(
                     showtimeSeat.seat.row,
                     showtimeSeat.seat.number
@@ -648,7 +673,8 @@ async function completeBooking(db: PrismaClient, session: any) {
                 );
             }
 
-            // Stable ordering gives deterministic member-to-seat pairing.
+            // Deterministic host-first ordering avoids reshuffling seat ownership
+            // if the completion step is retried after a transient failure.
             for (const [index, memberUserId] of uniqueMemberUserIds.entries()) {
                 const showtimeSeatId = sortedShowtimeSeatIds[index];
 
@@ -660,6 +686,8 @@ async function completeBooking(db: PrismaClient, session: any) {
 
                 const booking = await tx.booking.create({
                     data: {
+                        // Each member gets an individual booking record even
+                        // though the host coordinates the overall flow.
                         totalAmount: showtime.price,
                         status: BookingStatus.CONFIRMED,
                         userId: memberUserId,
@@ -701,6 +729,7 @@ async function completeBooking(db: PrismaClient, session: any) {
                 });
             }
         } else {
+            // Standard bookings keep all selected seats under one booking.
             const totalAmount = showtime.price.mul(
                 session.selectedSeats.length
             );
@@ -763,7 +792,8 @@ async function completeBooking(db: PrismaClient, session: any) {
             data: { step: BookingStep.COMPLETED },
         });
 
-        // 6. If this is a watch party booking, mark the party as CONFIRMED
+        // Confirmation marks the party as fully booked so dashboards stop
+        // presenting it as an open or in-progress group purchase.
         if (session.watchPartyId) {
             await tx.watchParty.update({
                 where: { id: session.watchPartyId },
@@ -775,6 +805,10 @@ async function completeBooking(db: PrismaClient, session: any) {
     await sendBookingConfirmationEmails(confirmationEmails);
 }
 
+/**
+ * Sends confirmation emails after the transaction commits so booking creation
+ * is never rolled back by an email delivery failure.
+ */
 export async function sendBookingConfirmationEmails(
     confirmationEmails: Array<{
         userEmail: string;

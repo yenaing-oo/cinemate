@@ -1,3 +1,4 @@
+// Keeps the app's user table in sync with the authenticated Supabase user.
 import { Prisma, type PrismaClient } from "@prisma/client";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 

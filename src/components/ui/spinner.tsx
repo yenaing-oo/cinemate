@@ -1,3 +1,4 @@
+// Loading spinner used in buttons and async states.
 import { Loader2Icon } from "lucide-react"
 
 import { cn } from "~/lib/utils"

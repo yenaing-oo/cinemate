@@ -1,5 +1,6 @@
 "use client";
 
+// Thin visual separator used between sections.
 import * as React from "react";
 import { Separator as SeparatorPrimitive } from "radix-ui";
 

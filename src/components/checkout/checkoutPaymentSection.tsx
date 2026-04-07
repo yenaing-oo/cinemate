@@ -1,5 +1,6 @@
 "use client";
 
+// Handles saved-card display and new-card entry during checkout.
 import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";

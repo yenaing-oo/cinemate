@@ -1,5 +1,6 @@
 "use client";
 
+// Handles email and password sign-in, then syncs the session to the server.
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Check } from "lucide-react";

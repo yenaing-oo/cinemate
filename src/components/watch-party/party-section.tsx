@@ -16,6 +16,9 @@ type PartySectionProps = {
     parties: WatchPartyListItem[];
 };
 
+/**
+ * Renders one dashboard section for created or joined watch parties.
+ */
 export function PartySection({
     title,
     emptyTitle,
@@ -65,6 +68,9 @@ export function PartySection({
                         >
                             <Card className="glass-card rounded-[1.5rem] border-white/10 bg-transparent shadow-none">
                                 <CardContent className="space-y-4 p-6">
+                                    {/* Each card keeps the main details in one
+                                        place so the user can scan the list
+                                        before opening the full page. */}
                                     <div className="flex items-start justify-between gap-4">
                                         <div>
                                             <p className="text-xl font-semibold text-white">
@@ -101,6 +107,8 @@ export function PartySection({
                                         <div className="flex items-center gap-2">
                                             <Users className="h-4 w-4 text-cyan-100" />
                                             <span>
+                                                {/* `_count.participants` does
+                                                    not include the leader. */}
                                                 Leader:{" "}
                                                 {party.leader.name ??
                                                     party.leader.email}

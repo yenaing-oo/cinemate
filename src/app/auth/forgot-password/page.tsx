@@ -1,3 +1,4 @@
+// Forgot password page route.
 import { ForgotPasswordForm } from "~/components/forgot-password-form";
 import { AuthPageShell } from "../_components/auth-page-shell";
 

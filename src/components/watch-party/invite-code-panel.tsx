@@ -23,6 +23,10 @@ type InviteCodePanelProps = {
     recentJoinedParty?: WatchPartyListItem | null;
 };
 
+/**
+ * Lets a user open a watch party by code and gives them a quick summary of the
+ * most recent party they joined.
+ */
 export function InviteCodePanel({
     inviteCode,
     inviteCodeMessage,
@@ -74,6 +78,9 @@ export function InviteCodePanel({
                                 <Input
                                     value={inviteCode}
                                     onChange={(event) =>
+                                        // Clean the value as the user types so
+                                        // the submit check and server lookup
+                                        // both work with the same shape.
                                         onInviteCodeChange(
                                             event.target.value
                                                 .toUpperCase()
@@ -95,6 +102,8 @@ export function InviteCodePanel({
                                 type="submit"
                                 className="w-full"
                                 disabled={
+                                    // The button stays disabled until the code
+                                    // looks complete or a join request finishes.
                                     isPending ||
                                     inviteCode.trim().length !==
                                         WATCH_PARTY_INVITE_CODE_LENGTH
@@ -119,6 +128,9 @@ export function InviteCodePanel({
                             <div className="rounded-[1.5rem] border border-white/8 bg-[#121d31] p-4">
                                 {recentJoinedParty ? (
                                     <>
+                                        {/* Show the latest joined party so the
+                                            user can jump back in without
+                                            re-entering the code. */}
                                         <div className="mb-4 flex items-center justify-between">
                                             <div>
                                                 <p className="text-sm font-semibold text-white">
@@ -236,6 +248,9 @@ export function InviteCodePanel({
     );
 }
 
+/**
+ * Explains the basic watch party join flow next to the invite-code form.
+ */
 export function InviteCodeDetails() {
     return (
         <motion.div

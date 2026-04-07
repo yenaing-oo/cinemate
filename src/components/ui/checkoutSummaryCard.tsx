@@ -1,3 +1,4 @@
+// Shared summary card layout used in checkout screens.
 import { cn } from "~/lib/utils";
 
 interface CheckoutSummaryMetricProps {

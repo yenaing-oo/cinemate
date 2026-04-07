@@ -1,3 +1,4 @@
+// Small inline toast component for simple message feedback.
 import { useState, useEffect } from "react";
 
 interface ToastProps {

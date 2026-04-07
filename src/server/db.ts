@@ -1,3 +1,4 @@
+// Creates and reuses the Prisma client for server-side database access.
 import { env } from "~/env.mjs";
 import { PrismaClient } from "@prisma/client";
 

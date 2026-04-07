@@ -1,5 +1,6 @@
 "use client"
 
+// Shared label component built on top of Radix.
 import * as React from "react"
 import { Label as LabelPrimitive } from "radix-ui"
 

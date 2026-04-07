@@ -1,3 +1,4 @@
+// Shared button component and style variants used across the app.
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { Slot } from "radix-ui"

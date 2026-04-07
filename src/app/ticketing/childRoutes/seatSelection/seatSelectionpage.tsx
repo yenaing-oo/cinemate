@@ -1,5 +1,6 @@
 "use client";
 
+// Seat selection step that loads the seat map for the active booking session.
 import { notFound } from "next/navigation";
 import { api } from "~/trpc/react";
 import {

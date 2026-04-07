@@ -16,11 +16,21 @@ export const watchPartyInviteEmailSchema = z
     .trim()
     .email(WATCH_PARTY_INVALID_EMAIL_MESSAGE);
 
+/**
+ * Canonicalizes invite emails so duplicate detection works consistently across
+ * client and server validation.
+ */
 export function normalizeWatchPartyInviteEmail(email: string) {
     return email.trim().toLowerCase();
 }
 
+/**
+ * Checks whether an email is already present in the invite list after
+ * normalization.
+ */
 export function hasWatchPartyInviteEmail(emails: string[], email: string) {
+    // Invitation duplicates are case-insensitive because mailbox providers
+    // typically treat differently cased addresses as the same recipient.
     const normalizedEmail = normalizeWatchPartyInviteEmail(email);
 
     return emails.some(
@@ -34,6 +44,8 @@ export const watchPartyInviteEmailsSchema = z
     .min(MIN_WATCH_PARTY_INVITES)
     .max(MAX_WATCH_PARTY_INVITES)
     .superRefine((emails, ctx) => {
+        // Zod validates each item first; this pass enforces uniqueness after
+        // normalization so the UI and API reject the same duplicate variants.
         const seenEmails = new Set<string>();
 
         for (const email of emails) {

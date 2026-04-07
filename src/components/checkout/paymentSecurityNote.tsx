@@ -1,5 +1,6 @@
 "use client";
 
+// Short note that reminds the user payment details are handled safely.
 import { ShieldCheck } from "lucide-react";
 
 export function PaymentSecurityNote() {

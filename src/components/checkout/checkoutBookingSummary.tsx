@@ -1,5 +1,6 @@
 "use client";
 
+// Shows the movie, seats, and totals during checkout.
 import Image from "next/image";
 import {
     Armchair,

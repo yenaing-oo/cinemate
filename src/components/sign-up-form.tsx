@@ -1,5 +1,6 @@
 "use client";
 
+// Handles account creation with Supabase and basic client-side checks.
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 

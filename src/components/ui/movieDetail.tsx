@@ -1,5 +1,6 @@
 'use client';
 
+// Simple movie detail card used on movie-related screens.
 import Image from "next/image";
 import { Card, CardContent } from "~/components/ui/card";
 

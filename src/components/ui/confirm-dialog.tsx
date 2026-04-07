@@ -1,3 +1,4 @@
+// Reusable confirm dialog used before destructive or important actions.
 import * as React from "react";
 import { Button } from "~/components/ui/button";
 

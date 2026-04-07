@@ -1,3 +1,4 @@
+// Movies landing page that shows the current now playing list.
 import NowPlaying from "./nowPlaying";
 
 export default function MoviesPage() {

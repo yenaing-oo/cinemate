@@ -1,3 +1,4 @@
+// Sends app emails through Resend using the project's React email templates.
 import { Resend } from "resend";
 import { render } from "@react-email/render";
 import { env } from "~/env.mjs";

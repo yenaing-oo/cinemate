@@ -23,6 +23,10 @@ import {
     getWatchPartyStatusLabel,
 } from "~/components/watch-party/watch-party-status";
 
+/**
+ * Shows a single watch party and exposes host-only booking controls once the
+ * party membership and booking window allow it.
+ */
 export function WatchPartyDetailView({ partyId }: { partyId: string }) {
     const router = useRouter();
     const { isAuthenticated, isLoading: isAuthLoading } = useAuthSession();
@@ -56,6 +60,8 @@ export function WatchPartyDetailView({ partyId }: { partyId: string }) {
             return;
         }
 
+        // Only the leader can start booking, so only that view needs the live
+        // countdown that drives the booking window state.
         const updateTimeLeft = () => {
             setTimeLeftMs(
                 getWatchPartyTimeLeftMs(watchPartyQuery.data.showtime.startTime)
@@ -154,16 +160,23 @@ export function WatchPartyDetailView({ partyId }: { partyId: string }) {
         party.viewerRole === "PARTICIPANT"
             ? "You joined this watch party. The party leader can now include you when booking tickets for this showtime."
             : "Everyone who joins with your invite code appears here so you can coordinate one booking for the group.";
+    // The deadline and countdown use the same source date so the status badge
+    // and remaining-time copy never disagree.
     const bookingDeadline = getWatchPartyBookingDeadline(
         party.showtime.startTime
     );
     const canBookWatchParty = isWatchPartyBookable(party.showtime.startTime);
 
+    /**
+     * Starts the coordinated booking flow for the party leader.
+     */
     const handleBookTickets = async () => {
         if (party.viewerRole !== "LEADER") {
             return;
         }
 
+        // Clear stale mutation output before retrying so only the latest server
+        // response is shown under the booking controls.
         setBookingError(null);
 
         await createWatchPartyBookingSession
@@ -292,6 +305,10 @@ export function WatchPartyDetailView({ partyId }: { partyId: string }) {
                                     <Button
                                         type="button"
                                         disabled={
+                                            // The button is disabled both after
+                                            // the booking window closes and
+                                            // while the host mutation is in
+                                            // flight to prevent duplicate starts.
                                             !canBookWatchParty ||
                                             createWatchPartyBookingSession.isPending
                                         }

@@ -1,5 +1,6 @@
 "use client";
 
+// Reusable back link that keeps a consistent look across pages.
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { cn } from "~/lib/utils";

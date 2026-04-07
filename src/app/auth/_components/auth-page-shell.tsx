@@ -1,3 +1,4 @@
+// Shared layout shell for auth pages.
 import { BackButton } from "~/components/ui/back-button";
 
 export function AuthPageShell({

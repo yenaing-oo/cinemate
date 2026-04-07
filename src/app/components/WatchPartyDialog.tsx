@@ -19,6 +19,10 @@ import { api } from "~/trpc/react";
 
 export type WatchPartyDialogStep = "decision" | "invite";
 
+/**
+ * Lets the user decide between a normal booking and a group booking, then
+ * collects invite emails when they choose the watch party path.
+ */
 export function WatchPartyDialog({
     open,
     movieTitle,
@@ -86,6 +90,7 @@ export function WatchPartyDialog({
     const activeShowtime = showtime;
 
     function resetDialogState() {
+        // Reset local step and invite input every time the dialog closes.
         setStep("decision");
         resetInviteEmails();
     }
@@ -104,6 +109,7 @@ export function WatchPartyDialog({
             return;
         }
 
+        // This starts the normal one-person booking flow.
         await createBookingSession.mutateAsync({
             showtimeId: activeShowtime.id,
         });
@@ -121,6 +127,7 @@ export function WatchPartyDialog({
             emails,
         });
 
+        // Refresh the dashboard list before redirecting to the new party page.
         await utils.watchParty.listMine.invalidate();
         handleClose();
         router.push(`/watch-party/${watchParty.id}`);
@@ -169,6 +176,8 @@ export function WatchPartyDialog({
                                 : "flex min-h-0 flex-1 flex-col gap-5 px-6 pt-5 pb-0"
                         }
                     >
+                        {/* Keep the showtime visible in both steps so the user
+                            knows which movie and time this party belongs to. */}
                         <div className="glass-card space-y-2 rounded-2xl border border-white/10 p-4">
                             <p className="text-muted-foreground text-xs font-semibold tracking-[0.2em] uppercase">
                                 Selected showtime
@@ -215,6 +224,8 @@ export function WatchPartyDialog({
                         <div className="grid shrink-0 gap-3 px-6 pt-5 pb-6 sm:grid-cols-2">
                             <Button
                                 variant="outline"
+                                // Move to the invite step instead of starting
+                                // checkout right away.
                                 onClick={() => setStep("invite")}
                                 disabled={stepActionPending}
                             >
@@ -244,6 +255,8 @@ export function WatchPartyDialog({
                                     void handleSendInvitations(inviteEmails)
                                 }
                                 disabled={
+                                    // At least one invite is required before a
+                                    // watch party can be created.
                                     inviteCount === 0 || stepActionPending
                                 }
                             >
