@@ -126,7 +126,6 @@ async function main() {
                     firstName: "OrderHistoryTest",
                     lastName: `User${String(index + 1).padStart(2, "0")}`,
                     supabaseId: getLoadTestSupabaseId(email, index),
-                    hasPaymentMethod: true,
                 },
             })
         )

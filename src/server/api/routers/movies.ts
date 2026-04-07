@@ -23,7 +23,6 @@ export const moviesRouter = createTRPCRouter({
                     ?.trim()
                     .toLowerCase() === "true";
 
-
             /**
              * Only return movies that still have an upcoming showtime. That
              * keeps old titles off pages where users expect to book tickets.

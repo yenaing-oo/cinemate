@@ -8,7 +8,7 @@ export const options = buildOptions();
 
 export function setup() {
     console.log(
-        "Starting Feature 2 load test: bookings.list + bookings.latestBookingDetails"
+        "Starting Feature 2 load test: bookings.list & bookings.cancel"
     );
 
     return {
