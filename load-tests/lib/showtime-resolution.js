@@ -1,6 +1,7 @@
 // @ts-nocheck
 import {
     fetchNowPlaying,
+    fetchNowPlayingForLoadTestResolution,
     fetchShowtimesByMovie,
 } from "../features/movie-showtime/requests.js";
 import { fetchShowtimeSeats } from "../features/booking/requests.js";
@@ -40,7 +41,9 @@ function getAvailableSeatCountFromResponse(response) {
 }
 
 export function resolveShowtime(options) {
-    const nowPlayingResponse = fetchNowPlaying(options.baseUrl);
+    const nowPlayingResponse = options.includeUnreleasedMoviesForLoadTest
+        ? fetchNowPlayingForLoadTestResolution(options.baseUrl)
+        : fetchNowPlaying(options.baseUrl);
     const movies = getMoviesFromNowPlayingResponse(nowPlayingResponse);
 
     if (nowPlayingResponse.status !== 200 || movies.length === 0) {
