@@ -256,6 +256,8 @@ export const bookingSessionRouter = createTRPCRouter({
             return null;
         }
 
+        // Watch-party sessions reserve multiple seats, but checkout charges only
+        // the host's ticket; member bookings are created individually at completion.
         const payableTicketCount = session.watchPartyId
             ? 1
             : session.selectedSeats.length;
@@ -391,6 +393,8 @@ export async function setTicketCount(
     bookingSessionId: string,
     now: Date
 ) {
+    // Count seats held by the same user as still available so quantity changes
+    // do not fail while this user is actively holding seats.
     const availableSeatsCount = await db.showtimeSeat.count({
         where: {
             showtimeId,
@@ -437,6 +441,8 @@ export async function reserveSeats(
     now: Date
 ) {
     await db.$transaction(async (tx) => {
+        // Reserve all requested seats in one write to avoid partial holds caused
+        // by concurrent checkouts.
         const count = await tx.showtimeSeat.updateMany({
             where: {
                 showtimeId: showtimeId,
@@ -459,6 +465,9 @@ export async function reserveSeats(
                 "Some selected seats are no longer available. Please choose different seats."
             );
         }
+
+        // Persist the selected showtimeSeat ids onto the session so checkout can
+        // render from server state and survive client refreshes.
         const showtimeSeatIds = await tx.showtimeSeat.findMany({
             where: {
                 showtimeId,
@@ -488,6 +497,7 @@ export async function goBackToSeatSelection(
 ) {
     await db.$transaction(async (tx) => {
         if (session.selectedSeats.length > 0) {
+            // Release only seats still attached to this session and not booked.
             await tx.showtimeSeat.updateMany({
                 where: {
                     id: { in: session.selectedSeats.map((seat) => seat.id) },
@@ -638,6 +648,7 @@ async function completeBooking(db: PrismaClient, session: any) {
                 );
             }
 
+            // Stable ordering gives deterministic member-to-seat pairing.
             for (const [index, memberUserId] of uniqueMemberUserIds.entries()) {
                 const showtimeSeatId = sortedShowtimeSeatIds[index];
 
