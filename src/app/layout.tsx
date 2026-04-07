@@ -59,12 +59,14 @@ export default function RootLayout({
                                         </Link>
                                         <Link
                                             href="/watch-party"
+                                            prefetch={false}
                                             className="hover:text-foreground transition"
                                         >
                                             Watch Party
                                         </Link>
                                         <Link
                                             href="/bookings"
+                                            prefetch={false}
                                             className="hover:text-foreground transition"
                                         >
                                             Bookings

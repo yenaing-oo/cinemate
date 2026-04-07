@@ -12,6 +12,7 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 
 import { createClient } from "~/lib/supabase/server";
+import { syncSupabaseUserToAppUser } from "~/server/auth/sync-app-user";
 import { db } from "~/server/db";
 
 const LOAD_TEST_USER_EMAIL_HEADER = "x-load-test-user-email";
@@ -104,8 +105,9 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
 
     let user = null;
     if (supabaseUser) {
-        user = await db.user.findUnique({
-            where: { supabaseId: supabaseUser.id },
+        user = await syncSupabaseUserToAppUser({
+            db,
+            supabaseUser,
         });
     }
 

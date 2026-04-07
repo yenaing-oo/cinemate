@@ -1,11 +1,12 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Check } from "lucide-react";
 
 import { cn } from "~/lib/utils";
 import { createClient } from "~/lib/supabase/client";
+import { syncServerSession } from "~/lib/supabase/browser-session-sync";
 import { Button } from "~/components/ui/button";
 import {
     Card,
@@ -27,7 +28,6 @@ export function LoginForm({
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const router = useRouter();
     const searchParams = useSearchParams();
     const verified = searchParams.get("verified");
     const nextParam = searchParams.get("next");
@@ -40,13 +40,20 @@ export function LoginForm({
         setError(null);
 
         try {
-            const { error } = await supabase.auth.signInWithPassword({
+            const { data, error } = await supabase.auth.signInWithPassword({
                 email,
                 password,
             });
             if (error) throw error;
-            router.push(next);
+            if (!data.session) {
+                throw new Error("Unable to establish your session.");
+            }
+
+            await syncServerSession(data.session);
+            window.location.assign(next);
+            return;
         } catch (error: unknown) {
+            await supabase.auth.signOut().catch(() => undefined);
             setError(
                 error instanceof Error ? error.message : "An error occurred"
             );

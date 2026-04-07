@@ -1,8 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { User } from "@supabase/supabase-js";
+import type { Session, User } from "@supabase/supabase-js";
 import { createClient } from "~/lib/supabase/client";
+import {
+    clearServerSession,
+    syncServerSession,
+} from "~/lib/supabase/browser-session-sync";
+
+async function syncServerAuthState({
+    session,
+    user,
+}: {
+    session: Session | null;
+    user: User | null;
+}) {
+    if (user && session) {
+        await syncServerSession(session);
+        return;
+    }
+
+    if (!user) {
+        await clearServerSession().catch(() => undefined);
+    }
+}
 
 export function useAuthSession() {
     const [user, setUser] = useState<User | null | undefined>(undefined);
@@ -12,10 +33,19 @@ export function useAuthSession() {
         let isMounted = true;
 
         const syncSession = async () => {
-            const { data } = await supabase.auth.getSession();
+            const [{ data: userData }, { data: sessionData }] =
+                await Promise.all([
+                    supabase.auth.getUser(),
+                    supabase.auth.getSession(),
+                ]);
+
+            await syncServerAuthState({
+                session: sessionData.session,
+                user: userData.user ?? null,
+            });
 
             if (isMounted) {
-                setUser(data.session?.user ?? null);
+                setUser(userData.user ?? null);
             }
         };
 
@@ -24,6 +54,11 @@ export function useAuthSession() {
         const { data: authListener } = supabase.auth.onAuthStateChange(
             (_event, session) => {
                 // Keep the UI in sync when the auth state changes.
+                void syncServerAuthState({
+                    session,
+                    user: session?.user ?? null,
+                });
+
                 if (isMounted) {
                     setUser(session?.user ?? null);
                 }

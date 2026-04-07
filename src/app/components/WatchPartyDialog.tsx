@@ -12,8 +12,9 @@ import {
 } from "~/components/ui/card";
 import { WatchPartyInviteEmailFields } from "~/components/watch-party/watch-party-invite-email-fields";
 import { useWatchPartyInviteEmails } from "~/components/watch-party/use-watch-party-invite-emails";
+import { useAuthSession } from "~/lib/hooks/use-auth-session";
 import { formatShowtimeDate, formatShowtimeTime } from "~/lib/utils";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
 
 export type WatchPartyDialogStep = "decision" | "invite";
@@ -41,18 +42,37 @@ export function WatchPartyDialog({
     } = useWatchPartyInviteEmails();
 
     const router = useRouter();
+    const pathname = usePathname();
     const utils = api.useUtils();
+    const { isAuthenticated, isLoading: isAuthLoading } = useAuthSession();
+    const loginHref = `/auth/login?next=${encodeURIComponent(pathname || "/")}`;
 
     const createBookingSession = api.bookingSession.create.useMutation({
         onSuccess: () => {
             router.push("/ticketing");
         },
+        onError: (error) => {
+            if (error.data?.code === "UNAUTHORIZED") {
+                handleClose();
+                router.push(loginHref);
+                return;
+            }
+        },
     });
 
-    const createWatchParty = api.watchParty.create.useMutation({});
+    const createWatchParty = api.watchParty.create.useMutation({
+        onError: (error) => {
+            if (error.data?.code === "UNAUTHORIZED") {
+                handleClose();
+                router.push(loginHref);
+            }
+        },
+    });
 
     const stepActionPending =
-        createBookingSession.isPending || createWatchParty.isPending;
+        isAuthLoading ||
+        createBookingSession.isPending ||
+        createWatchParty.isPending;
     const bookingError = createBookingSession.error
         ? createBookingSession.error.message ||
           "Unable to book tickets right now. Please try again."
@@ -78,12 +98,24 @@ export function WatchPartyDialog({
     }
 
     async function handleBookWithoutWatchParty() {
+        if (isAuthenticated !== true) {
+            handleClose();
+            router.push(loginHref);
+            return;
+        }
+
         await createBookingSession.mutateAsync({
             showtimeId: activeShowtime.id,
         });
     }
 
     async function handleSendInvitations(emails: string[]) {
+        if (isAuthenticated !== true) {
+            handleClose();
+            router.push(loginHref);
+            return;
+        }
+
         const watchParty = await createWatchParty.mutateAsync({
             showtimeId: activeShowtime.id,
             emails,
@@ -164,6 +196,11 @@ export function WatchPartyDialog({
                         ) : bookingError ? (
                             <p className="text-destructive text-sm">
                                 {bookingError}
+                            </p>
+                        ) : isAuthenticated === false ? (
+                            <p className="text-sm text-slate-300">
+                                Sign in to continue with booking or create a
+                                watch party.
                             </p>
                         ) : null}
 

@@ -57,6 +57,7 @@ export default function MobileMenu() {
                         </Link>
                         <Link
                             href="/watch-party"
+                            prefetch={false}
                             onClick={() => setIsOpen(false)}
                             className="text-muted-foreground hover:text-foreground transition"
                         >
@@ -64,6 +65,7 @@ export default function MobileMenu() {
                         </Link>
                         <Link
                             href="/bookings"
+                            prefetch={false}
                             onClick={() => setIsOpen(false)}
                             className="text-muted-foreground hover:text-foreground transition"
                         >
