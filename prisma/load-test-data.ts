@@ -175,7 +175,7 @@ export async function createLoadTestUsers(
         idPrefix: string;
         firstName: string;
         lastNamePrefix: string;
-        hasPaymentMethod?: boolean;
+        cardNumber?: string;
     }
 ) {
     return Promise.all(
@@ -192,7 +192,7 @@ export async function createLoadTestUsers(
                         index,
                         options.idPrefix
                     ),
-                    hasPaymentMethod: options.hasPaymentMethod ?? true,
+                    cardNumber: options.cardNumber,
                 },
             })
         )

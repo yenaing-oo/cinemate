@@ -10,6 +10,10 @@ export const showtimesRouter = createTRPCRouter({
     getByMovie: publicProcedure
         .input(z.object({ movieId: z.string() }))
         .query(async ({ input }) => {
+            /**
+             * Load the basic movie info and future showtimes together because
+             * this page needs both at the same time.
+             */
             const movie = await db.movie.findUnique({
                 where: { id: input.movieId },
                 select: {
@@ -18,8 +22,10 @@ export const showtimesRouter = createTRPCRouter({
                     posterUrl: true,
                     showtimes: {
                         where: {
+                            // Only show times people can still book.
                             startTime: { gt: new Date() },
                         },
+                        // Keep the picker in time order.
                         orderBy: { startTime: "asc" },
                         select: {
                             id: true,
@@ -31,12 +37,16 @@ export const showtimesRouter = createTRPCRouter({
             });
 
             if (!movie) {
+                // Let the page decide how to show the missing movie state.
                 return null;
             }
 
+            // Shape the response to match what the client page expects.
             const showtimes = movie.showtimes.map((showtime) => ({
                 id: showtime.id,
                 startTime: showtime.startTime,
+                // Turn Prisma Decimal into a plain number before sending it to
+                // the client.
                 price: Number(showtime.price),
             }));
 
@@ -53,6 +63,9 @@ export const showtimesRouter = createTRPCRouter({
         .input(z.object({ showtimeId: z.string() }))
         .query(async ({ input, ctx }) => {
             const now = new Date();
+
+            // A seat counts as available when it is not booked and either not held,
+            // held in the past, or held by this same user.
             const availableSeatsCount = await db.showtimeSeat.count({
                 where: {
                     showtimeId: input.showtimeId,
@@ -60,6 +73,8 @@ export const showtimesRouter = createTRPCRouter({
                     OR: [
                         { heldTill: null },
                         { heldTill: { lt: now } },
+                        // Count seats held by this user as available so a page
+                        // refresh does not hide their current selection.
                         { heldByUserId: ctx.user.id },
                     ],
                 },

@@ -55,7 +55,10 @@ export async function fetchNowPlaying(): Promise<
     z.infer<typeof NowPlayingResponseSchema>
 > {
     console.log("Fetching now playing movies");
+
     const res = await fetch(
+        // Use the Canada now-playing feed so the synced list matches this app's
+        // market.
         `${TMDB_BASE_URL}/movie/now_playing?language=en-US&region=CA&page=1`,
         {
             headers: {
@@ -66,6 +69,8 @@ export async function fetchNowPlaying(): Promise<
     );
 
     if (!res.ok) {
+        // Log the response body here because TMDB errors can be hard to debug
+        // from the status code alone.
         const text = await res.text();
         console.error("TMDB STATUS:", res.status);
         console.error("TMDB RESPONSE:", text);
@@ -81,7 +86,10 @@ export async function fetchMovieFull(
     tmdbId: number
 ): Promise<z.infer<typeof MovieFullResponseSchema>> {
     console.log("Fetching details for TMDB ID:", tmdbId);
+
     const res = await fetch(
+        // Ask for credits and videos in one request so the sync job does not
+        // need extra TMDB calls for the movie details page.
         `${TMDB_BASE_URL}/movie/${tmdbId}?append_to_response=credits%2Cvideos&language=en-US`,
         {
             headers: {

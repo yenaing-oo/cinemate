@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { Resend } from "resend";
 import TicketConfirmation from "~/server/emailTemplates/TicketConfirmation";
+import { formatPaymentDateTime, maskCardNumber } from "~/server/utils";
 
 export const emailRouter = createTRPCRouter({
     sendConfirmation: protectedProcedure
@@ -28,12 +29,14 @@ export const emailRouter = createTRPCRouter({
             }
             const resend = new Resend(apiKey);
 
+            // fetch user info from userID
             const user = await ctx.db.user.findUnique({
                 where: { id: input.userId },
             });
 
             if (!user || !user.email) return;
 
+            // sends email using the ticket confirmation email template
             const { data, error } = await resend.emails.send({
                 from: "Cinemate <onboarding@bookcinemate.me>",
                 to: user.email,
@@ -47,6 +50,8 @@ export const emailRouter = createTRPCRouter({
                     seatLabelList: input.seatLabelList,
                     totalPrice: input.totalPrice,
                     bookingId: input.bookingId,
+                    paymentMethod: maskCardNumber(user.cardNumber),
+                    paymentDateTime: formatPaymentDateTime(new Date()),
                 }),
             });
 

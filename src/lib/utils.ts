@@ -2,6 +2,10 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { env } from "~/env.mjs";
 
+/**
+ * Use the cinema timezone for movie and showtime labels so the server and
+ * client show the same date and time.
+ */
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
     year: "numeric",
     month: "long",
@@ -32,6 +36,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const formatRuntime = (runtime: number) => {
+    // Bad or missing runtime values should not break the UI.
     if (!Number.isFinite(runtime) || runtime <= 0) return "Runtime unavailable";
     const hours = Math.floor(runtime / 60);
     const minutes = runtime % 60;
@@ -56,6 +61,10 @@ export const formatShowtimeTime = (date: string | Date) =>
 
 export const formatCad = (amount: number) => cadFormatter.format(amount);
 
+/**
+ * Movie metadata is saved as comma-separated text in the database. Split it
+ * here before showing it in the UI.
+ */
 export const formatList = (value: string | null) =>
     value
         ? value
@@ -73,6 +82,8 @@ export function formatSeatFromCode(row: number, seat: number): string {
     ) {
         throw new Error("Invalid seat: row and seat must be positive integers");
     }
+
+    // Row 1 becomes A, row 2 becomes B, and so on.
     const rowLetter = String.fromCharCode(64 + row);
     return `${rowLetter}${seat}`;
 }

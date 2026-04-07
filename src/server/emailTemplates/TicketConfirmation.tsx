@@ -22,6 +22,8 @@ type Props = {
     seatLabelList: string[];
     totalPrice: string;
     bookingId: string;
+    paymentMethod?: string;
+    paymentDateTime?: string;
 };
 
 export default function TicketConfirmation({
@@ -33,6 +35,8 @@ export default function TicketConfirmation({
     seatLabelList,
     totalPrice,
     bookingId,
+    paymentMethod = "Original payment method",
+    paymentDateTime,
 }: Props) {
     const ticketQrCode =
         "https://randomqr.com/assets/images/rickroll-qrcode.webp";
@@ -154,6 +158,34 @@ export default function TicketConfirmation({
                                 </Text>
                             </Column>
                         </Row>
+
+                        <Row>
+                            <Column>
+                                <Text style={styles.paymentLabel}>
+                                    Payment Method
+                                </Text>
+                            </Column>
+                            <Column align="right">
+                                <Text style={styles.paymentValue}>
+                                    {paymentMethod}
+                                </Text>
+                            </Column>
+                        </Row>
+
+                        {paymentDateTime ? (
+                            <Row>
+                                <Column>
+                                    <Text style={styles.paymentLabel}>
+                                        Paid At
+                                    </Text>
+                                </Column>
+                                <Column align="right">
+                                    <Text style={styles.paymentValue}>
+                                        {paymentDateTime}
+                                    </Text>
+                                </Column>
+                            </Row>
+                        ) : null}
 
                         <Section style={styles.divider} />
 

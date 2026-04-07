@@ -264,6 +264,7 @@ function resolveBookingShowtime(config) {
         baseUrl: config.baseUrl,
         authHeaders: buildLoadTestAuthHeaders(config.testUserEmails[0]),
         authUserLabel: config.testUserEmails[0],
+        includeUnreleasedMoviesForLoadTest: true,
         requiredSeatCapacity: getRequiredSeatCapacity(config),
         minimumSeatCount: config.bookingTicketCount,
         contextLabel: "booking",

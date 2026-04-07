@@ -61,7 +61,7 @@ describe("Email Integration Tests", () => {
                 lastName: "User",
                 supabaseId: "",
                 imageURL: null,
-                hasPaymentMethod: false,
+                cardNumber: null,
             },
         });
         const result = await caller.email.sendConfirmation({
@@ -95,7 +95,7 @@ describe("Email Integration Tests", () => {
                 lastName: "",
                 supabaseId: null,
                 imageURL: null,
-                hasPaymentMethod: false,
+                cardNumber: null,
             },
         });
         const result = await caller.email.sendConfirmation({

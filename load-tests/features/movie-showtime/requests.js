@@ -18,6 +18,20 @@ export function fetchNowPlaying(baseUrl) {
     });
 }
 
+export function fetchNowPlayingForLoadTestResolution(baseUrl) {
+    return trpcGet(baseUrl, "movies.nowPlaying", getNowPlayingInput(), {
+        headers: {
+            "x-load-test-include-unreleased": "true",
+        },
+        tags: {
+            area: "movie_showtime_selection",
+            scenario: "now_playing_load_test_resolution",
+            request_type: "read_get",
+            endpoint: "movies.nowPlaying",
+        },
+    });
+}
+
 export function fetchShowtimesByMovie(baseUrl, movieId) {
     return trpcGet(
         baseUrl,
