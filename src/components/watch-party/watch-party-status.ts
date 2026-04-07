@@ -1,6 +1,7 @@
 import { cn } from "~/lib/utils";
 import type { WatchPartyStatusValue } from "~/lib/watch-party/types";
 
+// This keeps watch party labels and badge colors in one place.
 const WATCH_PARTY_STATUS_META: Record<
     WatchPartyStatusValue,
     {
@@ -23,10 +24,16 @@ const WATCH_PARTY_STATUS_META: Record<
     },
 };
 
+/**
+ * Returns the short label used in the UI for a watch party status.
+ */
 export function getWatchPartyStatusLabel(status: WatchPartyStatusValue) {
     return WATCH_PARTY_STATUS_META[status].label;
 }
 
+/**
+ * Builds the badge styles for a watch party status.
+ */
 export function getWatchPartyStatusBadgeClassName(
     status: WatchPartyStatusValue
 ) {

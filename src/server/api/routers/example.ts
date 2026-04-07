@@ -1,3 +1,4 @@
+// Small example router kept from the starter setup.
 import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";

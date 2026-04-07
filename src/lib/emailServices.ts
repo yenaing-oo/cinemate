@@ -1,3 +1,4 @@
+// Small client hook for sending booking confirmation emails through tRPC.
 import { api } from "~/trpc/react";
 
 interface SendEmailProps {

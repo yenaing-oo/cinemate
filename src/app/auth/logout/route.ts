@@ -1,3 +1,4 @@
+// Clears the server-side auth session on logout.
 import { NextResponse } from "next/server";
 import { createClient } from "~/lib/supabase/server";
 

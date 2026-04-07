@@ -1,5 +1,6 @@
 "use client";
 
+// Shared payment-related types for checkout components.
 export interface NewCardPaymentDetails {
     source: "new";
     cardholderName: string;

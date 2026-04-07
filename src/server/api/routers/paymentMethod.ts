@@ -1,3 +1,4 @@
+// Stores and returns the user's saved card summary for checkout flows.
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 

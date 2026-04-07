@@ -1,3 +1,4 @@
+// Creates the browser Supabase client used in client components.
 import { createBrowserClient } from "@supabase/ssr";
 
 export function createClient() {

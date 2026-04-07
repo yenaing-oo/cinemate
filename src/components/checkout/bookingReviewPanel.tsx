@@ -1,5 +1,6 @@
 "use client";
 
+// Combines the checkout summary and payment section into one review panel.
 import { useState } from "react";
 import { CheckoutBookingSummary } from "~/components/checkout/checkoutBookingSummary";
 import { CheckoutPaymentSection } from "~/components/checkout/checkoutPaymentSection";

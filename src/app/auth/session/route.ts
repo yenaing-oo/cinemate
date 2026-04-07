@@ -1,3 +1,4 @@
+// Restores the Supabase session on the server after client-side sign-in.
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "~/lib/supabase/server";

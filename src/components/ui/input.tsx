@@ -1,3 +1,4 @@
+// Shared input styles used by forms in the app.
 import * as React from "react"
 
 import { cn } from "~/lib/utils"

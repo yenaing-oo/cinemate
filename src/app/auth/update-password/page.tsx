@@ -1,3 +1,4 @@
+// Password update page shown after reset or recovery.
 import { UpdatePasswordForm } from "~/components/update-password-form";
 import { AuthPageShell } from "../_components/auth-page-shell";
 

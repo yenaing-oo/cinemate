@@ -1,5 +1,6 @@
 "use client";
 
+// First ticketing step where the user chooses ticket quantities and types.
 import Image from "next/image";
 import { BackButton } from "~/components/ui/back-button";
 import {

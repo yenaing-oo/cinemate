@@ -1,3 +1,4 @@
+// Simple protected page used to verify logged-in access.
 import { redirect } from "next/navigation";
 
 import { BackButton } from "~/components/ui/back-button";

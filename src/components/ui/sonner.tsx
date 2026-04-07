@@ -1,5 +1,6 @@
 "use client"
 
+// App-wide toast wrapper with the project's visual style.
 import {
   CircleCheckIcon,
   InfoIcon,

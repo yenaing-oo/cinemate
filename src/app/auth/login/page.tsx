@@ -1,3 +1,4 @@
+// Login page route that redirects away if the user is already signed in.
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { LoginForm } from "~/components/login-form";

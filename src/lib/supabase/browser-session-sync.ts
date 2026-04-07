@@ -1,5 +1,6 @@
 "use client";
 
+// Keeps browser auth changes in sync with the server-side session cookies.
 import type { Session } from "@supabase/supabase-js";
 
 async function readErrorMessage(response: Response) {

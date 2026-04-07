@@ -1,3 +1,4 @@
+// Shared card building blocks used across the app.
 import * as React from "react"
 
 import { cn } from "~/lib/utils"
