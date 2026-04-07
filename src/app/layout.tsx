@@ -39,8 +39,8 @@ export default function RootLayout({
                                             <Image
                                                 src="/favicon.png"
                                                 alt="Cinemate logo"
-                                                width={36}
-                                                height={36}
+                                                width={80}
+                                                height={80}
                                                 className="rounded-md"
                                             />
                                             <h1 className="text-base font-semibold">
