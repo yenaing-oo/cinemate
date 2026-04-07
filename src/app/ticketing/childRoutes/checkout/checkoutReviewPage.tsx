@@ -82,6 +82,8 @@ export default function CheckoutReviewPage({
     const showtimeDate = bookingSession.showtime.startTime;
     const ticketPrice = Number(bookingSession.showtime.price);
     const seatCount = bookingSession.selectedSeats.length;
+    // Watch-party flow reserves seats for everyone but charges host checkout
+    // for a single ticket; backend then creates per-member bookings.
     const payableTicketCount =
         bookingSession.payableTicketCount ??
         (bookingSession.watchPartyId ? 1 : seatCount);
