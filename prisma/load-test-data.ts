@@ -209,6 +209,7 @@ export async function createDedicatedLoadTestMovie(
         price: number;
         showtimeCount: number;
         releaseDate?: Date;
+        posterUrl?: string;
     }
 ) {
     const movie = await prisma.movie.create({
@@ -218,6 +219,9 @@ export async function createDedicatedLoadTestMovie(
             runtime: options.runtime,
             description: options.description,
             releaseDate: options.releaseDate ?? DEFAULT_LOAD_TEST_RELEASE_DATE,
+            posterUrl:
+                options.posterUrl ??
+                "https://image.tmdb.org/t/p/w500/1E5baAaEse26fej7uHcjOgEE2t2.jpg",
         },
     });
 

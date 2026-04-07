@@ -69,11 +69,8 @@ export default function MobileMenu() {
                         >
                             Bookings
                         </Link>
-                        <div
-                            className="flex w-full justify-end border-t border-white/10 pt-3"
-                            onClick={() => setIsOpen(false)}
-                        >
-                            <AuthButton />
+                        <div className="flex w-full justify-end border-t border-white/10 pt-3">
+                            <AuthButton onNavigate={() => setIsOpen(false)} />
                         </div>
                     </nav>
                 </div>

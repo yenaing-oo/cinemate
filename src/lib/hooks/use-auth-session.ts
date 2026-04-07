@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { User } from "@supabase/supabase-js";
 import { createClient } from "~/lib/supabase/client";
 
 export function useAuthSession() {
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(
-        null
-    );
+    const [user, setUser] = useState<User | null | undefined>(undefined);
 
     useEffect(() => {
         const supabase = createClient();
@@ -16,15 +15,20 @@ export function useAuthSession() {
             const { data } = await supabase.auth.getSession();
 
             if (isMounted) {
-                setIsAuthenticated(Boolean(data.session));
+                setUser(data.session?.user ?? null);
             }
         };
 
         void syncSession();
 
-        const { data: authListener } = supabase.auth.onAuthStateChange(() => {
-            void syncSession();
-        });
+        const { data: authListener } = supabase.auth.onAuthStateChange(
+            (_event, session) => {
+                // Keep the UI in sync when the auth state changes.
+                if (isMounted) {
+                    setUser(session?.user ?? null);
+                }
+            }
+        );
 
         return () => {
             isMounted = false;
@@ -33,7 +37,8 @@ export function useAuthSession() {
     }, []);
 
     return {
-        isAuthenticated,
-        isLoading: isAuthenticated === null,
+        user,
+        isAuthenticated: user ? true : user === null ? false : null,
+        isLoading: user === undefined,
     };
 }

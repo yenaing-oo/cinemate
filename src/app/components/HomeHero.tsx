@@ -122,7 +122,7 @@ export default function HomeHero({ movies }: HomeHeroProps) {
                 <div className="grid items-end gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(240px,300px)] lg:gap-12">
                     <div className="max-w-3xl">
                         <p className="text-xs font-semibold tracking-[0.38em] text-white/74 uppercase">
-                            Now Showing
+                            Now Trending
                         </p>
                         <h2 className="mt-4 text-4xl leading-none font-extrabold text-white drop-shadow-[0_12px_30px_rgba(0,0,0,0.45)] md:text-6xl lg:text-7xl">
                             {activeMovie.title}

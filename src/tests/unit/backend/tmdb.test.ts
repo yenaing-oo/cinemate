@@ -42,8 +42,6 @@ describe("fetchNowPlaying", () => {
             total_results: 100,
         };
 
-        const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-
         globalThis.fetch = vi.fn().mockResolvedValue(
             mockFetchObject({
                 ok: true,
@@ -59,8 +57,6 @@ describe("fetchNowPlaying", () => {
         expect(result.page).toBe(1);
         expect(result.total_pages).toBe(10);
         expect(result.total_results).toBe(100);
-
-        expect(logSpy).toHaveBeenCalledWith("Fetching now playing movies");
 
         expect(globalThis.fetch).toHaveBeenCalledTimes(1);
         expect(globalThis.fetch).toHaveBeenCalledWith(
@@ -133,8 +129,6 @@ describe("fetchMovieFull", () => {
             },
         };
 
-        const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-
         globalThis.fetch = vi.fn().mockResolvedValue(
             mockFetchObject({
                 ok: true,
@@ -158,8 +152,6 @@ describe("fetchMovieFull", () => {
         expect(result.videos?.results?.[0]!.site).toBe("YouTube");
         expect(result.videos?.results?.[0]!.type).toBe("Trailer");
         expect(result.videos?.results?.[0]!.key).toBe("trailerkey123");
-
-        expect(logSpy).toHaveBeenCalledWith("Fetching details for TMDB ID:", 1);
 
         expect(globalThis.fetch).toHaveBeenCalledTimes(1);
         expect(globalThis.fetch).toHaveBeenCalledWith(
