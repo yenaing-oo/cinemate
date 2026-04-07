@@ -189,7 +189,7 @@ export default function HomeHero({ movies }: HomeHeroProps) {
                         onClick={() =>
                             setActiveIndex(
                                 (safeActiveIndex - 1 + movies.length) %
-                                movies.length
+                                    movies.length
                             )
                         }
                         className="flex h-11 min-w-11 items-center justify-center rounded-full border border-white/16 bg-black/28 px-4 text-white backdrop-blur-md transition hover:bg-black/42"

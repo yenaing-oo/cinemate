@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import "~/styles/globals.css";
@@ -5,6 +6,14 @@ import { TRPCReactProvider } from "~/trpc/react";
 import { AuthButton } from "~/app/components/AuthButton";
 import MobileMenu from "~/app/MobileMenu";
 import { Toaster } from "@/components/ui/sonner";
+
+export const metadata: Metadata = {
+    icons: {
+        icon: "/favicon.png",
+        shortcut: "/favicon.png",
+        apple: "/favicon.png",
+    },
+};
 
 export default function RootLayout({
     children,

@@ -177,10 +177,9 @@ export default function SeatSelectionPage({
                                                 </span>
                                             </div>
                                             <p className="text-muted-foreground max-w-2xl text-sm leading-relaxed">
-                                                The map highlights the best
-                                                available seats first. You can
-                                                still change any unbooked seat
-                                                before continuing.
+                                                Review the auditorium layout and
+                                                choose any available seats
+                                                before you continue to payment.
                                             </p>
                                         </div>
                                         <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))] px-5 py-4 lg:min-w-[300px]">
@@ -205,17 +204,17 @@ export default function SeatSelectionPage({
                                 <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                                     <div>
                                         <p className="text-xs font-semibold tracking-[0.42em] text-slate-200/65 uppercase">
-                                            Auditorium View
+                                            Theatre Layout
                                         </p>
                                         <h2 className="mt-3 text-2xl font-semibold text-white">
-                                            Pick the seats that feel centered
+                                            Choose your seats
                                         </h2>
                                     </div>
                                     <div className="flex flex-wrap items-center gap-3">
                                         <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2.5">
                                             <span className="relative block h-5 w-6">
-                                                <span className="absolute inset-x-1 top-0 h-2 rounded-t-md bg-[#9dadd0]"></span>
-                                                <span className="absolute inset-x-0 top-2 h-2.5 rounded-md bg-[#3f547d]"></span>
+                                                <span className="absolute inset-x-1 top-0 h-2 rounded-t-md bg-[#90b4ff]"></span>
+                                                <span className="absolute inset-x-0 top-2 h-2.5 rounded-md bg-[#2f5fcb]"></span>
                                             </span>
                                             <span className="text-xs font-semibold tracking-[0.22em] text-slate-100/80 uppercase">
                                                 Available
@@ -223,8 +222,8 @@ export default function SeatSelectionPage({
                                         </div>
                                         <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2.5">
                                             <span className="relative block h-5 w-6">
-                                                <span className="absolute inset-x-1 top-0 h-2 rounded-t-md bg-[#667081]"></span>
-                                                <span className="absolute inset-x-0 top-2 h-2.5 rounded-md bg-[#313844]"></span>
+                                                <span className="absolute inset-x-1 top-0 h-2 rounded-t-md bg-[#8a909a]"></span>
+                                                <span className="absolute inset-x-0 top-2 h-2.5 rounded-md bg-[#5f6671]"></span>
                                             </span>
                                             <span className="text-xs font-semibold tracking-[0.22em] text-slate-100/80 uppercase">
                                                 Occupied
@@ -232,8 +231,8 @@ export default function SeatSelectionPage({
                                         </div>
                                         <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2.5">
                                             <span className="relative block h-5 w-6">
-                                                <span className="absolute inset-x-1 top-0 h-2 rounded-t-md bg-[#efd7ab]"></span>
-                                                <span className="absolute inset-x-0 top-2 h-2.5 rounded-md bg-[#b97f37]"></span>
+                                                <span className="absolute inset-x-1 top-0 h-2 rounded-t-md bg-[#f3d88d]"></span>
+                                                <span className="absolute inset-x-0 top-2 h-2.5 rounded-md bg-[#b36f18]"></span>
                                             </span>
                                             <span className="text-xs font-semibold tracking-[0.22em] text-slate-100/80 uppercase">
                                                 Selected

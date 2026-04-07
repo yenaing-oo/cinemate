@@ -54,8 +54,6 @@ export const MovieFullResponseSchema = z.object({
 export async function fetchNowPlaying(): Promise<
     z.infer<typeof NowPlayingResponseSchema>
 > {
-    console.log("Fetching now playing movies");
-
     const res = await fetch(
         // Use the Canada now-playing feed so the synced list matches this app's
         // market.
@@ -85,8 +83,6 @@ export async function fetchNowPlaying(): Promise<
 export async function fetchMovieFull(
     tmdbId: number
 ): Promise<z.infer<typeof MovieFullResponseSchema>> {
-    console.log("Fetching details for TMDB ID:", tmdbId);
-
     const res = await fetch(
         // Ask for credits and videos in one request so the sync job does not
         // need extra TMDB calls for the movie details page.
