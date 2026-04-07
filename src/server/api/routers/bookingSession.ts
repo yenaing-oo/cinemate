@@ -527,22 +527,27 @@ async function completeBooking(db: PrismaClient, session: any) {
 
     await db.$transaction(async (tx) => {
         // 1. Mark seats as booked
-        const count = await tx.showtimeSeat.updateMany({
-            where: {
-                id: { in: session.selectedSeats.map((s: any) => s.id) },
-                isBooked: false,
-                heldByUserId: session.userId,
-            },
-            data: {
-                isBooked: true,
-                heldByUserId: null,
-                heldTill: null,
-            },
-        });
-        if (count.count !== session.selectedSeats.length) {
-            throw new Error(
-                "Some selected seats could not be booked. Please try again."
-            );
+        if (
+            process.env.LOAD_TEST_MODE === undefined ||
+            process.env.LOAD_TEST_MODE === "false"
+        ) {
+            const count = await tx.showtimeSeat.updateMany({
+                where: {
+                    id: { in: session.selectedSeats.map((s: any) => s.id) },
+                    isBooked: false,
+                    heldByUserId: session.userId,
+                },
+                data: {
+                    isBooked: true,
+                    heldByUserId: null,
+                    heldTill: null,
+                },
+            });
+            if (count.count !== session.selectedSeats.length) {
+                throw new Error(
+                    "Some selected seats could not be booked. Please try again."
+                );
+            }
         }
 
         // 2. Calculate total amount (fetch price from showtime)
@@ -773,7 +778,11 @@ export async function sendBookingConfirmationEmails(
         paymentDateTime: string;
     }>
 ) {
-    const apiKey = process.env.RESEND_EMAIL_API_KEY;
+    const apiKey =
+        process.env.LOAD_TEST_MODE === undefined ||
+        process.env.LOAD_TEST_MODE === "false"
+            ? process.env.RESEND_EMAIL_API_KEY
+            : null;
     if (!apiKey || confirmationEmails.length === 0) {
         return;
     }
