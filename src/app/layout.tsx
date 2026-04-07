@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -73,7 +74,16 @@ export default function RootLayout({
                                     {/* RIGHT: SIGN IN/OUT */}
                                     <div className="flex justify-end">
                                         <div className="hidden justify-end md:flex">
-                                            <AuthButton />
+                                            <Suspense
+                                                fallback={
+                                                    <div
+                                                        aria-hidden="true"
+                                                        className="h-11 w-24 rounded-full border border-white/12 bg-white/5"
+                                                    />
+                                                }
+                                            >
+                                                <AuthButton />
+                                            </Suspense>
                                         </div>
                                         <MobileMenu />
                                     </div>
