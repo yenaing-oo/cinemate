@@ -3,6 +3,11 @@
 - [Architecture Overview](https://github.com/yenaing-oo/cinemate/wiki/Architecture)
 - [Project Proposal](https://github.com/yenaing-oo/cinemate/wiki/Project-Proposal)
 
+# 🌐 Live App
+
+Try the hosted application here:  
+👉 https://bookcinemate.me
+
 # Development Setup
 
 This guide will help you set up the development environment for Cinemate, a T3 stack application built with Next.js, TypeScript, Tailwind CSS, tRPC, Prisma, and NextAuth.
