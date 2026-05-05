@@ -118,13 +118,13 @@ export default function HomeHero({ movies }: HomeHeroProps) {
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/18" />
             <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/45 to-transparent" />
 
-            <div className="relative mx-auto flex h-[640px] w-full max-w-7xl flex-col justify-end overflow-hidden px-6 pt-28 pb-10 md:h-[720px] md:pt-32 md:pb-14">
+            <div className="relative mx-auto flex min-h-[640px] w-full max-w-7xl flex-col justify-end px-6 pt-28 pb-10 md:min-h-[720px] md:pt-32 md:pb-14">
                 <div className="grid items-end gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(240px,300px)] lg:gap-12">
                     <div className="max-w-3xl">
                         <p className="text-xs font-semibold tracking-[0.38em] text-white/74 uppercase">
                             Now Trending
                         </p>
-                        <h2 className="mt-4 line-clamp-2 min-h-[2.1em] text-4xl leading-none font-extrabold text-white drop-shadow-[0_12px_30px_rgba(0,0,0,0.45)] md:min-h-[2.05em] md:text-6xl lg:text-7xl">
+                        <h2 className="mt-4 text-4xl leading-none font-extrabold text-white drop-shadow-[0_12px_30px_rgba(0,0,0,0.45)] md:text-6xl lg:text-7xl">
                             {activeMovie.title}
                         </h2>
 
@@ -137,7 +137,7 @@ export default function HomeHero({ movies }: HomeHeroProps) {
                             </span>
                         </div>
 
-                        <p className="mt-6 line-clamp-3 min-h-[4.5em] max-w-2xl text-sm leading-relaxed text-white/80 md:min-h-[4.75em] md:text-base">
+                        <p className="mt-6 max-w-2xl text-sm leading-relaxed text-white/80 md:text-base">
                             {activeMovie.description}
                         </p>
 
