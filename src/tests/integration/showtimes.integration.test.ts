@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createCaller } from "~/server/api/root";
 import { db } from "~/server/db";
 
@@ -12,6 +12,9 @@ describe("Showtimes Integration Tests", () => {
     };
 
     beforeEach(async () => {
+        vi.useFakeTimers({ toFake: ["Date"] });
+        vi.setSystemTime(new Date("2026-04-01T12:00:00Z"));
+
         await cleanupDb();
 
         const movie1 = await db.movie.create({
@@ -69,6 +72,7 @@ describe("Showtimes Integration Tests", () => {
 
     afterEach(async () => {
         await cleanupDb();
+        vi.useRealTimers();
     });
 
     it("should return only upcoming showtimes belonging to the selected movie", async () => {
